@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>刷题列表 - 算法刷题指南</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    typography: {
+                        DEFAULT: {
+                            css: { maxWidth: '100%' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        :target { scroll-margin-top: 2rem; }
+        .problem-link { color: #2563eb; text-decoration: none; }
+        .problem-link:hover { color: #1d4ed8; text-decoration: underline; }
+        .checked { text-decoration: line-through; color: #9ca3af; }
+        .member-tag { background: #fef3c7; color: #92400e; font-size: 0.75rem; padding: 0.125rem 0.375rem; border-radius: 0.25rem; }
+    </style>
+</head>
+<body class="bg-gray-50 flex h-screen overflow-hidden text-gray-800 antialiased">
+
+    <!-- 左侧侧边栏导航 -->
+    <aside class="w-72 bg-white border-r border-gray-200 flex flex-col z-10 shadow-sm">
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-bold text-gray-800">目录导航</h2>
+            <p class="text-xs text-gray-500 mt-1">刷题进度自动保存</p>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 sidebar-scroll text-sm">
+            <ul class="space-y-3">
+                <li><a href="#old-list" class="font-bold text-blue-600 hover:text-blue-800">原有题单</a></li>
+                <li><a href="#chapter-01" class="hover:text-blue-600">1. 滑动窗口与双指针</a></li>
+                <li><a href="#chapter-02" class="hover:text-blue-600">2. 二分算法</a></li>
+                <li><a href="#chapter-03" class="hover:text-blue-600">3. 单调栈</a></li>
+                <li><a href="#chapter-04" class="hover:text-blue-600">4. 网格图</a></li>
+                <li><a href="#chapter-05" class="hover:text-blue-600">5. 位运算</a></li>
+                <li><a href="#chapter-06" class="hover:text-blue-600">6. 图论算法</a></li>
+                <li><a href="#chapter-07" class="hover:text-blue-600">7. 动态规划</a></li>
+                <li><a href="#chapter-08" class="hover:text-blue-600">8. 常用数据结构</a></li>
+                <li><a href="#chapter-09" class="hover:text-blue-600">9. 数学算法</a></li>
+                <li><a href="#chapter-10" class="hover:text-blue-600">10. 贪心与思维</a></li>
+                <li><a href="#chapter-11" class="hover:text-blue-600">11. 链表、二叉树与回溯</a></li>
+                <li><a href="#chapter-12" class="hover:text-blue-600">12. 字符串</a></li>
+            </ul>
+        </div>
+        <div class="p-4 border-t border-gray-200 bg-gray-50">
+            <button onclick="resetProgress()" class="w-full text-sm text-gray-500 hover:text-red-600">重置刷题进度</button>
+        </div>
+    </aside>
+
+    <!-- 右侧主内容 -->
+    <main class="flex-1 h-full overflow-y-auto bg-white">
+        <div class="p-8 md:p-12 lg:p-16 max-w-5xl mx-auto">
+            
+            <!-- 原有题单 -->
+            <section id="old-list">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-blue-500 pb-2">原有题单</h2>
+                <p class="text-gray-500 mb-4">原有高频算法题单，点击查看：<a href="chapter-old.html" class="text-blue-600 hover:underline">打开原有完整题单</a></p>
+            </section>
+
+            <!-- 12个章节 -->
+            <section id="chapter-01" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">1. 滑动窗口与双指针</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3578981/ti-dan-hua-dong-chuang-kou-ding-chang-bu-rzz7/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-01.html" class="text-indigo-600 hover:underline font-semibold">chapter-01.html - 滑动窗口与双指针完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-02" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">2. 二分算法</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/SqopEo/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-02.html" class="text-indigo-600 hover:underline font-semibold">chapter-02.html - 二分算法完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-03" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">3. 单调栈</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/circle/discuss/9oZFK9/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-03.html" class="text-indigo-600 hover:underline font-semibold">chapter-03.html - 单调栈完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-04" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">4. 网格图</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3580195/fen-xiang-gun-ti-dan-wang-ge-tu-dfsbfszo-l3pa/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-04.html" class="text-indigo-600 hover:underline font-semibold">chapter-04.html - 网格图完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-05" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">5. 位运算</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3580371/fen-xiang-gun-ti-dan-wei-yun-suan-ji-chu-nth4/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-05.html" class="text-indigo-600 hover:underline font-semibold">chapter-05.html - 位运算完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-06" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">6. 图论算法</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3581143/fen-xiang-gun-ti-dan-tu-lun-suan-fa-dfsb-qyux/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-06.html" class="text-indigo-600 hover:underline font-semibold">chapter-06.html - 图论算法完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-07" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">7. 动态规划</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3581838/fen-xiang-gun-ti-dan-dong-tai-gui-hua-ru-007o/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-07.html" class="text-indigo-600 hover:underline font-semibold">chapter-07.html - 动态规划完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-08" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">8. 常用数据结构</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/circle/discuss/mOr1u6/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-08.html" class="text-indigo-600 hover:underline font-semibold">chapter-08.html - 常用数据结构完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-09" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">9. 数学算法</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/circle/discuss/IYT3ss/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-09.html" class="text-indigo-600 hover:underline font-semibold">chapter-09.html - 数学算法完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-10" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">10. 贪心与思维</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/g6KTKL/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-10.html" class="text-indigo-600 hover:underline font-semibold">chapter-10.html - 贪心与思维完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-11" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">11. 链表、二叉树与回溯</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3142882/fen-xiang-gun-ti-dan-lian-biao-er-cha-sh-6srp/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-11.html" class="text-indigo-600 hover:underline font-semibold">chapter-11.html - 链表、二叉树与回溯完整版</a></p>
+                </div>
+            </section>
+
+            <section id="chapter-12" class="mt-12">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b-2 border-indigo-500 pb-2">12. 字符串</h2>
+                <p class="text-sm text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3144832/fen-xiang-gun-ti-dan-zi-fu-chuan-kmpzhan-ugt4/" target="_blank" class="text-blue-600 hover:underline">查看原题单</a></p>
+                <div class="space-y-2">
+                    <p>完整内容请查看：<a href="chapter-12.html" class="text-indigo-600 hover:underline font-semibold">chapter-12.html - 字符串完整版</a></p>
+                </div>
+            </section>
+
+            <div class="h-32"></div>
+        </div>
+    </main>
+
+    <script>
+        function resetProgress() {
+            if (confirm('确定要重置所有刷题进度吗？')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>

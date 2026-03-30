@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chapter-08 常用数据结构</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .problem-done { text-decoration: line-through; color: #9ca3af; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">chapter-08 常用数据结构</h1>
+        <p class="text-center text-gray-500 mb-4">来源：<a href="https://leetcode.cn/circle/discuss/mOr1u6/" target="_blank" class="text-blue-600 hover:underline">原题单</a></p>
+        
+        <h2 class="text-2xl font-bold mt-8 mb-4 text-blue-800">一、前缀和与差分</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="303"><a href="https://leetcode.cn/problems/range-sum-query-immutable/" target="_blank" class="text-blue-600 hover:underline">303. 区域和检索</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="304"><a href="https://leetcode.cn/problems/range-sum-query-2d-immutable/" target="_blank" class="text-blue-600 hover:underline">304. 二维区域和检索</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1109"><a href="https://leetcode.cn/problems/corporate-flight-bookings/" target="_blank" class="text-blue-600 hover:underline">1109. 航班预订统计</a></label></li>
+        </ul>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4 text-blue-800">二、栈与队列</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="20"><a href="https://leetcode.cn/problems/valid-parentheses/" target="_blank" class="text-blue-600 hover:underline">20. 有效的括号</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="155"><a href="https://leetcode.cn/problems/min-stack/" target="_blank" class="text-blue-600 hover:underline">155. 最小栈</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="232"><a href="https://leetcode.cn/problems/implement-queue-using-stacks/" target="_blank" class="text-blue-600 hover:underline">232. 用栈实现队列</a></label></li>
+        </ul>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4 text-blue-800">三、堆与优先队列</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="215"><a href="https://leetcode.cn/problems/kth-largest-element-in-an-array/" target="_blank" class="text-blue-600 hover:underline">215. 数组中的第K个最大元素</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="347"><a href="https://leetcode.cn/problems/top-k-frequent-elements/" target="_blank" class="text-blue-600 hover:underline">347. 前 K 个高频元素</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="239"><a href="https://leetcode.cn/problems/sliding-window-maximum/" target="_blank" class="text-blue-600 hover:underline">239. 滑动窗口最大值</a></label></li>
+        </ul>
+
+        <p class="text-center text-gray-500 mt-12">作者：灵茶山艾府 | <a href="https://leetcode.cn/circle/discuss/mOr1u6/" target="_blank" class="text-blue-600 hover:underline">原文链接</a></p>
+    </div>
+
+    <script>
+        const chapter = 'chapter-08';
+        const saved = JSON.parse(localStorage.getItem(chapter + '-progress') || '{}');
+        document.querySelectorAll('input[data-id]').forEach(cb => {
+            if (saved[cb.dataset.id]) cb.checked = true;
+            cb.addEventListener('change', function() {
+                const progress = JSON.parse(localStorage.getItem(chapter + '-progress') || '{}');
+                if (this.checked) progress[this.dataset.id] = true;
+                else delete progress[this.dataset.id];
+                localStorage.setItem(chapter + '-progress', JSON.stringify(progress));
+            });
+        });
+    </script>
+</body>
+</html>
