@@ -10,38 +10,71 @@
 
 <!-- Entry Screen -->
 <div id="entry-screen">
-  <div class="entry-blocks">
-    <div class="entry-block"></div>
-    <div class="entry-block"></div>
-    <div class="entry-block"></div>
-    <div class="entry-block"></div>
-    <div class="entry-block"></div>
+  <!-- Left: Profile -->
+  <div class="entry-left">
+    <div class="entry-profile-hero">
+      <img id="profile-avatar" src="" alt="avatar" class="profile-avatar">
+      <div class="profile-info">
+        <div class="profile-name" id="profile-name">zimingttkx</div>
+        <div class="profile-login" id="profile-login">@zimingttkx</div>
+        <div class="profile-bio" id="profile-bio">算法 · 机器学习 · 网络安全 · C++</div>
+        <div class="profile-stats">
+          <div class="profile-stat"><span id="stat-repos">4</span><br>仓库</div>
+          <div class="profile-stat"><span id="stat-followers">—</span><br>粉丝</div>
+          <div class="profile-stat"><span id="stat-following">—</span><br>关注</div>
+          <div class="profile-stat"><span id="stat-stars">—</span><br>Stars</div>
+        </div>
+        <a id="profile-link" href="https://github.com/zimingttkx" target="_blank" class="mc-btn mc-btn-sm" style="margin-top:10px;display:inline-block">&#x1F517; GitHub</a>
+      </div>
+    </div>
+    <div class="entry-profile-section">
+      <div class="profile-section-title">&#x1F4E6; 项目仓库</div>
+      <div class="repo-grid" id="repo-grid"><div class="profile-loading">加载中...</div></div>
+    </div>
+    <div class="entry-profile-section">
+      <div class="profile-section-title">&#x1F4CA; 最近动态</div>
+      <div class="events-list" id="events-list"><div class="profile-loading">加载中...</div></div>
+    </div>
   </div>
-  <div class="entry-title">&#x26CF; Algorithm Camp &#x26CF;</div>
-  <div class="entry-sub">题单来源：灵茶山艾府 · 个人刷题进度追踪</div>
-  <div class="entry-bar-wrap">
-    <div class="entry-bar-label" id="entry-label">Loading...</div>
-    <div class="entry-bar-outer"><div class="entry-bar-inner" id="entry-bar"></div></div>
+
+  <!-- Right: Entry -->
+  <div class="entry-right">
+    <div class="entry-blocks">
+      <div class="entry-block"></div>
+      <div class="entry-block"></div>
+      <div class="entry-block"></div>
+      <div class="entry-block"></div>
+      <div class="entry-block"></div>
+    </div>
+    <div class="entry-title">&#x26CF; Algorithm Camp &#x26CF;</div>
+    <div class="entry-sub">题单来源：灵茶山艾府 · 个人刷题进度追踪</div>
+    <div class="entry-bar-wrap">
+      <div class="entry-bar-label" id="entry-label">Loading...</div>
+      <div class="entry-bar-outer"><div class="entry-bar-inner" id="entry-bar"></div></div>
+    </div>
+    <div class="entry-btns">
+      <button class="mc-btn" id="enter-btn" style="display:none" onclick="enterApp()">&#x25B6; Enter Camp</button>
+    </div>
   </div>
-  <button class="mc-btn" id="enter-btn" style="display:none" onclick="enterApp()">&#x25B6; Enter Camp</button>
 </div>
 
 <!-- Main App -->
 <div id="app" style="display:none">
 
-  <!-- Bubble Map View (shown when no chapter selected) -->
+  <!-- Bubble Map View -->
   <div id="map-view">
     <div class="map-header">
       <div class="map-title">&#x26CF; 选择章节</div>
       <div class="map-subtitle">点击方块开始刷题 · 共 12 个专题</div>
-      <div class="map-global-stat">已完成 <span id="map-global-done">0</span> 题</div>
+      <div class="map-header-row">
+        <div class="map-global-stat">已完成 <span id="map-global-done">0</span> 题</div>
+      </div>
     </div>
     <div id="bubble-container"></div>
   </div>
 
-  <!-- Chapter View (shown when chapter selected) -->
+  <!-- Chapter View -->
   <div id="chapter-view" style="display:none">
-    <!-- Mini Nav -->
     <div id="mini-nav">
       <div class="mini-nav-header" onclick="backToMap()">
         <span class="back-arrow">&#x2190;</span>
@@ -55,7 +88,6 @@
         </div>
       </div>
     </div>
-    <!-- Problem Panel -->
     <main id="main">
       <div class="mc-loading">加载中...</div>
     </main>

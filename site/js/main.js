@@ -29,6 +29,7 @@ function startEntry() {
   const label = document.getElementById('entry-label');
   const btn = document.getElementById('enter-btn');
   let pct = 0;
+  loadProfile();
   const iv = setInterval(() => {
     pct += Math.random() * 9 + 3;
     if (pct >= 100) { pct = 100; clearInterval(iv); }
@@ -318,3 +319,118 @@ function updateStats() {
 document.addEventListener('DOMContentLoaded', () => {
   startEntry();
 });
+
+
+// ── Profile ──
+const GITHUB_USER = 'zimingttkx';
+const REPO_DATA = [
+  { name: 'AI-Practices', desc: '机器学习与深度学习实战教程 | Comprehensive ML & DL Tutorial with Jupyter Notebooks', stars: 403, forks: 62, lang: 'Jupyter Notebook', url: 'https://github.com/zimingttkx/AI-Practices' },
+  { name: 'Network-Security-Based-On-ML', desc: '基于机器学习的网络安全检测系统 | 集成Kitsune/LUCID算法 | 99.58%攻击检测准确率', stars: 153, forks: 0, lang: 'Python', url: 'https://github.com/zimingttkx/Network-Security-Based-On-ML' },
+  { name: 'cpp-from-scratch', desc: 'c++20 from-scratch implementations: LRU/LFU/ARC cache, red-black tree, memory pool, GC and more.', stars: 47, forks: 0, lang: 'C++', url: 'https://github.com/zimingttkx/cpp-from-scratch' },
+  { name: 'AlgorithmCamp', desc: '个人算法刷题进度追踪网站，基于灵茶山艾府题单', stars: 0, forks: 0, lang: 'CSS', url: 'https://github.com/zimingttkx/AlgorithmCamp' },
+];
+
+function loadProfile() {
+  // Static data we already know
+  document.getElementById('profile-name').textContent = 'zimingttkx';
+  document.getElementById('profile-login').textContent = '@zimingttkx';
+  document.getElementById('profile-bio').textContent = '算法 · 机器学习 · 网络安全 · C++';
+  document.getElementById('profile-link').href = 'https://github.com/' + GITHUB_USER;
+  document.getElementById('stat-repos').textContent = '4';
+  const totalStars = REPO_DATA.reduce((s, r) => s + r.stars, 0);
+  document.getElementById('stat-stars').textContent = totalStars;
+
+  // Fetch live data from GitHub API
+  fetch('https://api.github.com/users/' + GITHUB_USER)
+    .then(r => r.json())
+    .then(data => {
+      if (data.login) {
+        document.getElementById('profile-name').textContent = data.name || data.login;
+        document.getElementById('profile-login').textContent = '@' + data.login;
+        if (data.bio) document.getElementById('profile-bio').textContent = data.bio;
+        document.getElementById('profile-avatar').src = data.avatar_url;
+        document.getElementById('stat-repos').textContent = data.public_repos;
+        document.getElementById('stat-followers').textContent = data.followers;
+        document.getElementById('stat-following').textContent = data.following;
+      }
+    }).catch(() => {});
+
+  // Fetch repos live
+  fetch('https://api.github.com/users/' + GITHUB_USER + '/repos?sort=stars&per_page=8')
+    .then(r => r.json())
+    .then(repos => {
+      if (!Array.isArray(repos)) return;
+      const stars = repos.reduce((s, r) => s + r.stargazers_count, 0);
+      document.getElementById('stat-stars').textContent = stars;
+      renderRepos(repos.map(r => ({
+        name: r.name, desc: r.description || '', stars: r.stargazers_count,
+        forks: r.forks_count, lang: r.language || '', url: r.html_url
+      })));
+    }).catch(() => renderRepos(REPO_DATA));
+
+  // Fetch events
+  fetch('https://api.github.com/users/' + GITHUB_USER + '/events/public?per_page=15')
+    .then(r => r.json())
+    .then(events => { if (Array.isArray(events)) renderEvents(events); })
+    .catch(() => {
+      document.getElementById('events-list').innerHTML = '<div class="profile-loading">暂无动态数据（GitHub API 限流）</div>';
+    });
+
+  // Render static repos as fallback immediately
+  renderRepos(REPO_DATA);
+}
+
+function renderRepos(repos) {
+  const grid = document.getElementById('repo-grid');
+  if (!repos.length) { grid.innerHTML = '<div class="profile-loading">暂无仓库</div>'; return; }
+  grid.innerHTML = repos.map(r => `
+    <div class="repo-card">
+      <div class="repo-card-name"><a href="${r.url}" target="_blank" rel="noopener">${escHtml(r.name)}</a></div>
+      <div class="repo-card-desc">${escHtml(r.desc || '—')}</div>
+      <div class="repo-card-meta">
+        <span class="repo-star">&#x2605; ${r.stars}</span>
+        ${r.forks ? `<span class="repo-fork">&#x2442; ${r.forks}</span>` : ''}
+        ${r.lang ? `<span class="repo-lang">${escHtml(r.lang)}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderEvents(events) {
+  const list = document.getElementById('events-list');
+  const items = events.slice(0, 10).map(e => {
+    let icon = '&#x1F4C4;', desc = '';
+    if (e.type === 'PushEvent') {
+      icon = '&#x1F4E4;';
+      const commits = e.payload.commits || [];
+      desc = commits.length ? escHtml(commits[commits.length-1].message.split('\n')[0]) : 'Push';
+    } else if (e.type === 'CreateEvent') {
+      icon = '&#x2728;';
+      desc = '创建了 ' + (e.payload.ref_type || '') + ' ' + (e.payload.ref || '');
+    } else if (e.type === 'WatchEvent') {
+      icon = '&#x2B50;';
+      desc = 'Starred';
+    } else if (e.type === 'ForkEvent') {
+      icon = '&#x1F374;';
+      desc = 'Fork';
+    } else if (e.type === 'IssuesEvent') {
+      icon = '&#x1F4CB;';
+      desc = e.payload.action + ' issue: ' + (e.payload.issue ? escHtml(e.payload.issue.title) : '');
+    } else if (e.type === 'PullRequestEvent') {
+      icon = '&#x1F500;';
+      desc = e.payload.action + ' PR: ' + (e.payload.pull_request ? escHtml(e.payload.pull_request.title) : '');
+    } else {
+      desc = e.type.replace('Event','');
+    }
+    const time = new Date(e.created_at).toLocaleDateString('zh-CN');
+    return `<div class="event-item">
+      <div class="event-icon">${icon}</div>
+      <div class="event-body">
+        <div class="event-repo"><a href="https://github.com/${e.repo.name}" target="_blank" rel="noopener">${escHtml(e.repo.name)}</a></div>
+        <div class="event-desc">${desc}</div>
+        <div class="event-time">${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+  list.innerHTML = items || '<div class="profile-loading">暂无动态</div>';
+}
