@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chapter-04 网格图</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .problem-done { text-decoration: line-through; color: #9ca3af; }
+        .member-tag { background: #fef3c7; color: #92400e; font-size: 0.75rem; padding: 0.125rem 0.375rem; border-radius: 0.25rem; }
+        pre { background: #1f2937; color: #e5e7eb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+        code { font-family: 'Courier New', monospace; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">chapter-04 网格图</h1>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4">一、算法思路和模板</h2>
+
+        <h3 class="text-xl font-semibold mt-6 mb-2">1.1 网格图DFS模板（计算连通块大小）</h3>
+        <pre><code>// 网格图DFS模板 - 计算连通块大小
+int m = grid.size(), n = grid[0].size();
+int area = 0;
+function dfs(int x, int y) {
+    if (x < 0 || x >= m || y < 0 || y >= n || grid[x][y] != 1) return;
+    grid[x][y] = 0;  // 标记已访问
+    area++;
+    dfs(x + 1, y);
+    dfs(x - 1, y);
+    dfs(x, y + 1);
+    dfs(x, y - 1);
+}
+
+// 遍历所有格子
+for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+        if (grid[i][j] == 1) {
+            area = 0;
+            dfs(i, j);
+            // area 就是连通块的大小
+        }
+    }
+}</code></pre>
+
+        <h3 class="text-xl font-semibold mt-6 mb-2">1.2 网格图BFS模板（单源最短路）</h3>
+        <pre><code>// 网格图BFS模板 - 单源最短路
+vector&lt;vector&lt;int&gt;&gt; dist(m, vector&lt;int&gt;(n, -1));
+queue&lt;pair&lt;int, int&gt;&gt; q;
+q.emplace(sx, sy);
+dist[sx][sy] = 0;
+
+while (!q.empty()) {
+    auto [x, y] = q.front();
+    q.pop();
+    // 如果提前找到目标，可以在这里返回
+    // if (x == tx && y == ty) return dist[x][y];
+    for (auto& [nx, ny] : neighbors(x, y)) {
+        if (nx >= 0 && nx < m && ny >= 0 && ny < n && dist[nx][ny] == -1) {
+            dist[nx][ny] = dist[x][y] + 1;
+            q.emplace(nx, ny);
+        }
+    }
+}</code></pre>
+
+        <h3 class="text-xl font-semibold mt-6 mb-2">1.3 二叉树DFS与网格图DFS的区别</h3>
+        <div class="bg-white p-4 rounded-lg shadow mb-4">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="p-2">区别</th>
+                        <th class="p-2">二叉树DFS</th>
+                        <th class="p-2">网格图DFS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="p-2">方向</td>
+                        <td class="p-2">左右两个方向</td>
+                        <td class="p-2">上下左右四个方向</td>
+                    </tr>
+                    <tr>
+                        <td class="p-2">visited处理</td>
+                        <td class="p-2">通常不需要（无环）</td>
+                        <td class="p-2">必须标记已访问（可能有环）</td>
+                    </tr>
+                    <tr>
+                        <td class="p-2">边界条件</td>
+                        <td class="p-2">node == nullptr</td>
+                        <td class="p-2">越界或不符合条件</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4">二、网格图DFS</h2>
+
+        <h3 class="text-xl font-semibold mt-6 mb-2">§2.1 基础</h3>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="200"><a href="https://leetcode.cn/problems/number-of-islands/" target="_blank" class="text-blue-600 hover:underline">200. 岛屿数量</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="695"><a href="https://leetcode.cn/problems/max-area-of-island/" target="_blank" class="text-blue-600 hover:underline">695. 岛屿的最大面积</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="3619"><a href="https://leetcode.cn/problems/count-islands-divisible-by-k/" target="_blank" class="text-blue-600 hover:underline">3619. 总价值可以被K整除的岛屿数目</a></label> <span class="text-gray-500">2081</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2658"><a href="https://leetcode.cn/problems/maximum-number-of-fish-in-a-grid/" target="_blank" class="text-blue-600 hover:underline">2658. 网格图中鱼的最大数目</a></label> <span class="text-gray-500">2100</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="面试题16.19"><a href="https://leetcode.cn/problems池塘计数/" target="_blank" class="text-blue-600 hover:underline">面试题16.19. 水域大小</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="LCS03"><a href="https://leetcode.cn/problems/Y1AVSheet/" target="_blank" class="text-blue-600 hover:underline">LCS 03. 主题空间</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="463"><a href="https://leetcode.cn/problems/island-perimeter/" target="_blank" class="text-blue-600 hover:underline">463. 岛屿的周长</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="733"><a href="https://leetcode.cn/problems/flood-fill/" target="_blank" class="text-blue-600 hover:underline">733. 图像渲染</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1034"><a href="https://leetcode.cn/problems/coloring-a-border/" target="_blank" class="text-blue-600 hover:underline">1034. 边界着色</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1020"><a href="https://leetcode.cn/problems/number-of-enclaves/" target="_blank" class="text-blue-600 hover:underline">1020. 飞地的数量</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2684"><a href="https://leetcode.cn/problems/maximum-number-of-moves-in-a-grid/" target="_blank" class="text-blue-600 hover:underline">2684. 矩阵中移动的最大次数</a></label> <span class="text-gray-500">2208</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1254"><a href="https://leetcode.cn/problems/number-of-closed-islands/" target="_blank" class="text-blue-600 hover:underline">1254. 统计封闭岛屿的数目</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="130"><a href="https://leetcode.cn/problems/surrounded-regions/" target="_blank" class="text-blue-600 hover:underline">130. 被围绕的区域</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1905"><a href="https://leetcode.cn/problems/count-sub-islands/" target="_blank" class="text-blue-600 hover:underline">1905. 统计子岛屿</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1391"><a href="https://leetcode.cn/problems/check-if-there-is-a-valid-path-in-a-grid/" target="_blank" class="text-blue-600 hover:underline">1391. 检查网格中是否存在有效路径</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="417"><a href="https://leetcode.cn/problems/pacific-atlantic-water-flow/" target="_blank" class="text-blue-600 hover:underline">417. 太平洋大西洋水流问题</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="529"><a href="https://leetcode.cn/problems/minesweeper/" target="_blank" class="text-blue-600 hover:underline">529. 扫雷游戏</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1559"><a href="https://leetcode.cn/problems/detect-cycles-in-2d-grid/" target="_blank" class="text-blue-600 hover:underline">1559. 二维网格图中探测环</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="827"><a href="https://leetcode.cn/problems/making-a-large-island/" target="_blank" class="text-blue-600 hover:underline">827. 最大人工岛</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="LCP63"><a href="https://leetcode.cn/problems/NAQExZ/" target="_blank" class="text-blue-600 hover:underline">LCP 63. 弹珠游戏</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="305"><a href="https://leetcode.cn/problems/number-of-islands-ii/" target="_blank" class="text-blue-600 hover:underline">305. 岛屿数量 II</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2061"><a href="https://leetcode.cn/problems/cleaning-robot/" target="_blank" class="text-blue-600 hover:underline">2061. 扫地机器人清扫过的空间个数</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2852"><a href="https://leetcode.cn/problems/sum-of-total-distance-of-all-cell/" target="_blank" class="text-blue-600 hover:underline">2852. 所有单元格的远离程度之和</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="489"><a href="https://leetcode.cn/problems/robot-room-cleaner/" target="_blank" class="text-blue-600 hover:underline">489. 扫地机器人</a></label> <span class="member-tag">会员题</span></li>
+        </ul>
+
+        <h3 class="text-xl font-semibold mt-6 mb-2">§2.2 思维扩展</h3>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="1970"><a href="https://leetcode.cn/problems/last-day-where-you-can-still-cross/" target="_blank" class="text-blue-600 hover:underline">1970. 你能穿过矩阵的最后一天</a></label></li>
+        </ul>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4">三、网格图BFS</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="1926"><a href="https://leetcode.cn/problems/nearest-exit-from-entrance-in-maze/" target="_blank" class="text-blue-600 hover:underline">1926. 迷宫中离入口最近的出口</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1091"><a href="https://leetcode.cn/problems/shortest-path-in-binary-matrix/" target="_blank" class="text-blue-600 hover:underline">1091. 二进制矩阵中的最短路径</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1162"><a href="https://leetcode.cn/problems/as-far-from-land-as-possible/" target="_blank" class="text-blue-600 hover:underline">1162. 地图分析</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="542"><a href="https://leetcode.cn/problems/01-matrix/" target="_blank" class="text-blue-600 hover:underline">542. 01矩阵</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="994"><a href="https://leetcode.cn/problems/rotting-oranges/" target="_blank" class="text-blue-600 hover:underline">994. 腐烂的橘子</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1765"><a href="https://leetcode.cn/problems/map-of-highest-peak/" target="_blank" class="text-blue-600 hover:underline">1765. 地图中的最高点</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="934"><a href="https://leetcode.cn/problems/shortest-bridge/" target="_blank" class="text-blue-600 hover:underline">934. 最短的桥</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2146"><a href="https://leetcode.cn/problems/rank-k-by-items-with-prices/" target="_blank" class="text-blue-600 hover:underline">2146. 价格范围内最高排名的K样物品</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1293"><a href="https://leetcode.cn/problems/shortest-path-in-a-grid-with-obstacles-elimination/" target="_blank" class="text-blue-600 hover:underline">1293. 网格中的最短路径</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="909"><a href="https://leetcode.cn/problems/snakes-and-ladders/" target="_blank" class="text-blue-600 hover:underline">909. 蛇梯棋</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1210"><a href="https://leetcode.cn/problems/minimum-moves-to-reach-target-with-rotations/" target="_blank" class="text-blue-600 hover:underline">1210. 穿过迷宫的最少移动次数</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="675"><a href="https://leetcode.cn/problems/cut-off-trees-for-golf-event/" target="_blank" class="text-blue-600 hover:underline">675. 为高尔夫比赛砍树</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2812"><a href="https://leetcode.cn/problems/find-the-safest-path-in-a-grid/" target="_blank" class="text-blue-600 hover:underline">2812. 找出最安全路径</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="749"><a href="https://leetcode.cn/problems/contain-virus/" target="_blank" class="text-blue-600 hover:underline">749. 隔离病毒</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1730"><a href="https://leetcode.cn/problems-shortest-path-to-get-food/" target="_blank" class="text-blue-600 hover:underline">1730. 获取食物的最短路径</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="286"><a href="https://leetcode.cn/problems/walls-and-gates/" target="_blank" class="text-blue-600 hover:underline">286. 墙与门</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="490"><a href="https://leetcode.cn/problems/the-maze/" target="_blank" class="text-blue-600 hover:underline">490. 迷宫</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="505"><a href="https://leetcode.cn/problems/the-maze-ii/" target="_blank" class="text-blue-600 hover:underline">505. 迷宫 II</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="499"><a href="https://leetcode.cn/problems/the-maze-iii/" target="_blank" class="text-blue-600 hover:underline">499. 迷宫 III</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="317"><a href="https://leetcode.cn/problems/shortest-distance-from-all-buildings/" target="_blank" class="text-blue-600 hover:underline">317. 离建筑物最近的距离</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2814"><a href="https://leetcode.cn/problems/minimum-time-to-survive/" target="_blank" class="text-blue-600 hover:underline">2814. 避免淹死并到达目的地的最短时间</a></label> <span class="member-tag">会员题</span></li>
+        </ul>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4">四、网格图0-1 BFS</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="3286"><a href="https://leetcode.cn/problems/find-unsafe-segments-in-a-grid/" target="_blank" class="text-blue-600 hover:underline">3286. 穿越网格图的安全路径</a></label> <span class="text-gray-500">1970</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2290"><a href="https://leetcode.cn/problems/minimum-obstacle-removal-to-reach-corner/" target="_blank" class="text-blue-600 hover:underline">2290. 到达角落需要移除障碍物的最小数目</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1368"><a href="https://leetcode.cn/problems/minimum-cost-to-make-at-least-one-valid-path-in-a-grid/" target="_blank" class="text-blue-600 hover:underline">1368. 使网格图至少有一条有效路径的最小代价</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="3552"><a href="https://leetcode.cn/problems/traveling-with-a-porter/" target="_blank" class="text-blue-600 hover:underline">3552. 网格传送门旅游</a></label> <span class="text-gray-500">2142</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1824"><a href="https://leetcode.cn/problems/minimum-sideway-jumps/" target="_blank" class="text-blue-600 hover:underline">1824. 最少侧跳次数</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="LCP56"><a href="https://leetcode.cn/problems/True77A/" target="_blank" class="text-blue-600 hover:underline">LCP 56. 信物传送</a></label></li>
+        </ul>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4">五、网格图Dijkstra</h2>
+        <p class="text-gray-600 mb-4">（见图论题单中的单源最短路）</p>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4">六、综合应用</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="1631"><a href="https://leetcode.cn/problems/minimum-effort-path/" target="_blank" class="text-blue-600 hover:underline">1631. 最小体力消耗路径</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="778"><a href="https://leetcode.cn/problems/swim-in-rising-water/" target="_blank" class="text-blue-600 hover:underline">778. 水位上升的泳池中游泳</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="329"><a href="https://leetcode.cn/problems/longest-increasing-path-in-a-matrix/" target="_blank" class="text-blue-600 hover:underline">329. 矩阵中的最长递增路径</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="3568"><a href="https://leetcode.cn/problems/minimum-moves-to-clean-the-classroom/" target="_blank" class="text-blue-600 hover:underline">3568. 清理教室的最少移动</a></label> <span class="text-gray-500">2136</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1036"><a href="https://leetcode.cn/problems/escape-a-large-maze/" target="_blank" class="text-blue-600 hover:underline">1036. 逃离大迷宫</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="864"><a href="https://leetcode.cn/problems/shortest-path-to-get-all-keys/" target="_blank" class="text-blue-600 hover:underline">864. 获取所有钥匙的最短路径</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1263"><a href="https://leetcode.cn/problems/minimum-moves-to-move-a-box-to-their-target-location/" target="_blank" class="text-blue-600 hover:underline">1263. 推箱子</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2258"><a href="https://leetcode.cn/problems/minimum-moves-to-escape-from-fire/" target="_blank" class="text-blue-600 hover:underline">2258. 逃离火灾</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2556"><a href="https://leetcode.cn/problems/disconnect-path-in-a-binary-matrix-by-at-most-one-flip/" target="_blank" class="text-blue-600 hover:underline">2556. 二进制矩阵中翻转最多一次使路径不连通</a></label> <span class="text-gray-500">2373</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2577"><a href="https://leetcode.cn/problems/minimum-time-to-visit-a-cell-in-a-grid/" target="_blank" class="text-blue-600 hover:underline">2577. 在网格图中访问一个格子的最少时间</a></label> <span class="text-gray-500">2403</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="2617"><a href="https://leetcode.cn/problems/minimum-number-of-visited-cells-in-a-grid/" target="_blank" class="text-blue-600 hover:underline">2617. 网格图中最少访问的格子数</a></label> <span class="text-gray-500">2429</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="LCP13"><a href="https://leetcode.cn/problems/ShuBL1/" target="_blank" class="text-blue-600 hover:underline">LCP 13. 寻宝</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="LCP31"><a href="https://leetcode.cn/problems/52VrWy/" target="_blank" class="text-blue-600 hover:underline">LCP 31. 变换的迷宫</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="LCP45"><a href="https://leetcode.cn/problems/MtcWz7/" target="_blank" class="text-blue-600 hover:underline">LCP 45. 自行车炫技赛场</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="LCP75"><a href="https://leetcode.cn/problems/UEcfPD/" target="_blank" class="text-blue-600 hover:underline">LCP 75. 传送卷轴</a></label> <span class="text-gray-500">2689</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1778"><a href="https://leetcode.cn/problems/shortest-path-in-a-hidden-grid/" target="_blank" class="text-blue-600 hover:underline">1778. 未知网格中的最短路径</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="694"><a href="https://leetcode.cn/problems/number-of-distinct-islands/" target="_blank" class="text-blue-600 hover:underline">694. 不同岛屿的数量</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="711"><a href="https://leetcode.cn/problems/number-of-distinct-islands-ii/" target="_blank" class="text-blue-600 hover:underline">711. 不同岛屿的数量 II</a></label> <span class="member-tag">会员题</span></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1102"><a href="https://leetcode.cn/problems/path-with-maximum-minimum-value/" target="_blank" class="text-blue-600 hover:underline">1102. 得分最高的路径</a></label> <span class="member-tag">会员题</span></li>
+        </ul>
+
+        <p class="text-center text-gray-500 mt-12">作者：灵茶山艾府 | <a href="https://leetcode.cn/discuss/post/3578981/" target="_blank" class="text-blue-600 hover:underline">原文链接</a></p>
+    </div>
+
+    <script>
+        // Load saved progress
+        const saved = JSON.parse(localStorage.getItem('chapter-04-progress') || '{}');
+        document.querySelectorAll('input[data-id]').forEach(cb => {
+            if (saved[cb.dataset.id]) {
+                cb.checked = true;
+                cb.parentElement.classList.add('problem-done');
+            }
+            cb.addEventListener('change', function() {
+                const progress = JSON.parse(localStorage.getItem('chapter-04-progress') || '{}');
+                if (this.checked) {
+                    progress[this.dataset.id] = true;
+                    this.parentElement.classList.add('problem-done');
+                } else {
+                    delete progress[this.dataset.id];
+                    this.parentElement.classList.remove('problem-done');
+                }
+                localStorage.setItem('chapter-04-progress', JSON.stringify(progress));
+            });
+        });
+    </script>
+</body>
+</html>

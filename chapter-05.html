@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chapter-05 位运算</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .problem-done { text-decoration: line-through; color: #9ca3af; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">chapter-05 位运算</h1>
+        <p class="text-center text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3580371/" target="_blank" class="text-blue-600 hover:underline">原题单</a></p>
+        
+        <h2 class="text-2xl font-bold mt-8 mb-4 text-blue-800">一、基础</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="136"><a href="https://leetcode.cn/problems/single-number/" target="_blank" class="text-blue-600 hover:underline">136. 只出现一次的数字</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="268"><a href="https://leetcode.cn/problems/missing-number/" target="_blank" class="text-blue-600 hover:underline">268. 丢失的数字</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="191"><a href="https://leetcode.cn/problems/number-of-1-bits/" target="_blank" class="text-blue-600 hover:underline">191. 位1的个数</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="231"><a href="https://leetcode.cn/problems/power-of-two/" target="_blank" class="text-blue-600 hover:underline">231. 2的幂</a></label></li>
+        </ul>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4 text-blue-800">二、性质与技巧</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="338"><a href="https://leetcode.cn/problems/counting-bits/" target="_blank" class="text-blue-600 hover:underline">338. 比特位计数</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="342"><a href="https://leetcode.cn/problems/power-of-four/" target="_blank" class="text-blue-600 hover:underline">342. 4的幂</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="190"><a href="https://leetcode.cn/problems/reverse-bits/" target="_blank" class="text-blue-600 hover:underline">190. 颠倒二进制位</a></label></li>
+        </ul>
+
+        <p class="text-center text-gray-500 mt-12">作者：灵茶山艾府 | <a href="https://leetcode.cn/discuss/post/3580371/" target="_blank" class="text-blue-600 hover:underline">原文链接</a></p>
+    </div>
+
+    <script>
+        const chapter = 'chapter-05';
+        const saved = JSON.parse(localStorage.getItem(chapter + '-progress') || '{}');
+        document.querySelectorAll('input[data-id]').forEach(cb => {
+            if (saved[cb.dataset.id]) cb.checked = true;
+            cb.addEventListener('change', function() {
+                const progress = JSON.parse(localStorage.getItem(chapter + '-progress') || '{}');
+                if (this.checked) progress[this.dataset.id] = true;
+                else delete progress[this.dataset.id];
+                localStorage.setItem(chapter + '-progress', JSON.stringify(progress));
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chapter-06 图论算法</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .problem-done { text-decoration: line-through; color: #9ca3af; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">chapter-06 图论算法</h1>
+        <p class="text-center text-gray-500 mb-4">来源：<a href="https://leetcode.cn/discuss/post/3581143/" target="_blank" class="text-blue-600 hover:underline">原题单</a></p>
+        
+        <h2 class="text-2xl font-bold mt-8 mb-4 text-blue-800">一、DFS/BFS</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="133"><a href="https://leetcode.cn/problems/clone-graph/" target="_blank" class="text-blue-600 hover:underline">133. 克隆图</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="841"><a href="https://leetcode.cn/problems/keys-and-rooms/" target="_blank" class="text-blue-600 hover:underline">841. 钥匙和房间</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="743"><a href="https://leetcode.cn/problems/network-delay-time/" target="_blank" class="text-blue-600 hover:underline">743. 网络延迟时间</a></label></li>
+        </ul>
+
+        <h2 class="text-2xl font-bold mt-8 mb-4 text-blue-800">二、最短路</h2>
+        <ul class="space-y-2 ml-4">
+            <li><label><input type="checkbox" class="mr-2" data-id="787"><a href="https://leetcode.cn/problems/cheapest-flights-within-k-stops/" target="_blank" class="text-blue-600 hover:underline">787. K站中转内最便宜的航班</a></label></li>
+            <li><label><input type="checkbox" class="mr-2" data-id="1514"><a href="https://leetcode.cn/problems/path-with-maximum-probability/" target="_blank" class="text-blue-600 hover:underline">1514. 概率最大的路径</a></label></li>
+        </ul>
+
+        <p class="text-center text-gray-500 mt-12">作者：灵茶山艾府 | <a href="https://leetcode.cn/discuss/post/3581143/" target="_blank" class="text-blue-600 hover:underline">原文链接</a></p>
+    </div>
+
+    <script>
+        const chapter = 'chapter-06';
+        const saved = JSON.parse(localStorage.getItem(chapter + '-progress') || '{}');
+        document.querySelectorAll('input[data-id]').forEach(cb => {
+            if (saved[cb.dataset.id]) cb.checked = true;
+            cb.addEventListener('change', function() {
+                const progress = JSON.parse(localStorage.getItem(chapter + '-progress') || '{}');
+                if (this.checked) progress[this.dataset.id] = true;
+                else delete progress[this.dataset.id];
+                localStorage.setItem(chapter + '-progress', JSON.stringify(progress));
+            });
+        });
+    </script>
+</body>
+</html>

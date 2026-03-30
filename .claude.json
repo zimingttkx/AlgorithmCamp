@@ -1,0 +1,7 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://new.zixiuyun.top",
+    "ANTHROPIC_API_KEY": "sk-EgFASlMAL3phlis0U2UsFtZu4mtTGHCZeUoCzk0ApLPzajo5"
+  },
+  "model": "glm-5"
+}
