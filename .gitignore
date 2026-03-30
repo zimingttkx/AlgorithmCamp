@@ -1,0 +1,9 @@
+# Python scripts (not needed for the site)
+*.py
+slug_map.json
+__pycache__/
+*.pyc
+
+# AlgorithmCamp questions source (large, not needed for site)
+AlgorithmCamp/
+notes/

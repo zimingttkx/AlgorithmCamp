@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algorithm Camp · 刷题进度追踪</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Entry Screen -->
+<div id="entry-screen">
+  <div class="entry-blocks">
+    <div class="entry-block"></div>
+    <div class="entry-block"></div>
+    <div class="entry-block"></div>
+    <div class="entry-block"></div>
+    <div class="entry-block"></div>
+  </div>
+  <div class="entry-title">&#x26CF; Algorithm Camp &#x26CF;</div>
+  <div class="entry-sub">题单来源：灵茶山艾府 · 个人刷题进度追踪</div>
+  <div class="entry-bar-wrap">
+    <div class="entry-bar-label" id="entry-label">Loading...</div>
+    <div class="entry-bar-outer"><div class="entry-bar-inner" id="entry-bar"></div></div>
+  </div>
+  <button class="mc-btn" id="enter-btn" style="display:none" onclick="enterApp()">&#x25B6; Enter Camp</button>
+</div>
+
+<!-- Main App -->
+<div id="app" style="display:none">
+
+  <!-- Bubble Map View (shown when no chapter selected) -->
+  <div id="map-view">
+    <div class="map-header">
+      <div class="map-title">&#x26CF; 选择章节</div>
+      <div class="map-subtitle">点击方块开始刷题 · 共 12 个专题</div>
+      <div class="map-global-stat">已完成 <span id="map-global-done">0</span> 题</div>
+    </div>
+    <div id="bubble-container"></div>
+  </div>
+
+  <!-- Chapter View (shown when chapter selected) -->
+  <div id="chapter-view" style="display:none">
+    <!-- Mini Nav -->
+    <div id="mini-nav">
+      <div class="mini-nav-header" onclick="backToMap()">
+        <span class="back-arrow">&#x2190;</span>
+        <span>章节地图</span>
+      </div>
+      <div id="mini-nav-list"></div>
+      <div class="mini-global-progress">
+        <div class="prog-label">全站 <span id="global-pct">0%</span></div>
+        <div class="mc-progress-outer">
+          <div class="mc-progress-inner" id="global-progress" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Problem Panel -->
+    <main id="main">
+      <div class="mc-loading">加载中...</div>
+    </main>
+  </div>
+
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>
