@@ -2,7 +2,6 @@
   <div id="app" :class="isDark ? 'theme-dark' : 'theme-light'">
     <div class="scanlines"></div>
     <canvas ref="particleCanvas" id="particle-canvas"></canvas>
-    <!-- Ambient background particles -->
     <canvas ref="ambientCanvas" id="ambient-canvas"></canvas>
     <NavBar />
     <router-view v-slot="{ Component }">
@@ -10,22 +9,30 @@
         <component :is="Component" />
       </transition>
     </router-view>
+    <Footer />
+    <button class="back-to-top" :class="{ visible: showBackTop }" @click="scrollToTop" aria-label="Back to top">&#9650;</button>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import NavBar from './components/NavBar.vue'
+import Footer from './components/Footer.vue'
 import { useTheme } from './composables/theme.js'
 
 const { isDark, init: initTheme } = useTheme()
 
 const particleCanvas = ref(null)
 const ambientCanvas = ref(null)
+const showBackTop = ref(false)
 let animId = null
 let ambientAnimId = null
 let particles = []
 let ambientParticles = []
+let pageVisible = true
+
+// Respect prefers-reduced-motion
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 function getThemeColors() {
   return isDark.value
@@ -35,30 +42,30 @@ function getThemeColors() {
 
 // Mouse trail particles
 function initMouseCanvas() {
+  if (prefersReduced) return
   const canvas = particleCanvas.value
   const ctx = canvas.getContext('2d')
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
 
-  window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-  })
+  const onResize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
+  window.addEventListener('resize', onResize)
 
   window.addEventListener('mousemove', (e) => {
+    if (!pageVisible) return
     const colors = getThemeColors()
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       particles.push({
         x: e.clientX, y: e.clientY,
         vx: (Math.random() - 0.5) * 2.5,
         vy: (Math.random() - 0.5) * 2.5 - 0.5,
         life: 1,
-        decay: 0.025 + Math.random() * 0.03,
+        decay: 0.03 + Math.random() * 0.03,
         size: 2 + Math.random() * 3,
         color: colors[Math.floor(Math.random() * colors.length)]
       })
     }
-    if (particles.length > 250) particles.splice(0, particles.length - 250)
+    if (particles.length > 200) particles.splice(0, particles.length - 200)
   })
 
   function loop() {
@@ -70,7 +77,7 @@ function initMouseCanvas() {
       ctx.globalAlpha = p.life
       ctx.fillStyle = p.color
       ctx.shadowColor = p.color
-      ctx.shadowBlur = 8
+      ctx.shadowBlur = 6
       ctx.fillRect(Math.round(p.x), Math.round(p.y), Math.round(p.size), Math.round(p.size))
       ctx.restore()
     }
@@ -81,6 +88,7 @@ function initMouseCanvas() {
 
 // Ambient floating particles
 function initAmbientCanvas() {
+  if (prefersReduced) return
   const canvas = ambientCanvas.value
   const ctx = canvas.getContext('2d')
   canvas.width = window.innerWidth
@@ -95,15 +103,15 @@ function initAmbientCanvas() {
   function spawnAmbient() {
     ambientParticles = []
     const colors = getThemeColors()
-    const count = Math.floor(window.innerWidth / 20)
+    const count = Math.min(Math.floor(window.innerWidth / 30), 60)
     for (let i = 0; i < count; i++) {
       ambientParticles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: (Math.random() - 0.5) * 0.3,
-        vy: -0.2 - Math.random() * 0.4,
+        vy: -0.15 - Math.random() * 0.3,
         size: 1 + Math.random() * 2,
-        alpha: 0.1 + Math.random() * 0.3,
+        alpha: 0.08 + Math.random() * 0.2,
         color: colors[Math.floor(Math.random() * colors.length)]
       })
     }
@@ -111,6 +119,7 @@ function initAmbientCanvas() {
   spawnAmbient()
 
   function loop() {
+    if (!pageVisible) { ambientAnimId = requestAnimationFrame(loop); return }
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     for (const p of ambientParticles) {
       p.x += p.vx; p.y += p.vy
@@ -121,7 +130,7 @@ function initAmbientCanvas() {
       ctx.globalAlpha = p.alpha
       ctx.fillStyle = p.color
       ctx.shadowColor = p.color
-      ctx.shadowBlur = 4
+      ctx.shadowBlur = 3
       ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size)
       ctx.restore()
     }
@@ -130,14 +139,31 @@ function initAmbientCanvas() {
   loop()
 }
 
+// Pause animations when page is hidden
+function handleVisibility() {
+  pageVisible = !document.hidden
+}
+
+// Back to top
+function onScroll() {
+  showBackTop.value = window.scrollY > 400
+}
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 onMounted(() => {
   initTheme()
   initMouseCanvas()
   initAmbientCanvas()
+  document.addEventListener('visibilitychange', handleVisibility)
+  window.addEventListener('scroll', onScroll, { passive: true })
 })
 onUnmounted(() => {
   if (animId) cancelAnimationFrame(animId)
   if (ambientAnimId) cancelAnimationFrame(ambientAnimId)
+  document.removeEventListener('visibilitychange', handleVisibility)
+  window.removeEventListener('scroll', onScroll)
 })
 </script>
 
@@ -166,6 +192,7 @@ onUnmounted(() => {
 
 /* Theme transitions */
 *, *::before, *::after {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease,
+              color 0.2s ease, box-shadow 0.3s ease;
 }
 </style>

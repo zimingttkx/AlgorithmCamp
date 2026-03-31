@@ -53,7 +53,8 @@
     <section class="section container reveal" ref="sec0">
       <div class="section-title">{{ t('明星项目', 'FEATURED PROJECTS') }}</div>
       <div class="feat-grid">
-        <div v-for="p in featuredProjects" :key="p.name" class="feat-card pixel-card"
+        <div v-for="(p, i) in featuredProjects" :key="p.name" class="feat-card pixel-card stagger-card"
+          :style="{ animationDelay: (i * 0.15) + 's' }"
           @click="openProjectModal(p)">
           <div class="feat-card-top">
             <span class="feat-lang-dot" :style="{background: p.langColor}"></span>
@@ -333,27 +334,33 @@ onMounted(() => {
 .hero-btns { display: flex; flex-wrap: wrap; gap: 12px; }
 
 .hero-right { display: flex; flex-direction: column; align-items: center; gap: 24px; flex-shrink: 0; }
-.hero-avatar-wrap { position: relative; width: 140px; height: 140px; }
+.hero-avatar-wrap { position: relative; width: 180px; height: 180px; }
 .hero-avatar {
-  width: 140px; height: 140px;
+  width: 180px; height: 180px;
   border: 3px solid var(--neon-blue);
-  box-shadow: 0 0 24px rgba(0,243,255,0.6);
+  box-shadow: 0 0 32px rgba(0,243,255,0.5);
   image-rendering: pixelated;
   animation: float 4s ease-in-out infinite;
   display: block;
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
 }
-.avatar-ring { position: absolute; inset: -12px; border: 2px solid var(--neon-purple); opacity: 0.6; animation: neonPulse 2s ease-in-out infinite; }
-.ring2 { inset: -22px; border-color: var(--neon-cyan); opacity: 0.3; animation-delay: 1s; }
+.avatar-ring { position: absolute; inset: -14px; border: 2px solid var(--neon-purple); opacity: 0.6; animation: neonPulse 2s ease-in-out infinite; clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
+.ring2 { inset: -26px; border-color: var(--neon-cyan); opacity: 0.3; animation-delay: 1s; }
 .hero-stats { display: flex; gap: 12px; }
 .hstat { text-align: center; padding: 12px 16px; min-width: 64px; }
 .hstat-val { font-size: 1rem; }
 .hstat-label { font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; }
 
-.section { padding: 60px 0; }
+.section { padding: 80px 0; }
+.section:nth-child(2) { padding: 64px 0; }
+.section:nth-child(3) { padding: 48px 0; }
 
 .feat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 16px; }
-.feat-card { cursor: pointer; padding: 20px; transition: transform 0.2s; }
-.feat-card:hover { transform: translate(-3px,-3px); }
+.feat-card { cursor: pointer; padding: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.feat-card:hover { transform: translateY(-4px); }
+.feat-card:nth-child(1) { animation-delay: 0.1s; }
+.feat-card:nth-child(2) { animation-delay: 0.2s; }
+.feat-card:nth-child(3) { animation-delay: 0.3s; }
 .feat-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .feat-lang-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .feat-lang { font-size: .75rem; color: var(--text-dim); flex: 1; }
@@ -371,8 +378,8 @@ onMounted(() => {
 .ch-mini-pct { font-size: .42rem; }
 
 .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; }
-.blog-card { cursor: pointer; transition: transform 0.2s; }
-.blog-card:hover { transform: translate(-3px,-3px); }
+.blog-card { cursor: pointer; }
+.blog-card:hover { transform: translateY(-4px); }
 .blog-card-date { font-size: .42rem; color: var(--text-dim); margin-bottom: 8px; }
 .blog-card-title { font-size: .95rem; margin-bottom: 8px; color: var(--text-main); font-weight: 600; }
 .blog-card-desc { font-size: .8rem; color: var(--text-dim); margin-bottom: 12px; line-height: 1.6; }

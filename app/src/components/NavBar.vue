@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar">
+  <nav class="navbar" :class="{ hidden: navHidden }">
     <div class="nav-inner">
       <router-link to="/" class="nav-logo pixel-font">
         <span class="logo-bracket glow-cyan">[</span>
@@ -18,7 +18,7 @@
       <button class="theme-btn pixel-font" @click="toggleTheme" :title="isDark ? 'Light Mode' : 'Dark Mode'">
         {{ isDark ? '☀' : '◐' }}
       </button>
-      <button class="nav-mobile-btn" @click="menuOpen = !menuOpen" aria-label="menu">
+      <button class="nav-mobile-btn" :class="{ open: menuOpen }" @click="menuOpen = !menuOpen" aria-label="menu">
         <span></span><span></span><span></span>
       </button>
     </div>
@@ -27,7 +27,7 @@
         :to="item.path" class="nav-link pixel-font"
         @click="menuOpen = false"
       >{{ item.label }}</router-link>
-      <button class="lang-btn pixel-font" @click="toggle; menuOpen=false" style="margin:8px 16px;width:fit-content">
+      <button class="lang-btn pixel-font" @click="toggleLang(); menuOpen=false" style="margin:8px 16px;width:fit-content">
         {{ isZh ? 'EN' : '中' }}
       </button>
     </div>
@@ -35,13 +35,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { useTheme } from '../composables/theme.js'
 
 const { isZh, toggle: toggleLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
 const menuOpen = ref(false)
+const navHidden = ref(false)
 
 const navItems = computed(() => isZh.value ? [
   { path: '/',         label: '首页' },
@@ -56,6 +57,21 @@ const navItems = computed(() => isZh.value ? [
   { path: '/projects', label: 'PROJECTS' },
   { path: '/practice', label: 'PRACTICE' },
 ])
+
+// Scroll hide/show
+let lastScrollY = 0
+function onScroll() {
+  const currentY = window.scrollY
+  navHidden.value = currentY > 80 && currentY > lastScrollY
+  lastScrollY = currentY
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+})
 </script>
 
 <style scoped>
@@ -63,10 +79,15 @@ const navItems = computed(() => isZh.value ? [
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 9000;
-  background: rgba(12,12,20,0.95);
-  border-bottom: 2px solid var(--neon-blue);
-  box-shadow: 0 0 20px rgba(0,243,255,0.3);
-  backdrop-filter: blur(10px);
+  background: var(--nav-bg);
+  border-bottom: 1px solid rgba(0,243,255,0.2);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, border-color 0.3s;
+}
+.navbar.hidden {
+  transform: translateY(-100%);
 }
 .nav-inner {
   max-width: 1100px;
@@ -94,15 +115,30 @@ const navItems = computed(() => isZh.value ? [
   font-size: 0.5rem;
   padding: 6px 14px;
   text-decoration: none;
-  color: #9090b0;
+  color: var(--text-dim);
   border: 1px solid transparent;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.08em;
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--neon-cyan);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-50%);
+}
+.nav-link:hover::after,
+.nav-link.active::after,
+.nav-link.router-link-active::after {
+  width: 80%;
 }
 .nav-link:hover, .nav-link.active, .nav-link.router-link-active {
   color: var(--neon-cyan);
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 10px rgba(0,255,204,0.4);
   text-shadow: 0 0 8px var(--neon-cyan);
 }
 .theme-btn {
@@ -112,7 +148,7 @@ const navItems = computed(() => isZh.value ? [
   color: var(--neon-yellow);
   border: 1px solid var(--neon-yellow);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
 }
 .theme-btn:hover {
@@ -127,7 +163,7 @@ const navItems = computed(() => isZh.value ? [
   color: var(--neon-purple);
   border: 1px solid var(--neon-purple);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
   letter-spacing: 0.05em;
 }
@@ -150,15 +186,25 @@ const navItems = computed(() => isZh.value ? [
   width: 22px; height: 2px;
   background: var(--neon-cyan);
   box-shadow: 0 0 4px var(--neon-cyan);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.nav-mobile-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-mobile-btn.open span:nth-child(2) { opacity: 0; }
+.nav-mobile-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 .nav-mobile-menu {
-  display: none;
+  max-height: 0;
+  overflow: hidden;
   flex-direction: column;
   gap: 2px;
-  padding: 8px 24px 12px;
-  background: rgba(12,12,20,0.98);
+  padding: 0 24px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(16px);
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s;
 }
-.nav-mobile-menu.open { display: flex; }
+.nav-mobile-menu.open {
+  max-height: 320px;
+  padding: 8px 24px 12px;
+}
 @media (max-width: 700px) {
   .nav-links { display: none; }
   .nav-mobile-btn { display: flex; margin-left: auto; }

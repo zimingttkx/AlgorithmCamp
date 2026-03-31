@@ -5,6 +5,7 @@ import Blog from '../views/Blog.vue'
 import BlogPost from '../views/BlogPost.vue'
 import Projects from '../views/Projects.vue'
 import Practice from '../views/Practice.vue'
+import NotFound from '../views/NotFound.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -13,6 +14,7 @@ const routes = [
   { path: '/blog/:id', component: BlogPost },
   { path: '/projects', component: Projects },
   { path: '/practice', component: Practice },
+  { path: '/:pathMatch(.*)+', component: NotFound },
 ]
 
 export default createRouter({
