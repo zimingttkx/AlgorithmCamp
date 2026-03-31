@@ -190,8 +190,9 @@ onUnmounted(() => {
   );
 }
 
-/* Theme transitions */
-*, *::before, *::after {
+/* Theme transitions - only applied to interactive elements */
+.pixel-btn, .pixel-card, .nav-link, .theme-btn, .lang-btn, .modal-close,
+.back-to-top {
   transition: background-color 0.3s ease, border-color 0.3s ease,
               color 0.2s ease, box-shadow 0.3s ease;
 }
