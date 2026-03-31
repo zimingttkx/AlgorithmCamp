@@ -1,17 +1,17 @@
 <template>
-  <div class="projects-page" style="padding-top:56px">
+  <div class="projects-page" style="padding-top:64px">
     <div class="container">
       <div class="page-header">
         <div class="section-title">{{ t('GitHub 项目', 'GitHub Projects') }}</div>
         <p class="page-sub">{{ t('开源仓库 · 实战项目', 'Open Source · Real Projects') }}</p>
       </div>
 
-      <div v-if="loading" class="proj-loading pixel-font">FETCHING REPOS...</div>
+      <div v-if="loading" class="proj-loading">FETCHING REPOS...</div>
       <div v-else class="proj-grid">
         <div v-for="repo in repos" :key="repo.id" class="pixel-card proj-card" @click="openModal(repo)">
           <div class="proj-card-top">
             <div class="proj-name">{{ repo.name }}</div>
-            <span class="proj-expand pixel-font">▶</span>
+            <span class="proj-expand">▶</span>
           </div>
           <p class="proj-desc">{{ repo.description || t('暂无描述', 'No description') }}</p>
           <div class="proj-meta">
@@ -22,7 +22,7 @@
             <span class="proj-stat">⭐ {{ repo.stargazers_count }}</span>
             <span class="proj-stat">🍴 {{ repo.forks_count }}</span>
           </div>
-          <div class="proj-updated pixel-font">{{ t('更新', 'Updated') }}: {{ formatDate(repo.pushed_at) }}</div>
+          <div class="proj-updated">{{ t('更新', 'Updated') }}: {{ formatDate(repo.pushed_at) }}</div>
         </div>
       </div>
     </div>
@@ -145,7 +145,7 @@ onMounted(async () => {
 .page-sub { color: var(--text-dim); font-size: 0.85rem; margin-top: -16px; }
 
 .proj-loading {
-  font-size: 0.55rem; color: var(--neon-cyan);
+  font-size: 0.9rem; color: var(--neon-cyan);
   text-align: center; padding: 80px;
   animation: blink 1s step-end infinite;
 }
@@ -161,7 +161,7 @@ onMounted(async () => {
 .proj-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
 .proj-name { font-size: 0.95rem; font-weight: 700; color: var(--neon-blue); word-break: break-all; }
 .proj-expand {
-  font-size: 0.38rem;
+  font-size: 0.85rem;
   color: var(--neon-cyan);
   border: 1px solid var(--neon-cyan);
   padding: 3px 8px;
@@ -174,7 +174,7 @@ onMounted(async () => {
 .proj-lang { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; color: var(--text-main); }
 .lang-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .proj-stat { font-size: 0.78rem; color: var(--text-dim); }
-.proj-updated { font-size: 0.38rem; color: var(--text-dim); margin-top: 4px; letter-spacing: 0.05em; }
+.proj-updated { font-size: 0.85rem; color: var(--text-dim); margin-top: 4px; letter-spacing: 0.02em; }
 
 /* Modal */
 .modal-overlay {

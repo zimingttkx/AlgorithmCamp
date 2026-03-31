@@ -9,11 +9,11 @@
       </div>
       <div class="footer-links">
         <router-link to="/about">{{ t('关于', 'About') }}</router-link>
-        <router-link to="/projects">{{ t('项目', 'Projects') }}</router-link>
         <router-link to="/practice">{{ t('刷题', 'Practice') }}</router-link>
+        <router-link to="/blog">{{ t('分享', 'Share') }}</router-link>
         <a href="https://github.com/zimingttkx" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <div class="footer-copy pixel-font">
+      <div class="footer-copy">
         &copy; {{ year }} zimingttkx · {{ t('保留所有权利', 'All rights reserved') }}
       </div>
     </div>
@@ -67,8 +67,8 @@ const year = new Date().getFullYear()
   color: var(--neon-cyan);
 }
 .footer-copy {
-  font-size: 0.35rem;
+  font-size: 0.85rem;
   color: var(--text-dim);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
 }
 </style>

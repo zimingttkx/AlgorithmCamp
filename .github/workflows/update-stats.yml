@@ -1,0 +1,137 @@
+name: Update GitHub Stats
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 每天UTC 02:00 (北京时间10:00) 自动运行
+  workflow_dispatch:       # 支持手动触发
+
+permissions:
+  contents: write         # 需要写权限以提交 stats.json
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch GitHub Commit Stats
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          USERNAME="zimingttkx"
+          TODAY=$(date -u +%Y-%m-%d)
+          ONE_YEAR_AGO=$(date -u -d '1 year ago' +%Y-%m-%d)
+
+          echo "Fetching commits for $USERNAME from $ONE_YEAR_AGO to $TODAY..."
+
+          # 使用 search/commits API 按月查询，避免1000条限制
+          declare -A daily_counts
+          total_commits=0
+
+          # 按月遍历
+          current="$ONE_YEAR_AGO"
+          while [ "$current" \< "$TODAY" ] || [ "$current" = "$TODAY" ]; do
+            # 获取当月起始和结束日期
+            month_start="$current"
+            month_end=$(date -u -d "$current + 1 month - 1 day" +%Y-%m-%d 2>/dev/null || date -u -d "$current next month -1 day" +%Y-%m-%d)
+
+            # 不超过今天
+            if [ "$month_end" \> "$TODAY" ]; then
+              month_end="$TODAY"
+            fi
+
+            echo "  Querying $month_start to $month_end..."
+
+            # 使用 search/commits API
+            page=1
+            while true; do
+              response=$(gh api search/commits \
+                -f "q=author:$USERNAME author-date:$month_start..$month_end" \
+                -f "per_page=100" \
+                -f "page=$page" \
+                --jq '.items[].commit.author.date' 2>/dev/null || echo "")
+
+              if [ -z "$response" ]; then
+                break
+              fi
+
+              # 统计每天commit数
+              while IFS= read -r date_str; do
+                if [ -n "$date_str" ]; then
+                  day=$(echo "$date_str" | cut -dT -f1)
+                  daily_counts["$day"]=$((${daily_counts["$day"]:-0} + 1))
+                  total_commits=$((total_commits + 1))
+                fi
+              done <<< "$response"
+
+              page=$((page + 1))
+              # 超过10页就停止（已经很多了）
+              if [ $page -gt 10 ]; then
+                break
+              fi
+            done
+
+            # 下个月
+            current=$(date -u -d "$current + 1 month" +%Y-%m-%d 2>/dev/null || date -u -d "$month_start next month" +%Y-%m-%d)
+          done
+
+          echo "Total commits found: $total_commits"
+
+          # 计算 streak
+          current_streak=0
+          longest_streak=0
+          temp_streak=0
+
+          # 获取所有日期排序
+          all_dates=$(echo "${!daily_counts[@]}" | tr ' ' '\n' | sort)
+
+          for d in $all_dates; do
+            if [ "${daily_counts[$d]}" -gt 0 ]; then
+              temp_streak=$((temp_streak + 1))
+              if [ $temp_streak -gt $longest_streak ]; then
+                longest_streak=$temp_streak
+              fi
+            else
+              temp_streak=0
+            fi
+          done
+
+          # 计算当前连续天数（从今天往回数）
+          check_date="$TODAY"
+          if [ "${daily_counts[$check_date]:-0}" -eq 0 ]; then
+            check_date=$(date -u -d "$check_date - 1 day" +%Y-%m-%d)
+          fi
+          while [ "${daily_counts[$check_date]:-0}" -gt 0 ]; do
+            current_streak=$((current_streak + 1))
+            check_date=$(date -u -d "$check_date - 1 day" +%Y-%m-%d)
+          done
+
+          # 生成 JSON
+          echo "{"
+          echo "  \"totalCommits\": $total_commits,"
+          echo "  \"currentStreak\": $current_streak,"
+          echo "  \"longestStreak\": $longest_streak,"
+          echo "  \"calendar\": {"
+
+          first=true
+          for d in $(echo "${!daily_counts[@]}" | tr ' ' '\n' | sort); do
+            if [ "$first" = true ]; then
+              first=false
+            else
+              echo ","
+            fi
+            printf '    "%s": %d' "$d" "${daily_counts[$d]}"
+          done
+
+          echo ""
+          echo "  },"
+          echo "  \"updatedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\""
+          echo "}" > app/public/stats.json
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/public/stats.json
+          git diff --cached --quiet || git commit -m "chore: update GitHub stats [skip deploy]"
+          git push

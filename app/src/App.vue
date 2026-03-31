@@ -36,8 +36,8 @@ const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').mat
 
 function getThemeColors() {
   return isDark.value
-    ? ['#00f3ff','#d040ff','#00ffcc','#ff2eb0']
-    : ['#0080cc','#8800cc','#00aa88','#cc0077']
+    ? ['#0EA5E9','#d040ff','#00ffcc','#ff2eb0']
+    : ['#0077b6','#7b2cbf','#009688','#c2185b']
 }
 
 // Mouse trail particles

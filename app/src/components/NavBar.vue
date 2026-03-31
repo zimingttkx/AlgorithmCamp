@@ -8,14 +8,14 @@
       </router-link>
       <div class="nav-links">
         <router-link v-for="item in navItems" :key="item.path"
-          :to="item.path" class="nav-link pixel-font"
+          :to="item.path" class="nav-link"
           :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path) && item.path !== '/') }"
         >{{ item.label }}</router-link>
       </div>
-      <button class="lang-btn pixel-font" @click="toggleLang" :title="isZh ? 'Switch to English' : '切换中文'">
+      <button class="lang-btn" @click="toggleLang" :title="isZh ? 'Switch to English' : '切换中文'">
         {{ isZh ? 'EN' : '中' }}
       </button>
-      <button class="theme-btn pixel-font" @click="toggleTheme" :title="isDark ? 'Light Mode' : 'Dark Mode'">
+      <button class="theme-btn" @click="toggleTheme" :title="isDark ? 'Light Mode' : 'Dark Mode'">
         {{ isDark ? '☀' : '◐' }}
       </button>
       <button class="nav-mobile-btn" :class="{ open: menuOpen }" @click="menuOpen = !menuOpen" aria-label="menu">
@@ -24,10 +24,10 @@
     </div>
     <div class="nav-mobile-menu" :class="{ open: menuOpen }">
       <router-link v-for="item in navItems" :key="item.path"
-        :to="item.path" class="nav-link pixel-font"
+        :to="item.path" class="nav-link"
         @click="menuOpen = false"
       >{{ item.label }}</router-link>
-      <button class="lang-btn pixel-font" @click="toggleLang(); menuOpen=false" style="margin:8px 16px;width:fit-content">
+      <button class="lang-btn" @click="toggleLang(); menuOpen=false" style="margin:8px 16px;width:fit-content">
         {{ isZh ? 'EN' : '中' }}
       </button>
     </div>
@@ -46,16 +46,14 @@ const navHidden = ref(false)
 
 const navItems = computed(() => isZh.value ? [
   { path: '/',         label: '首页' },
-  { path: '/about',    label: '关于我' },
-  { path: '/blog',     label: '文章' },
-  { path: '/projects', label: '项目' },
   { path: '/practice', label: '刷题' },
+  { path: '/blog',     label: '分享' },
+  { path: '/about',    label: '关于' },
 ] : [
   { path: '/',         label: 'HOME' },
-  { path: '/about',    label: 'ABOUT' },
-  { path: '/blog',     label: 'BLOG' },
-  { path: '/projects', label: 'PROJECTS' },
   { path: '/practice', label: 'PRACTICE' },
+  { path: '/blog',     label: 'SHARE' },
+  { path: '/about',    label: 'ABOUT' },
 ])
 
 // Scroll hide/show
@@ -78,22 +76,22 @@ onUnmounted(() => {
 .navbar {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: 9000;
-  background: var(--nav-bg);
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.8);
   border-bottom: 1px solid rgba(0,243,255,0.2);
   box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, border-color 0.3s;
 }
 .navbar.hidden {
   transform: translateY(-100%);
 }
 .nav-inner {
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
-  height: 56px;
+  height: 64px;
   display: flex;
   align-items: center;
   gap: 24px;
@@ -112,13 +110,15 @@ onUnmounted(() => {
   justify-content: flex-end;
 }
 .nav-link {
-  font-size: 0.5rem;
+  font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
+  font-size: 1rem;
+  font-weight: 400;
   padding: 6px 14px;
   text-decoration: none;
   color: var(--text-dim);
   border: 1px solid transparent;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   position: relative;
 }
 .nav-link::after {
@@ -127,10 +127,13 @@ onUnmounted(() => {
   bottom: -1px;
   left: 50%;
   width: 0;
-  height: 2px;
+  height: 3px;
   background: var(--neon-cyan);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateX(-50%);
+}
+.nav-link:hover {
+  transform: translateY(-2px);
 }
 .nav-link:hover::after,
 .nav-link.active::after,
@@ -139,10 +142,15 @@ onUnmounted(() => {
 }
 .nav-link:hover, .nav-link.active, .nav-link.router-link-active {
   color: var(--neon-cyan);
+  font-weight: 600;
   text-shadow: 0 0 8px var(--neon-cyan);
 }
+.nav-link.active, .nav-link.router-link-active {
+  font-weight: 700;
+}
 .theme-btn {
-  font-size: 0.72rem;
+  font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
+  font-size: 0.85rem;
   padding: 5px 9px;
   background: transparent;
   color: var(--neon-yellow);
@@ -157,7 +165,8 @@ onUnmounted(() => {
   box-shadow: 0 0 10px rgba(255,230,0,0.6);
 }
 .lang-btn {
-  font-size: 0.48rem;
+  font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
+  font-size: 0.85rem;
   padding: 5px 10px;
   background: transparent;
   color: var(--neon-purple);
@@ -197,17 +206,17 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 2px;
   padding: 0 24px;
-  background: var(--nav-bg);
-  backdrop-filter: blur(16px);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
   transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s;
 }
 .nav-mobile-menu.open {
-  max-height: 320px;
+  max-height: 400px;
   padding: 8px 24px 12px;
 }
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .nav-links { display: none; }
+  .theme-btn { display: none; }
   .nav-mobile-btn { display: flex; margin-left: auto; }
-  .lang-btn { display: none; }
 }
 </style>

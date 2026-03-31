@@ -1,14 +1,14 @@
 <template>
-  <div class="blog-post-page" style="padding-top:56px">
+  <div class="blog-post-page" style="padding-top:64px">
     <div class="container post-container">
       <div class="post-back">
         <button class="pixel-btn pixel-btn-purple" @click="$router.push('/blog')">◀ 返回列表</button>
       </div>
-      <div v-if="loading" class="post-loading pixel-font">LOADING...</div>
-      <div v-else-if="error" class="post-error pixel-font">{{ error }}</div>
+      <div v-if="loading" class="post-loading">LOADING...</div>
+      <div v-else-if="error" class="post-error">{{ error }}</div>
       <article v-else class="post-article">
         <div class="post-meta">
-          <span class="pixel-font post-date">{{ post.date }}</span>
+          <span class="post-date">{{ post.date }}</span>
           <span v-for="t in post.tags" :key="t" class="pixel-tag">{{ t }}</span>
         </div>
         <h1 class="post-title pixel-font glow-blue">{{ post.title }}</h1>
@@ -66,36 +66,34 @@ watch(() => route.params.id, id => loadPost(id))
 .post-container { max-width: 780px; padding: 40px 24px 80px; }
 .post-back { margin-bottom: 28px; }
 .post-loading, .post-error {
-  font-size: 0.6rem;
+  font-size: 0.9rem;
   color: var(--neon-cyan);
   padding: 60px;
   text-align: center;
   animation: blink 1s step-end infinite;
 }
 .post-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.post-date { font-size: 0.42rem; color: var(--text-dim); }
+.post-date { font-size: 0.85rem; color: var(--text-dim); }
 .post-title { font-size: clamp(0.8rem, 2vw, 1.2rem); margin-bottom: 32px; line-height: 1.6; }
 
 .post-content { color: var(--text-main); line-height: 1.9; font-size: 0.95rem; }
 .post-content :deep(h1),
 .post-content :deep(h2),
 .post-content :deep(h3) {
-  font-family: 'Press Start 2P', monospace;
   color: var(--neon-cyan);
-  text-shadow: 0 0 8px var(--neon-cyan);
   margin: 32px 0 16px;
 }
-.post-content :deep(h1) { font-size: 0.9rem; }
-.post-content :deep(h2) { font-size: 0.75rem; }
-.post-content :deep(h3) { font-size: 0.62rem; color: var(--neon-purple); text-shadow: 0 0 8px var(--neon-purple); }
+.post-content :deep(h1) { font-family: 'Press Start 2P', monospace; font-size: 1.1rem; text-shadow: 0 0 8px var(--neon-cyan); }
+.post-content :deep(h2) { font-family: 'Ubuntu Mono', Consolas, Monaco, monospace; font-size: 1.2rem; font-weight: 600; text-shadow: 0 0 6px var(--neon-cyan); }
+.post-content :deep(h3) { font-family: 'Ubuntu Mono', Consolas, Monaco, monospace; font-size: 1.1rem; font-weight: 600; color: var(--neon-purple); }
 .post-content :deep(p) { margin-bottom: 16px; }
 .post-content :deep(a) { color: var(--neon-blue); text-decoration: none; border-bottom: 1px solid var(--neon-blue); }
 .post-content :deep(code) {
-  font-family: 'Courier New', monospace;
+  font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
   background: #1a1a2e;
   padding: 2px 6px;
   border: 1px solid var(--border-pixel);
-  font-size: 0.85em;
+  font-size: 0.9em;
   color: var(--neon-cyan);
 }
 .post-content :deep(pre) {
@@ -125,8 +123,8 @@ watch(() => route.params.id, id => loadPost(id))
   background: var(--bg-panel);
   border: 1px solid var(--border-pixel);
   padding: 8px 12px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--neon-cyan);
 }
 .post-content :deep(td) {
