@@ -9,10 +9,11 @@ const lines = [
   '(async()=>{',
 
   // Step 1: get current username
-  `  const r1=await fetch('${LC_URL}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:'query{userStatus{username isSignedIn slug}}'})} );`,
+  // Note: isSignedIn = daily check-in status, NOT login status; use username to detect login
+  `  const r1=await fetch('${LC_URL}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:'query{userStatus{username slug}}'})} );`,
   '  const d1=await r1.json();',
   '  const us=d1?.data?.userStatus;',
-  `  if(!us?.isSignedIn||!us?.username){alert('未检测到登录状态，请在 leetcode.cn 登录后刷新页面重试');return;}`,
+  `  if(!us?.username){alert('未检测到登录状态，请在 leetcode.cn 登录后刷新页面重试\\n调试: '+JSON.stringify(d1));return;}`,
   '  const user=us.username;',
   '  const slug=us.slug||us.username;',
 
