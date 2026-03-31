@@ -109,10 +109,15 @@
             <h3 class="step-title">{{ t('使用步骤', 'How to use') }}</h3>
             <ol class="step-list">
               <li>{{ t('打开 leetcode.cn 并登录你的账号', 'Open leetcode.cn and login to your account') }}</li>
-              <li>{{ t('按 F12 打开浏览器开发者工具', 'Press F12 to open Developer Tools') }}</li>
-              <li>{{ t('切换到 Console（控制台）标签页', 'Switch to Console tab') }}</li>
-              <li>{{ t('复制下方脚本，粘贴到控制台并回车执行', 'Copy the script below, paste in Console and press Enter') }}</li>
-              <li>{{ t('脚本会自动复制结果到剪贴板，然后点击下方"粘贴导入"按钮', 'Script will copy result to clipboard, then click "Paste & Import" below') }}</li>
+              <li>
+                <span v-html="t(
+                  '打开浏览器开发者工具：<br><b>Mac</b>：按 <kbd>Option+Cmd+J</kbd> 或菜单 → 开发者工具<br><b>Windows/Linux</b>：按 <kbd>F12</kbd> 或 <kbd>Ctrl+Shift+J</kbd>',
+                  'Open DevTools:<br><b>Mac</b>: Press <kbd>Option+Cmd+J</kbd> or menu → Developer Tools<br><b>Windows/Linux</b>: Press <kbd>F12</kbd> or <kbd>Ctrl+Shift+J</kbd>'
+                )"></span>
+              </li>
+              <li>{{ t('切换到 Console（控制台）标签页', 'Switch to the Console tab') }}</li>
+              <li>{{ t('点击下方「复制」按钮复制脚本，粘贴到控制台后按回车执行', 'Click the "Copy" button below, paste into Console and press Enter') }}</li>
+              <li>{{ t('脚本执行完毕后会弹出提示，然后点击下方「粘贴导入」按钮', 'After the script finishes, an alert will appear — then click "Paste &amp; Import" below') }}</li>
             </ol>
           </div>
 
@@ -138,6 +143,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { CHAPTERS } from '../composables/data.js'
 import { useLang } from '../composables/i18n.js'
+import { leetcodeScript } from '../composables/lcScript.js'
 
 const { t } = useLang()
 
@@ -281,38 +287,6 @@ function updateTotals(ch) {
   localStorage.setItem(TOTALS_KEY, JSON.stringify(totals.value))
 }
 
-// LeetCode sync script (runs on leetcode.cn console)
-const leetcodeScript = `// LeetCode.cn AC Problems Exporter
-(async()=>{
-  const q=\`query userProblems($userSlug:String!){
-    userProfileUserQuestionProgress(userSlug:$userSlug){numAcceptedQuestions}
-    userProfileUserQuestionSubmitSlug(userSlug:$userSlug){
-      submittedQuestions{
-        totalSubmissionNum
-        question{
-          questionFrontendId
-          title
-          titleSlug
-        }
-      }
-    }
-  }\`;
-  const userSlug=document.cookie.match(/LEETCODE_SESSION=([^;]+)/)?await fetch('https://leetcode.cn/graphql',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({query:'query{userStatus{username}}'})
-  }).then(r=>r.json()).then(d=>d.data?.userStatus?.username):null;
-  if(!userSlug){alert('请先登录 LeetCode.cn');return}
-  const r=await fetch('https://leetcode.cn/graphql',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({query:q,variables:{userSlug}})
-  });
-  const data=await r.json();
-  const submitted=data.data?.userProfileUserQuestionSubmitSlug?.submittedQuestions||[];
-  const acIds=submitted.filter(q=>q.totalSubmissionNum>0).map(q=>q.question.questionFrontendId);
-  const result={source:'leetcode-cn',acIds,exportedAt:new Date().toISOString()};
-  await navigator.clipboard.writeText(JSON.stringify(result));
-  alert('已复制 '+acIds.length+' 道AC题目ID到剪贴板！\\n请回到刷题网站点击"粘贴导入"');
-})();`
 
 function copyScript() {
   navigator.clipboard.writeText(leetcodeScript)
@@ -604,5 +578,16 @@ onMounted(() => { loadStorage() })
   font-size: .45rem;
   color: var(--neon-cyan);
   letter-spacing: .05em;
+}
+
+.step-list kbd {
+  display: inline-block;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-pixel);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: .75em;
+  color: var(--neon-cyan);
+  font-family: 'Courier New', monospace;
 }
 </style>

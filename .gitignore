@@ -11,3 +11,6 @@ notes/
 # Claude AI config (contains API keys)
 .claude.json
 .claude/
+
+# Auto Claude data directory
+.auto-claude/
