@@ -7,3 +7,7 @@ __pycache__/
 # AlgorithmCamp questions source (large, not needed for site)
 AlgorithmCamp/
 notes/
+
+# Claude AI config (contains API keys)
+.claude.json
+.claude/
