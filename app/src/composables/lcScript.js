@@ -1,27 +1,29 @@
 // LeetCode sync script generator
-// Stored in a plain .js file (not a Vue SFC) to avoid Vue compiler parsing issues.
+// Uses userProfileUserQuestionProgress to get all AC problem IDs
+// This avoids the submissionList API which requires a non-empty questionSlug
 
 const LC_URL = 'https://leetcode.cn/graphql'
 
+// Each line is a single-quoted string; inner strings use double quotes to avoid conflicts
 const lines = [
   '(async()=>{',
-  `  const r1=await fetch('${LC_URL}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:'query{userStatus{username isSignedIn}}'})} );`,
+
+  // Step 1: get current username
+  `  const r1=await fetch('${LC_URL}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:'query{userStatus{username isSignedIn slug}}'})} );`,
   '  const d1=await r1.json();',
   '  const us=d1?.data?.userStatus;',
   `  if(!us?.isSignedIn||!us?.username){alert('未检测到登录状态，请在 leetcode.cn 登录后刷新页面重试');return;}`,
   '  const user=us.username;',
-  '  const acSet=new Set();let offset=0,limit=20;',
-  `  const gql='query(${'$'}skip:Int!,${'$'}limit:Int!){submissionList(offset:${'$'}skip,limit:${'$'}limit){submissions{statusDisplay question{questionFrontendId}}}}';`,
-  '  while(true){',
-  `    const r2=await fetch('${LC_URL}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:gql,variables:{skip:offset,limit:limit}})});`,
-  '    const pd=await r2.json();',
-  '    const subs=(pd?.data?.submissionList?.submissions)||[];',
-  '    if(!subs.length)break;',
-  `    subs.filter(s=>s.statusDisplay==='Accepted').forEach(s=>acSet.add(s.question.questionFrontendId));`,
-  '    if(subs.length<limit)break;',
-  '    offset+=limit;await new Promise(r=>setTimeout(r,300));',
-  '  }',
-  '  const acIds=[...acSet];',
+  '  const slug=us.slug||us.username;',
+
+  // Step 2: fetch AC problem list via userProfileUserQuestionProgress
+  `  const gql='query(${'$'}slug:String!){userProfileUserQuestionProgress(userSlug:${'$'}slug){numAcceptedQuestions{difficulty count} acSubmissionNum{difficulty count} solvedBeatsStats{difficulty percentage} userSessionBeatsPercentage{difficulty percentage} questions{translatedTitle difficulty questionFrontendId status}}}';`,
+  `  const r2=await fetch('${LC_URL}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:gql,variables:{slug:slug}})});`,
+  '  const d2=await r2.json();',
+  '  const questions=d2?.data?.userProfileUserQuestionProgress?.questions||[];',
+  `  const acIds=questions.filter(q=>q.status==='ac'||q.status==='AC'||q.status==='ACCEPTED').map(q=>q.questionFrontendId);`,
+
+  // Step 3: export
   `  const result={source:'leetcode-cn',user,acIds,exportedAt:new Date().toISOString()};`,
   '  const out=JSON.stringify(result);',
   '  try{await navigator.clipboard.writeText(out);}catch(e){',
