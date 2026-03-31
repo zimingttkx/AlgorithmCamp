@@ -1,24 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-:root {
+/* ── Dark theme (default) ── */
+:root, [data-theme="dark"] {
   --neon-blue: #00f3ff;
-  --neon-purple: #bf00ff;
+  --neon-purple: #d040ff;
   --neon-cyan: #00ffcc;
-  --neon-pink: #ff00aa;
-  --neon-yellow: #ffff00;
-  --bg-dark: #0a0a0f;
-  --bg-panel: #10101a;
-  --bg-card: #14141f;
-  --border-pixel: #2a2a4a;
-  --text-main: #e0e0f0;
-  --text-dim: #7070a0;
-  --mc-grass: #5a8a2a;
+  --neon-pink: #ff2eb0;
+  --neon-yellow: #ffe600;
+  --bg-dark: #0e0e1a;
+  --bg-panel: #14142a;
+  --bg-card: #1a1a30;
+  --border-pixel: #35356a;
+  --text-main: #f0f0ff;
+  --text-dim: #9090c0;
+  --mc-gold: #f0c030;
   --mc-grass-top: #7cc427;
   --mc-dirt: #8b6340;
   --mc-stone: #7a7a7a;
   --mc-diamond: #4de3e3;
-  --mc-gold: #f0c030;
   --mc-sky-dark: #1a1a2e;
+  --scanline-opacity: 0.04;
+}
+
+/* ── Light theme ── */
+[data-theme="light"] {
+  --neon-blue: #0080cc;
+  --neon-purple: #8800cc;
+  --neon-cyan: #00aa88;
+  --neon-pink: #cc0077;
+  --neon-yellow: #cc9900;
+  --bg-dark: #f0f0f8;
+  --bg-panel: #e4e4f0;
+  --bg-card: #ffffff;
+  --border-pixel: #c0c0d8;
+  --text-main: #1a1a3a;
+  --text-dim: #5050880;
+  --mc-gold: #cc8800;
+  --scanline-opacity: 0.02;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
