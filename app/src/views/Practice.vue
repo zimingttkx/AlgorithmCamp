@@ -9,7 +9,6 @@
         <div class="map-global-row">
           <div class="pixel-font map-done-text">已完成 <span style="color:var(--neon-cyan)">{{ globalDone }}</span> 题</div>
           <div class="map-level pixel-font">LV.{{ level }} &nbsp;<span style="color:var(--text-dim);font-size:.42rem">{{ globalDone * 50 }} XP</span></div>
-          <button class="pixel-btn sync-btn" @click="showSyncModal = true">⟳ 同步 LeetCode</button>
         </div>
         <div class="pixel-progress-outer" style="max-width:400px;margin-top:8px">
           <div class="pixel-progress-inner" :style="{width: globalPct+'%'}"></div>
@@ -94,56 +93,13 @@
       </div>
     </div>
 
-    <!-- LeetCode Sync Modal -->
-    <Teleport to="body">
-      <div v-if="showSyncModal" class="modal-overlay" @click.self="showSyncModal = false">
-        <div class="modal-content pixel-card">
-          <button class="modal-close" @click="showSyncModal = false">×</button>
-          <h2 class="modal-title pixel-font glow-cyan">⟳ {{ t('同步 LeetCode', 'Sync LeetCode') }}</h2>
-
-          <div class="sync-intro">
-            {{ t('将 LeetCode.cn 已通过的题目同步到本地，避免重复刷题。', 'Sync your accepted problems from LeetCode.cn to avoid re-doing them.') }}
-          </div>
-
-          <div class="sync-steps">
-            <h3 class="step-title">{{ t('使用步骤', 'How to use') }}</h3>
-            <ol class="step-list">
-              <li>{{ t('打开 leetcode.cn 并登录你的账号', 'Open leetcode.cn and login to your account') }}</li>
-              <li>
-                <span v-html="t(
-                  '打开浏览器开发者工具：<br><b>Mac</b>：按 <kbd>Option+Cmd+J</kbd> 或菜单 → 开发者工具<br><b>Windows/Linux</b>：按 <kbd>F12</kbd> 或 <kbd>Ctrl+Shift+J</kbd>',
-                  'Open DevTools:<br><b>Mac</b>: Press <kbd>Option+Cmd+J</kbd> or menu → Developer Tools<br><b>Windows/Linux</b>: Press <kbd>F12</kbd> or <kbd>Ctrl+Shift+J</kbd>'
-                )"></span>
-              </li>
-              <li>{{ t('切换到 Console（控制台）标签页', 'Switch to the Console tab') }}</li>
-              <li>{{ t('点击下方「复制」按钮复制脚本，粘贴到控制台后按回车执行', 'Click the "Copy" button below, paste into Console and press Enter') }}</li>
-              <li>{{ t('脚本执行完毕后会弹出提示，然后点击下方「粘贴导入」按钮', 'After the script finishes, an alert will appear — then click "Paste &amp; Import" below') }}</li>
-            </ol>
-          </div>
-
-          <div class="sync-script-box">
-            <div class="script-header">
-              <span class="pixel-font">{{ t('复制此脚本', 'Copy this script') }}</span>
-              <button class="copy-btn pixel-font" @click="copyScript">{{ t('复制', 'Copy') }}</button>
-            </div>
-            <pre class="script-code"><code>{{ leetcodeScript }}</code></pre>
-          </div>
-
-          <div class="sync-actions">
-            <button class="pixel-btn" @click="pasteImport">{{ t('粘贴导入', 'Paste & Import') }}</button>
-            <span v-if="syncResult" class="sync-result pixel-font">{{ syncResult }}</span>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { CHAPTERS } from '../composables/data.js'
 import { useLang } from '../composables/i18n.js'
-import { leetcodeScript } from '../composables/lcScript.js'
 
 const { t } = useLang()
 
@@ -158,8 +114,6 @@ const mdError = ref('')
 const mdCache = {}
 const progress = ref({})
 const totals = ref({})
-const showSyncModal = ref(false)
-const syncResult = ref('')
 
 function loadStorage() {
   try { progress.value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') } catch { progress.value = {} }
@@ -288,66 +242,6 @@ function updateTotals(ch) {
 }
 
 
-function copyScript() {
-  navigator.clipboard.writeText(leetcodeScript)
-  syncResult.value = t('已复制脚本！', 'Script copied!')
-  setTimeout(() => syncResult.value = '', 2000)
-}
-
-async function pasteImport() {
-  try {
-    const text = await navigator.clipboard.readText()
-    const data = JSON.parse(text)
-    if (!data.acIds || !Array.isArray(data.acIds)) {
-      syncResult.value = t('剪贴板内容无效', 'Invalid clipboard content')
-      return
-    }
-
-    // Build a map of problem numbers to chapter/probId
-    const probMap = {}
-    for (const [chId, secs] of Object.entries(mdCache)) {
-      for (const sec of secs) {
-        for (const row of sec.rows) {
-          probMap[row.num] = { chId, probId: row.probId }
-        }
-      }
-    }
-
-    // Also need to load chapters that aren't cached yet
-    // Mark all AC problems
-    let imported = 0
-    for (const num of data.acIds) {
-      const mapping = probMap[num]
-      if (mapping) {
-        if (!progress.value[mapping.chId]) progress.value[mapping.chId] = {}
-        if (!progress.value[mapping.chId][mapping.probId]) {
-          progress.value[mapping.chId][mapping.probId] = true
-          imported++
-        }
-      }
-    }
-
-    progress.value = { ...progress.value }
-    saveProgress()
-    syncResult.value = t(`成功导入 ${imported} 道题目！`, `Successfully imported ${imported} problems!`)
-  } catch (e) {
-    syncResult.value = t('导入失败，请确保已复制正确数据', 'Import failed. Please ensure correct data is copied.')
-  }
-}
-
-// Close modal on Escape
-watch(showSyncModal, (val) => {
-  const handleEsc = (e) => {
-    if (e.key === 'Escape' && showSyncModal.value) showSyncModal.value = false
-  }
-  if (val) {
-    window.addEventListener('keydown', handleEsc)
-  } else {
-    window.removeEventListener('keydown', handleEsc)
-    syncResult.value = ''
-  }
-})
-
 onMounted(() => { loadStorage() })
 </script>
 
@@ -456,138 +350,4 @@ onMounted(() => { loadStorage() })
   .sidebar-chapters { max-height: 180px; }
 }
 
-/* Sync button */
-.sync-btn {
-  font-size: .42rem;
-  padding: 6px 14px;
-  margin-left: auto;
-}
-
-/* Sync Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-  animation: fadeIn 0.2s ease;
-}
-@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
-.modal-content {
-  position: relative;
-  width: 100%;
-  max-width: 640px;
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: 28px;
-  animation: slideUp 0.25s ease;
-}
-@keyframes slideUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
-.modal-close {
-  position: absolute;
-  top: 12px; right: 12px;
-  background: transparent;
-  border: 1px solid var(--border-pixel);
-  color: var(--text-dim);
-  width: 28px; height: 28px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-}
-.modal-close:hover { background: var(--neon-pink); color: #fff; border-color: var(--neon-pink); }
-.modal-title { font-size: 1.1rem; margin-bottom: 14px; }
-.sync-intro {
-  color: var(--text-dim);
-  font-size: .85rem;
-  line-height: 1.7;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-pixel);
-}
-.sync-steps { margin-bottom: 20px; }
-.step-title {
-  font-size: .65rem;
-  color: var(--neon-cyan);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  margin-bottom: 10px;
-}
-.step-list {
-  padding-left: 20px;
-  color: var(--text-dim);
-  font-size: .85rem;
-  line-height: 1.9;
-  margin: 0;
-}
-.step-list li { margin-bottom: 4px; }
-.step-list li::marker { color: var(--neon-purple); }
-.sync-script-box {
-  background: var(--bg-dark);
-  border: 1px solid var(--border-pixel);
-  border-radius: 4px;
-  margin-bottom: 20px;
-  overflow: hidden;
-}
-.script-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  background: var(--bg-panel);
-  border-bottom: 1px solid var(--border-pixel);
-  font-size: .55rem;
-  color: var(--text-dim);
-}
-.copy-btn {
-  background: transparent;
-  border: 1px solid var(--neon-cyan);
-  color: var(--neon-cyan);
-  padding: 3px 10px;
-  font-size: .42rem;
-  cursor: pointer;
-  letter-spacing: .05em;
-  transition: all .15s;
-}
-.copy-btn:hover { background: var(--neon-cyan); color: var(--bg-dark); }
-.script-code {
-  margin: 0;
-  padding: 14px;
-  font-size: .68rem;
-  color: #7cc427;
-  line-height: 1.5;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-  font-family: 'Courier New', monospace;
-  max-height: 200px;
-  overflow-y: auto;
-}
-.sync-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-pixel);
-}
-.sync-result {
-  font-size: .45rem;
-  color: var(--neon-cyan);
-  letter-spacing: .05em;
-}
-
-.step-list kbd {
-  display: inline-block;
-  background: var(--bg-dark);
-  border: 1px solid var(--border-pixel);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-size: .75em;
-  color: var(--neon-cyan);
-  font-family: 'Courier New', monospace;
-}
 </style>
