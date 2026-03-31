@@ -54,7 +54,7 @@
       <div class="section-title">{{ t('明星项目', 'FEATURED PROJECTS') }}</div>
       <div class="feat-grid">
         <div v-for="p in featuredProjects" :key="p.name" class="feat-card pixel-card"
-          @click="window.open(p.url, '_blank')">
+          @click="openProjectModal(p)">
           <div class="feat-card-top">
             <span class="feat-lang-dot" :style="{background: p.langColor}"></span>
             <span class="feat-lang">{{ p.lang }}</span>
@@ -115,11 +115,47 @@
         <router-link to="/blog" class="pixel-btn pixel-btn-purple">◈ {{ t('查看全部文章', 'ALL POSTS') }}</router-link>
       </div>
     </section>
+
+    <!-- Project Modal -->
+    <Teleport to="body">
+      <div v-if="modalProject" class="modal-overlay" @click.self="closeProjectModal">
+        <div class="modal-content pixel-card">
+          <button class="modal-close" @click="closeProjectModal">×</button>
+          <div class="modal-header">
+            <span class="modal-lang-dot" :style="{background: modalProject.langColor}"></span>
+            <span class="modal-lang">{{ modalProject.lang }}</span>
+            <span class="modal-stars">⭐ {{ modalProject.stars }}</span>
+          </div>
+          <h2 class="modal-title pixel-font glow-blue">{{ modalProject.name }}</h2>
+          <p class="modal-desc">{{ isZh ? modalProject.descZh : modalProject.descEn }}</p>
+
+          <div class="modal-section">
+            <h3 class="modal-section-title">{{ t('核心功能', 'Key Features') }}</h3>
+            <ul class="modal-points">
+              <li v-for="(point, idx) in (isZh ? modalProject.pointsZh : modalProject.pointsEn)" :key="idx">
+                {{ point }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="modal-section">
+            <h3 class="modal-section-title">{{ t('技术栈', 'Tech Stack') }}</h3>
+            <div class="modal-tags">
+              <span v-for="tag in modalProject.tags" :key="tag" class="pixel-tag">{{ tag }}</span>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <a :href="modalProject.url" target="_blank" class="pixel-btn">◉ {{ t('查看源码', 'View Source') }}</a>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { CHAPTERS, BLOG_POSTS } from '../composables/data.js'
 import { getProgress } from '../composables/progress.js'
 import { useLang } from '../composables/i18n.js'
@@ -133,6 +169,7 @@ const xp = ref(0)
 const xpPct = ref(0)
 const chapters = CHAPTERS
 const latestPosts = BLOG_POSTS.slice(0, 3)
+const modalProject = ref(null)
 
 const { doneTotal, totalProblems, donePct } = getProgress()
 
@@ -145,6 +182,30 @@ function avatarFallback(e) {
   e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="%231a1a30"/><text x="50%" y="55%" font-size="32" text-anchor="middle" fill="%2300f3ff">Z</text></svg>'
 }
 
+function openProjectModal(project) {
+  modalProject.value = project
+  document.body.style.overflow = 'hidden'
+}
+
+function closeProjectModal() {
+  modalProject.value = null
+  document.body.style.overflow = ''
+}
+
+// Close modal on Escape key
+watch(modalProject, (val) => {
+  const handleEsc = (e) => {
+    if (e.key === 'Escape' && modalProject.value) {
+      closeProjectModal()
+    }
+  }
+  if (val) {
+    window.addEventListener('keydown', handleEsc)
+  } else {
+    window.removeEventListener('keydown', handleEsc)
+  }
+})
+
 const featuredProjects = [
   {
     name: 'AI-Practices',
@@ -154,6 +215,18 @@ const featuredProjects = [
     descZh: '机器学习与深度学习实战教程。涵盖线性回归、神经网络、CNN、RNN等完整实现，适合入门到进阶。',
     descEn: 'Comprehensive ML & DL tutorial with Jupyter Notebooks. Covers linear regression, neural networks, CNN, RNN and more.',
     tags: ['PyTorch', 'ML', 'Deep Learning', 'Tutorial'],
+    pointsZh: [
+      '从零开始的机器学习教程，包含完整理论讲解与代码实现',
+      '涵盖监督学习、无监督学习、深度学习等核心算法',
+      'CNN图像分类、RNN序列建模、Transformer架构详解',
+      '提供可交互的Jupyter Notebook，边学边练',
+    ],
+    pointsEn: [
+      'Comprehensive ML tutorial from scratch with theory and code',
+      'Covers supervised/unsupervised learning, deep learning algorithms',
+      'CNN image classification, RNN sequence modeling, Transformer architecture',
+      'Interactive Jupyter Notebooks for hands-on learning',
+    ],
   },
   {
     name: 'Network-Security-Based-On-ML',
@@ -163,6 +236,18 @@ const featuredProjects = [
     descZh: '基于机器学习的网络安全检测系统，集成 Kitsune/LUCID 算法，99.58% 攻击检测准确率，19913 QPS，支持 Docker/K8s 部署。',
     descEn: 'ML-powered network intrusion detection system. 99.58% accuracy, 19913 QPS, Kitsune/LUCID algorithms, Docker/K8s support.',
     tags: ['Python', 'Cybersecurity', 'ML', 'Docker'],
+    pointsZh: [
+      '集成 Kitsune、LUCID 等先进入侵检测算法',
+      '99.58% 检测准确率，19913 QPS 高吞吐量',
+      '支持实时网络流量分析与异常检测',
+      'Docker/Kubernetes 一键部署，生产环境可用',
+    ],
+    pointsEn: [
+      'Integrated Kitsune, LUCID advanced intrusion detection algorithms',
+      '99.58% detection accuracy, 19913 QPS high throughput',
+      'Real-time network traffic analysis and anomaly detection',
+      'Docker/Kubernetes one-click deployment, production-ready',
+    ],
   },
   {
     name: 'cpp-from-scratch',
@@ -172,6 +257,18 @@ const featuredProjects = [
     descZh: 'C++20 从零实现：LRU/LFU/ARC 缓存、红黑树、内存池、GC 等。仅头文件，零依赖。',
     descEn: 'C++20 from-scratch implementations: LRU/LFU/ARC cache, red-black tree, memory pool, GC. Header-only, zero deps.',
     tags: ['C++20', 'Data Structures', 'Header-only'],
+    pointsZh: [
+      '从零手写 LRU、LFU、ARC 等经典缓存淘汰算法',
+      '红黑树、AVL树、B树等平衡树结构完整实现',
+      '内存池、垃圾回收器等底层系统组件',
+      'Header-only 设计，零依赖，开箱即用',
+    ],
+    pointsEn: [
+      'From-scratch LRU, LFU, ARC classic cache eviction algorithms',
+      'Red-black tree, AVL tree, B-tree balanced structures fully implemented',
+      'Memory pool, garbage collector low-level system components',
+      'Header-only design, zero dependencies, ready to use',
+    ],
   },
 ]
 
@@ -283,10 +380,116 @@ onMounted(() => {
 
 .empty-state { color: var(--text-dim); font-size: .55rem; text-align: center; padding: 40px; letter-spacing: .1em; }
 
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal-content {
+  position: relative;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: var(--text-dim);
+  font-size: 1.4rem;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.modal-close:hover {
+  background: var(--neon-pink);
+  color: #fff;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.modal-lang-dot { width: 12px; height: 12px; border-radius: 50%; }
+.modal-lang { font-size: .8rem; color: var(--text-dim); }
+.modal-stars { font-size: .8rem; color: var(--mc-gold); margin-left: auto; }
+.modal-title {
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+.modal-desc {
+  color: var(--text-dim);
+  font-size: .9rem;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+.modal-section {
+  margin-bottom: 20px;
+}
+.modal-section-title {
+  font-size: .75rem;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.modal-points {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-dim);
+  font-size: .85rem;
+  line-height: 1.8;
+}
+.modal-points li {
+  margin-bottom: 6px;
+}
+.modal-points li::marker {
+  color: var(--neon-purple);
+}
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.modal-actions {
+  margin-top: 24px;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .hero-inner { flex-direction: column; padding: 40px 24px; gap: 32px; }
   .hero-right { width: 100%; }
   .hero-stats { justify-content: center; }
   .practice-overview { flex-direction: column; }
+  .modal-content { padding: 20px; }
 }
 </style>
