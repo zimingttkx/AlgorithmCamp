@@ -29,7 +29,7 @@
 
     <!-- Mastered Tech Stack -->
     <section class="section container reveal">
-      <div class="section-title">{{ t('已掌握技术栈', 'MASTERED TECH STACK') }}</div>
+      <div class="section-title">{{ t('技术栈', 'TECH STACK') }}</div>
       <div class="skills-grid">
         <div v-for="group in masteredSkills" :key="group.name" class="skill-group pixel-card">
           <div class="skill-group-title" :style="{color:group.color,textShadow:'0 0 6px '+group.color}">
@@ -122,16 +122,62 @@
           </ul>
         </div>
       </div>
+
+      <div class="proj-experience pixel-card">
+        <div class="proj-exp-header">
+          <div class="proj-exp-name glow-blue">{{ t('高并发缓存系统', 'High-Concurrency Cache System') }}</div>
+          <div class="proj-exp-role">{{ t('独立开发者 · 线程安全多策略缓存引擎', 'Solo Developer · Thread-Safe Multi-Strategy Cache Engine') }}</div>
+          <div class="proj-exp-stars">C++20</div>
+        </div>
+
+        <div class="proj-exp-section">
+          <div class="proj-exp-stitle">{{ t('项目描述', 'Description') }}</div>
+          <p class="proj-exp-desc">{{ t(
+            '基于 C++ 实现的线程安全高并发缓存系统，支持 LRU、LFU、ARC 多种缓存替换策略。注重并发性能优化与策略改进，提升高并发场景下的响应速度与命中率。',
+            'A thread-safe high-concurrency cache system in C++, supporting LRU, LFU, and ARC eviction strategies. Focused on concurrency optimization and strategy improvement for higher throughput and hit rates.'
+          ) }}</p>
+        </div>
+
+        <div class="proj-exp-section">
+          <div class="proj-exp-stitle">{{ t('落地技术栈', 'Tech Stack') }}</div>
+          <div class="proj-exp-tags">
+            <span class="pixel-tag">C++20</span>
+            <span class="pixel-tag">Thread Safety</span>
+            <span class="pixel-tag">Mutex</span>
+            <span class="pixel-tag">Atomic</span>
+            <span class="pixel-tag">LRU/LFU/ARC</span>
+          </div>
+        </div>
+
+        <div class="proj-exp-section">
+          <div class="proj-exp-stitle">{{ t('核心工作', 'Key Contributions') }}</div>
+          <ul class="proj-exp-points">
+            <li>{{ t('实现 LRU、LFU、ARC 多种缓存替换策略，适配不同访问模式与业务场景', 'Implemented LRU, LFU, ARC eviction strategies for different access patterns') }}</li>
+            <li>{{ t('LRU/LFU 缓存分片设计，降低锁争用，提升高并发访问性能', 'LRU/LFU cache sharding to reduce lock contention under high concurrency') }}</li>
+            <li>{{ t('LRU-k 优化防止热点数据被冷数据替换，减少缓存污染问题', 'LRU-k optimization to prevent hot data eviction and reduce cache pollution') }}</li>
+            <li>{{ t('LFU 引入最大平均访问频次机制，淘汰旧热点数据，提升缓存整体利用率', 'LFU with max average frequency mechanism to evict stale hot data') }}</li>
+            <li>{{ t('ARC 策略动态调整 LRU 与 LFU 权重比例，提升复杂场景缓存命中率', 'ARC dynamic weight adjustment between LRU/LFU for complex workloads') }}</li>
+            <li>{{ t('互斥锁 + 原子操作实现多线程安全，保障高并发下数据一致性', 'Thread safety via mutex + atomic operations for data consistency') }}</li>
+          </ul>
+        </div>
+
+        <div class="proj-exp-section">
+          <div class="proj-exp-stitle">{{ t('技术难点', 'Technical Challenges') }}</div>
+          <ul class="proj-exp-points">
+            <li>{{ t('高并发环境下线程安全与数据一致性的保障', 'Thread safety and data consistency under high concurrency') }}</li>
+            <li>{{ t('缓存分片策略设计，平衡分片粒度与锁争用', 'Cache sharding strategy design balancing granularity and lock contention') }}</li>
+            <li>{{ t('LRU-k 历史队列维护与冷数据过滤机制', 'LRU-k history queue maintenance and cold data filtering') }}</li>
+            <li>{{ t('LFU 最大平均访问频次的动态计算与老化淘汰', 'Dynamic computation and aging eviction of LFU max average frequency') }}</li>
+            <li>{{ t('ARC 动态权重调整算法，自适应不同业务负载', 'ARC adaptive weight adjustment algorithm for varying workloads') }}</li>
+          </ul>
+        </div>
+      </div>
     </section>
 
     <!-- Future Learning Plans -->
     <section class="section container reveal">
-      <div class="section-title">{{ t('未来学习规划', 'FUTURE LEARNING PLANS') }}</div>
+      <div class="section-title">{{ t('未来方向', 'FUTURE DIRECTION') }}</div>
       <div class="future-section pixel-card">
-        <div class="future-disclaimer">{{ t(
-          '以下方向为长期研究兴趣与后续核心深耕规划，尚未系统学习，现阶段重点夯实算法与深度学习工程能力。',
-          'The following are long-term research interests and future study plans, not yet systematically studied. Currently focused on strengthening algorithm and deep learning engineering skills.'
-        ) }}</div>
         <div class="future-grid">
           <div class="future-item">
             <div class="fi-num" style="color:var(--neon-pink)">01</div>
@@ -172,29 +218,34 @@ function avatarFallback(e) {
 }
 
 const masteredSkills = [
+  { name: 'C++ / 系统编程', nameEn: 'C++ / Systems', icon: '◈', color: '#0EA5E9',
+    skills: [
+      '现代 C++ (C++17/20)，熟练掌握 STL 容器与算法库',
+      '手写实现标准库数据结构（vector / list / map / skip-list 等）',
+      '内存管理、RAII 机制、智能指针、模板元编程',
+    ]},
   { name: '算法与数据结构', nameEn: 'Algorithms & Data Structures', icon: '⚔', color: '#00ffcc',
     skills: [
-      'LeetCode 主流算法体系：数论、图论、动态规划、贪心、组合数学、位运算',
-      '12 专题系统化刷题路线（滑动窗口、二分、单调栈、前缀和、差分等）',
-      'C++ STL 容器与算法库实战应用',
+      '主流算法范式：动态规划、图论、贪心、数论、组合数学、位运算',
+      '高频技巧：滑动窗口、二分查找、单调栈/队列、前缀和、差分',
+      'Codeforces / LeetCode 竞赛级解题能力',
     ]},
-  { name: 'C++ 底层实现', nameEn: 'C++ Low-Level Implementation', icon: '◈', color: '#0EA5E9',
+  { name: '机器学习 / 深度学习', nameEn: 'Machine Learning / Deep Learning', icon: '◉', color: '#d040ff',
     skills: [
-      '从零实现 C++ 标准库数据结构（vector、list、map、set 等）',
-      '内存管理、智能指针、RAII 机制底层原理',
-      '模板元编程、迭代器设计模式',
+      'PyTorch 框架，CNN / RNN / Transformer 架构实现与调优',
+      '基于 ML/DL 的网络安全检测系统（完整落地经验）',
+      '模型训练、评估、部署全流程',
     ]},
-  { name: '机器学习与深度学习', nameEn: 'Machine Learning & Deep Learning', icon: '◉', color: '#d040ff',
+  { name: 'Python / 工程化', nameEn: 'Python / Engineering', icon: '◆', color: '#f0c030',
     skills: [
-      'PyTorch 深度学习框架工程实践',
-      'CNN / RNN / Transformer 架构理解与实现',
-      '基于 ML/DL 的网络安全检测系统落地',
+      '数据处理与分析、自动化脚本、工具链开发',
+      'Git 版本控制、CI/CD 流程、项目工程化管理',
     ]},
-  { name: 'Python 工程开发', nameEn: 'Python Engineering', icon: '◆', color: '#f0c030',
+  { name: 'AI Agent 开发', nameEn: 'AI Agent Development', icon: '⬡', color: '#ff2eb0',
     skills: [
-      '数据处理、自动化脚本、工程工具链',
-      'Git 版本控制、CI/CD、项目工程化管理',
-      'ML/DL 模型训练与部署流程',
+      'LangChain / LlamaIndex 应用框架，MCP 协议实践',
+      'RAG 检索增强生成、Skill 工具调用、Agent 编排',
+      '多 Agent 协作系统与工具链集成',
     ]},
 ]
 

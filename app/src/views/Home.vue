@@ -177,11 +177,13 @@
       </div>
 
       <div class="profile-contact">
+        <span class="pc-label">Email</span><a href="mailto:2147514473@qq.com" class="pc-val" style="text-decoration:none">2147514473@qq.com</a>
+        <span class="pc-sep">|</span>
+        <span class="pc-label">WeChat</span><span class="pc-val">zimingttkx</span>
+        <span class="pc-sep">|</span>
         <span class="pc-label">LeetCode</span><span class="pc-val">zimingttkx</span>
         <span class="pc-sep">|</span>
         <span class="pc-label">GitHub</span><a href="https://github.com/zimingttkx" target="_blank" class="pc-val" style="text-decoration:none">zimingttkx</a>
-        <span class="pc-sep">|</span>
-        <span class="pc-note">{{ t('专注数学 + 算法 + AI 高性能优化交叉领域技术交流', 'Math + Algorithms + AI interdisciplinary technical exchange') }}</span>
       </div>
     </section>
 
@@ -361,6 +363,31 @@ const featuredProjects = [
       'Red-black tree, AVL tree, B-tree balanced structures fully implemented',
       'Memory pool, garbage collector low-level system components',
       'Header-only design, zero dependencies, ready to use',
+    ],
+  },
+  {
+    name: 'High-Concurrency-Cache',
+    lang: 'C++', langColor: '#f34b7d',
+    stars: null,
+    url: 'https://github.com/zimingttkx/cpp-from-scratch',
+    descZh: '线程安全的高并发缓存系统，支持 LRU/LFU/ARC 多策略替换，缓存分片降低锁争用，LRU-k 优化防缓存污染。',
+    descEn: 'Thread-safe high-concurrency cache system with LRU/LFU/ARC strategies, cache sharding for reduced lock contention, LRU-k optimization.',
+    tags: ['C++20', 'Thread Safety', 'Cache', 'High Concurrency'],
+    pointsZh: [
+      '实现 LRU、LFU、ARC 多种缓存替换策略，适配不同访问模式',
+      'LRU/LFU 缓存分片设计，降低锁争用，提升高并发性能',
+      'LRU-k 优化防止热点数据被冷数据替换，减少缓存污染',
+      'LFU 引入最大平均访问频次，淘汰旧热点数据，提升利用率',
+      'ARC 动态调整 LRU/LFU 权重比例，适应复杂业务场景',
+      '互斥锁 + 原子操作实现多线程安全',
+    ],
+    pointsEn: [
+      'Multiple cache eviction strategies: LRU, LFU, ARC for different access patterns',
+      'LRU/LFU cache sharding to reduce lock contention under high concurrency',
+      'LRU-k optimization to prevent hot data eviction and cache pollution',
+      'LFU with max average frequency to evict stale hot data',
+      'ARC dynamic weight adjustment between LRU/LFU for complex scenarios',
+      'Thread safety via mutex and atomic operations',
     ],
   },
 ]

@@ -1,10 +1,52 @@
 <template>
   <div class="practice-page" style="padding-top:56px">
 
+    <!-- Sync Modal -->
+    <Teleport to="body">
+      <div v-if="showSyncModal" class="sync-overlay" @click.self="showSyncModal = false">
+        <div class="sync-modal pixel-card">
+          <div class="sync-modal-title pixel-font">◉ GIST 云同步</div>
+          <p class="sync-modal-desc">输入 GitHub Personal Access Token（只需 <code>gist</code> 权限），首次配置后自动创建私有 Gist 存储进度，跨设备同步。</p>
+
+          <div v-if="gistId" class="sync-info">
+            <div class="sync-info-row"><span class="sync-label">状态</span><span class="sync-val" :class="syncStatus">{{ { idle: '就绪', syncing: '同步中...', success: '已同步 ✓', error: '同步失败 ✗' }[syncStatus] }}</span></div>
+            <div class="sync-info-row"><span class="sync-label">Gist ID</span><span class="sync-val" style="font-size:.75rem;color:var(--text-dim)">{{ gistId.slice(0,16) }}...</span></div>
+          </div>
+
+          <div class="sync-input-row">
+            <input
+              v-model="tokenInput"
+              class="sync-token-input"
+              :placeholder="gistToken ? '已配置 Token，重新输入可更新' : 'ghp_xxxxxxxxxxxx'"
+              type="password"
+            />
+          </div>
+
+          <div class="sync-actions">
+            <button class="pixel-btn" @click="handleSaveToken" :disabled="!tokenInput.trim()">
+              {{ gistId ? '更新 Token' : '初始化同步' }}
+            </button>
+            <button v-if="gistToken" class="pixel-btn pixel-btn-pink" @click="clearSync(); showSyncModal = false">清除配置</button>
+            <button class="sync-cancel" @click="showSyncModal = false">取消</button>
+          </div>
+
+          <p class="sync-tip">Token 仅存于本地浏览器，不会上传。创建 Token：GitHub → Settings → Developer settings → Personal access tokens → 勾选 gist</p>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Map View -->
     <div v-if="view === 'map'" class="practice-map">
       <div class="map-header container">
-        <div class="section-title">⚔ 刷题闯关地图</div>
+        <div class="section-title" style="display:flex;align-items:center;gap:12px">
+          ⚔ 刷题闯关地图
+          <button class="sync-btn" :class="syncStatus" @click="showSyncModal = true; tokenInput = ''" :title="gistToken ? '云同步已启用，点击管理' : '点击配置云同步'">
+            <span v-if="syncStatus === 'syncing'" class="sync-spin">↻</span>
+            <span v-else-if="syncStatus === 'success'">☁ ✓</span>
+            <span v-else-if="syncStatus === 'error'">☁ ✗</span>
+            <span v-else>{{ gistToken ? '☁' : '☁?' }}</span>
+          </button>
+        </div>
         <div class="map-subtitle">点击章节方块进入刷题 · 共 12 个专题</div>
         <div class="map-global-row">
           <div class="pixel-font map-done-text">已完成 <span style="color:var(--neon-cyan)">{{ globalDone }}</span> 题</div>
@@ -100,8 +142,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { CHAPTERS } from '../composables/data.js'
 import { useLang } from '../composables/i18n.js'
+import { useSync } from '../composables/sync.js'
 
 const { t } = useLang()
+const { syncStatus, gistToken, gistId, initGist, pullProgress, mergeProgress, debouncePush, clearSync } = useSync()
 
 const STORAGE_KEY = 'mc-algo-progress'
 const TOTALS_KEY  = '_chapterTotals'
@@ -114,6 +158,8 @@ const mdError = ref('')
 const mdCache = {}
 const progress = ref({})
 const totals = ref({})
+const showSyncModal = ref(false)
+const tokenInput = ref('')
 
 function loadStorage() {
   try { progress.value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') } catch { progress.value = {} }
@@ -122,6 +168,7 @@ function loadStorage() {
 
 function saveProgress() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress.value))
+  debouncePush(progress.value)
 }
 
 function isChecked(chId, probId) {
@@ -242,7 +289,29 @@ function updateTotals(ch) {
 }
 
 
-onMounted(() => { loadStorage() })
+async function syncOnLoad() {
+  loadStorage()
+  if (!gistToken.value || !gistId.value) return
+  const cloud = await pullProgress()
+  if (cloud) {
+    progress.value = mergeProgress(progress.value, cloud)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress.value))
+  }
+}
+
+async function handleSaveToken() {
+  const token = tokenInput.value.trim()
+  if (!token) return
+  try {
+    await initGist(token)
+    showSyncModal.value = false
+    await syncOnLoad()
+  } catch {
+    // error reflected in syncStatus
+  }
+}
+
+onMounted(() => { syncOnLoad() })
 </script>
 
 <style scoped>
@@ -348,6 +417,80 @@ onMounted(() => { loadStorage() })
   .chapter-view { flex-direction: column; }
   .chapter-sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 2px solid var(--border-pixel); }
   .sidebar-chapters { max-height: 180px; }
+}
+
+/* Sync Button */
+.sync-btn {
+  font-size: .65rem;
+  padding: 2px 8px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border-pixel);
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all .2s;
+  font-family: inherit;
+  letter-spacing: .04em;
+}
+.sync-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+.sync-btn.success { border-color: #00ffcc44; color: var(--neon-cyan); }
+.sync-btn.error   { border-color: #ff2eb044; color: var(--neon-pink); }
+.sync-btn.syncing { border-color: #0ea5e944; color: var(--neon-blue); }
+
+.sync-spin { display: inline-block; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Sync Modal */
+.sync-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.8);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.sync-modal { width: 100%; max-width: 460px; padding: 28px; }
+.sync-modal-title {
+  font-size: .75rem; color: var(--neon-cyan);
+  text-shadow: 0 0 8px var(--neon-cyan);
+  margin-bottom: 12px; letter-spacing: .1em;
+}
+.sync-modal-desc { font-size: .85rem; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; }
+.sync-modal-desc code {
+  background: rgba(0,255,204,.1); color: var(--neon-cyan);
+  padding: 1px 5px; border-radius: 3px; font-size: .8rem;
+}
+.sync-info {
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border-pixel);
+  border-radius: 4px; padding: 12px 14px; margin-bottom: 16px;
+}
+.sync-info-row { display: flex; gap: 12px; align-items: center; margin-bottom: 6px; }
+.sync-info-row:last-child { margin-bottom: 0; }
+.sync-label { font-size: .75rem; color: var(--text-dim); min-width: 52px; }
+.sync-val { font-size: .85rem; color: var(--text-main); }
+.sync-val.success { color: var(--neon-cyan); }
+.sync-val.error   { color: var(--neon-pink); }
+.sync-val.syncing { color: var(--neon-blue); }
+.sync-input-row { margin-bottom: 16px; }
+.sync-token-input {
+  width: 100%; background: rgba(255,255,255,.04);
+  border: 1px solid var(--border-pixel); color: var(--text-main);
+  padding: 10px 12px; font-size: .88rem; font-family: monospace;
+  outline: none; border-radius: 4px; box-sizing: border-box;
+  transition: border-color .2s;
+}
+.sync-token-input:focus { border-color: var(--neon-cyan); }
+.sync-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.sync-cancel {
+  background: none; border: 1px solid var(--border-pixel);
+  color: var(--text-dim); padding: 8px 16px; cursor: pointer;
+  border-radius: 4px; font-family: inherit; font-size: .85rem;
+  transition: all .2s;
+}
+.sync-cancel:hover { border-color: var(--text-dim); color: var(--text-main); }
+.sync-tip {
+  font-size: .75rem; color: var(--text-dim); line-height: 1.6;
+  padding-top: 12px; border-top: 1px solid var(--border-pixel);
 }
 
 </style>
