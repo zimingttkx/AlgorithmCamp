@@ -12,9 +12,12 @@
             <p class="sync-desc">输入 GitHub Personal Access Token（只需 <code>gist</code> 权限），自动创建私有 Gist 存储进度。</p>
             <input v-model="tokenInput" class="sync-input" placeholder="ghp_xxxxxxxxxxxx" type="password" />
             <div class="sync-actions">
-              <button class="sync-btn-primary" @click="handleSaveToken" :disabled="!tokenInput.trim()">初始化同步</button>
+              <button class="sync-btn-primary" @click="handleSaveToken" :disabled="!tokenInput.trim() || syncStatus === 'syncing'">
+                {{ syncStatus === 'syncing' ? '初始化中...' : '初始化同步' }}
+              </button>
               <button class="sync-btn-cancel" @click="showSyncModal = false">取消</button>
             </div>
+            <p v-if="syncError" class="sync-error">{{ syncError }}</p>
             <p class="sync-tip">Token 仅存于本地浏览器。创建：GitHub → Settings → Developer settings → Personal access tokens → 勾选 gist</p>
           </div>
 
@@ -24,6 +27,7 @@
               <span class="sync-status-label">同步状态</span>
               <span class="sync-status-val" :class="syncStatus">{{ { idle: '就绪', syncing: '同步中...', success: '已同步', error: '同步失败' }[syncStatus] }}</span>
             </div>
+            <p v-if="syncError" class="sync-error">{{ syncError }}</p>
 
             <div class="sync-btn-row">
               <button class="sync-btn-primary" @click="handleUpload" :disabled="syncStatus === 'syncing'">
@@ -153,7 +157,7 @@ import { useLang } from '../composables/i18n.js'
 import { useSync } from '../composables/sync.js'
 
 const { t } = useLang()
-const { syncStatus, gistToken, gistId, initGist, pushProgress, pullProgress, mergeProgress, debouncePush, clearSync, touchChapter, deviceId } = useSync()
+const { syncStatus, syncError, gistToken, gistId, initGist, pushProgress, pullProgress, mergeProgress, debouncePush, clearSync, touchChapter, deviceId } = useSync()
 
 const PROGRESS_KEY = 'mc-algo-progress'
 const TOTALS_KEY  = '_chapterTotals'
@@ -324,7 +328,10 @@ async function handleSaveToken() {
 
 async function handleUpload() {
   loadStorage()
-  await pushProgress(progress.value)
+  const ok = await pushProgress(progress.value)
+  if (!ok) {
+    // pushProgress already sets syncStatus to 'error' if token/gistId missing
+  }
 }
 
 async function handleDownload() {
@@ -606,6 +613,12 @@ onMounted(() => { syncOnLoad() })
 .sync-status-val.syncing { color: #0ea5e9; }
 .sync-status-val.success { color: #00ffcc; }
 .sync-status-val.error { color: #ff2eb0; }
+
+.sync-error {
+  font-size: .82rem; color: #ff2eb0; background: rgba(255,46,176,.08);
+  border: 1px solid rgba(255,46,176,.2); border-radius: 4px;
+  padding: 8px 12px; margin-bottom: 12px; line-height: 1.5;
+}
 
 .sync-btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
 .sync-manage-row { display: flex; gap: 10px; }

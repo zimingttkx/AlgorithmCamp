@@ -106,27 +106,29 @@ jobs:
             check_date=$(date -u -d "$check_date - 1 day" +%Y-%m-%d)
           done
 
-          # 生成 JSON
-          echo "{"
-          echo "  \"totalCommits\": $total_commits,"
-          echo "  \"currentStreak\": $current_streak,"
-          echo "  \"longestStreak\": $longest_streak,"
-          echo "  \"calendar\": {"
+          # 生成 JSON — wrap in { } so all output goes to file
+          {
+            echo "{"
+            echo "  \"totalCommits\": $total_commits,"
+            echo "  \"currentStreak\": $current_streak,"
+            echo "  \"longestStreak\": $longest_streak,"
+            echo "  \"calendar\": {"
 
-          first=true
-          for d in $(echo "${!daily_counts[@]}" | tr ' ' '\n' | sort); do
-            if [ "$first" = true ]; then
-              first=false
-            else
-              echo ","
-            fi
-            printf '    "%s": %d' "$d" "${daily_counts[$d]}"
-          done
+            first=true
+            for d in $(echo "${!daily_counts[@]}" | tr ' ' '\n' | sort); do
+              if [ "$first" = true ]; then
+                first=false
+              else
+                echo ","
+              fi
+              printf '    "%s": %d' "$d" "${daily_counts[$d]}"
+            done
 
-          echo ""
-          echo "  },"
-          echo "  \"updatedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\""
-          echo "}" > app/public/stats.json
+            echo ""
+            echo "  },"
+            echo "  \"updatedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\""
+            echo "}"
+          } > app/public/stats.json
 
       - name: Commit and Push
         run: |
