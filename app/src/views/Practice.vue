@@ -4,33 +4,41 @@
     <!-- Sync Modal -->
     <Teleport to="body">
       <div v-if="showSyncModal" class="sync-overlay" @click.self="showSyncModal = false">
-        <div class="sync-modal pixel-card">
+        <div class="sync-modal">
           <div class="sync-modal-title pixel-font">◉ GIST 云同步</div>
-          <p class="sync-modal-desc">输入 GitHub Personal Access Token（只需 <code>gist</code> 权限），首次配置后自动创建私有 Gist 存储进度，跨设备同步。</p>
 
-          <div v-if="gistId" class="sync-info">
-            <div class="sync-info-row"><span class="sync-label">状态</span><span class="sync-val" :class="syncStatus">{{ { idle: '就绪', syncing: '同步中...', success: '已同步 ✓', error: '同步失败 ✗' }[syncStatus] }}</span></div>
-            <div class="sync-info-row"><span class="sync-label">Gist ID</span><span class="sync-val" style="font-size:.75rem;color:var(--text-dim)">{{ gistId.slice(0,16) }}...</span></div>
+          <!-- Token 输入（未配置时显示） -->
+          <div v-if="!gistToken" class="sync-section">
+            <p class="sync-desc">输入 GitHub Personal Access Token（只需 <code>gist</code> 权限），自动创建私有 Gist 存储进度。</p>
+            <input v-model="tokenInput" class="sync-input" placeholder="ghp_xxxxxxxxxxxx" type="password" />
+            <div class="sync-actions">
+              <button class="sync-btn-primary" @click="handleSaveToken" :disabled="!tokenInput.trim()">初始化同步</button>
+              <button class="sync-btn-cancel" @click="showSyncModal = false">取消</button>
+            </div>
+            <p class="sync-tip">Token 仅存于本地浏览器。创建：GitHub → Settings → Developer settings → Personal access tokens → 勾选 gist</p>
           </div>
 
-          <div class="sync-input-row">
-            <input
-              v-model="tokenInput"
-              class="sync-token-input"
-              :placeholder="gistToken ? '已配置 Token，重新输入可更新' : 'ghp_xxxxxxxxxxxx'"
-              type="password"
-            />
-          </div>
+          <!-- 已配置：显示状态和操作 -->
+          <div v-else class="sync-section">
+            <div class="sync-status-bar">
+              <span class="sync-status-label">同步状态</span>
+              <span class="sync-status-val" :class="syncStatus">{{ { idle: '就绪', syncing: '同步中...', success: '已同步', error: '同步失败' }[syncStatus] }}</span>
+            </div>
 
-          <div class="sync-actions">
-            <button class="pixel-btn" @click="handleSaveToken" :disabled="!tokenInput.trim()">
-              {{ gistId ? '更新 Token' : '初始化同步' }}
-            </button>
-            <button v-if="gistToken" class="pixel-btn pixel-btn-pink" @click="clearSync(); showSyncModal = false">清除配置</button>
-            <button class="sync-cancel" @click="showSyncModal = false">取消</button>
-          </div>
+            <div class="sync-btn-row">
+              <button class="sync-btn-primary" @click="handleUpload" :disabled="syncStatus === 'syncing'">
+                ↑ 上传本地进度
+              </button>
+              <button class="sync-btn-secondary" @click="handleDownload" :disabled="syncStatus === 'syncing'">
+                ↓ 下载云端进度
+              </button>
+            </div>
 
-          <p class="sync-tip">Token 仅存于本地浏览器，不会上传。创建 Token：GitHub → Settings → Developer settings → Personal access tokens → 勾选 gist</p>
+            <div class="sync-manage-row">
+              <button class="sync-btn-danger" @click="clearSync(); showSyncModal = false">清除配置</button>
+              <button class="sync-btn-cancel" @click="showSyncModal = false">关闭</button>
+            </div>
+          </div>
         </div>
       </div>
     </Teleport>
@@ -40,7 +48,7 @@
       <div class="map-header container">
         <div class="section-title" style="display:flex;align-items:center;gap:12px">
           ⚔ 刷题闯关地图
-          <button class="sync-btn" :class="syncStatus" @click="showSyncModal = true; tokenInput = ''" :title="gistToken ? '云同步已启用，点击管理' : '点击配置云同步'">
+          <button class="sync-btn" :class="syncStatus" @click="showSyncModal = true; tokenInput = ''" :title="gistToken ? '云同步已启用' : '点击配置云同步'">
             <span v-if="syncStatus === 'syncing'" class="sync-spin">↻</span>
             <span v-else-if="syncStatus === 'success'">☁ ✓</span>
             <span v-else-if="syncStatus === 'error'">☁ ✗</span>
@@ -145,9 +153,9 @@ import { useLang } from '../composables/i18n.js'
 import { useSync } from '../composables/sync.js'
 
 const { t } = useLang()
-const { syncStatus, gistToken, gistId, initGist, pullProgress, mergeProgress, debouncePush, clearSync } = useSync()
+const { syncStatus, gistToken, gistId, initGist, pushProgress, pullProgress, mergeProgress, debouncePush, clearSync } = useSync()
 
-const STORAGE_KEY = 'mc-algo-progress'
+const PROGRESS_KEY = 'mc-algo-progress'
 const TOTALS_KEY  = '_chapterTotals'
 
 const view = ref('map')
@@ -162,13 +170,16 @@ const showSyncModal = ref(false)
 const tokenInput = ref('')
 
 function loadStorage() {
-  try { progress.value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') } catch { progress.value = {} }
+  try { progress.value = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}') } catch { progress.value = {} }
   try { totals.value  = JSON.parse(localStorage.getItem(TOTALS_KEY)  || '{}') } catch { totals.value = {} }
 }
 
 function saveProgress() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress.value))
-  debouncePush(progress.value)
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress.value))
+  // Auto push on every change (debounced 3s)
+  if (gistToken.value && gistId.value) {
+    debouncePush(progress.value)
+  }
 }
 
 function isChecked(chId, probId) {
@@ -295,7 +306,7 @@ async function syncOnLoad() {
   const cloud = await pullProgress()
   if (cloud) {
     progress.value = mergeProgress(progress.value, cloud)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress.value))
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress.value))
   }
 }
 
@@ -308,6 +319,19 @@ async function handleSaveToken() {
     await syncOnLoad()
   } catch {
     // error reflected in syncStatus
+  }
+}
+
+async function handleUpload() {
+  loadStorage()
+  await pushProgress(progress.value)
+}
+
+async function handleDownload() {
+  const cloud = await pullProgress()
+  if (cloud) {
+    progress.value = mergeProgress(progress.value, cloud)
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress.value))
   }
 }
 
@@ -493,4 +517,99 @@ onMounted(() => { syncOnLoad() })
   padding-top: 12px; border-top: 1px solid var(--border-pixel);
 }
 
+</style>
+
+<!-- Unscoped styles for Teleported sync modal (scoped CSS can't reach body children) -->
+<style>
+.sync-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.sync-modal {
+  width: 100%; max-width: 480px; padding: 28px;
+  background: #1a1a2e; border: 2px solid #334155;
+  box-shadow: 0 0 20px rgba(0,0,0,.5);
+}
+.sync-modal-title {
+  font-size: .75rem; color: #00ffcc;
+  text-shadow: 0 0 8px #00ffcc;
+  margin-bottom: 16px; letter-spacing: .1em;
+}
+.sync-section { margin-bottom: 16px; }
+.sync-desc {
+  font-size: .85rem; color: #94a3b8; line-height: 1.7; margin-bottom: 16px;
+}
+.sync-desc code {
+  background: rgba(0,255,204,.1); color: #00ffcc;
+  padding: 1px 5px; border-radius: 3px; font-size: .8rem;
+}
+.sync-input {
+  width: 100%; background: rgba(255,255,255,.04);
+  border: 1px solid #334155; color: #f1f5f9;
+  padding: 10px 12px; font-size: .88rem; font-family: monospace;
+  outline: none; border-radius: 4px; box-sizing: border-box;
+  margin-bottom: 16px; transition: border-color .2s;
+}
+.sync-input:focus { border-color: #00ffcc; }
+.sync-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+
+.sync-btn-primary {
+  background: rgba(0,255,204,.12); border: 1px solid #00ffcc44;
+  color: #00ffcc; padding: 8px 18px; cursor: pointer;
+  border-radius: 4px; font-family: inherit; font-size: .85rem;
+  transition: all .2s; letter-spacing: .04em;
+}
+.sync-btn-primary:hover:not(:disabled) { background: rgba(0,255,204,.2); }
+.sync-btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+.sync-btn-secondary {
+  background: rgba(14,165,233,.12); border: 1px solid #0ea5e944;
+  color: #0ea5e9; padding: 8px 18px; cursor: pointer;
+  border-radius: 4px; font-family: inherit; font-size: .85rem;
+  transition: all .2s;
+}
+.sync-btn-secondary:hover:not(:disabled) { background: rgba(14,165,233,.2); }
+.sync-btn-secondary:disabled { opacity: .4; cursor: not-allowed; }
+
+.sync-btn-danger {
+  background: rgba(255,46,176,.12); border: 1px solid #ff2eb044;
+  color: #ff2eb0; padding: 8px 18px; cursor: pointer;
+  border-radius: 4px; font-family: inherit; font-size: .85rem;
+  transition: all .2s;
+}
+.sync-btn-danger:hover { background: rgba(255,46,176,.2); }
+
+.sync-btn-cancel {
+  background: none; border: 1px solid #334155;
+  color: #94a3b8; padding: 8px 16px; cursor: pointer;
+  border-radius: 4px; font-family: inherit; font-size: .85rem;
+  transition: all .2s;
+}
+.sync-btn-cancel:hover { border-color: #94a3b8; color: #f1f5f9; }
+
+.sync-tip {
+  font-size: .75rem; color: #64748b; line-height: 1.6;
+  padding-top: 12px; border-top: 1px solid #334155;
+}
+
+.sync-status-bar {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.03); border: 1px solid #334155;
+  border-radius: 4px; padding: 12px 14px; margin-bottom: 16px;
+}
+.sync-status-label { font-size: .75rem; color: #94a3b8; }
+.sync-status-val { font-size: .85rem; font-weight: 600; }
+.sync-status-val.idle { color: #94a3b8; }
+.sync-status-val.syncing { color: #0ea5e9; }
+.sync-status-val.success { color: #00ffcc; }
+.sync-status-val.error { color: #ff2eb0; }
+
+.sync-btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
+.sync-manage-row { display: flex; gap: 10px; }
+
+.sync-spin { display: inline-block; animation: sync-spin .8s linear infinite; }
+@keyframes sync-spin { to { transform: rotate(360deg); } }
 </style>
