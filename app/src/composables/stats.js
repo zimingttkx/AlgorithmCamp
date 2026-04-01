@@ -121,13 +121,17 @@ export function calcStreak(calendar) {
   // 最长连续天数
   let longestStreak = 0
   let tempStreak = 0
+  let prevDate = null
   const sortedDates = Object.keys(calendar).sort()
   for (const date of sortedDates) {
     if (calendar[date] > 0) {
-      tempStreak++
+      if (prevDate && isConsecutive(prevDate, date)) {
+        tempStreak++
+      } else {
+        tempStreak = 1
+      }
       longestStreak = Math.max(longestStreak, tempStreak)
-    } else {
-      tempStreak = 0
+      prevDate = date
     }
   }
 
@@ -194,4 +198,15 @@ function formatDate(d) {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
+}
+
+/**
+ * Check if two YYYY-MM-DD date strings are exactly 1 day apart
+ */
+function isConsecutive(dateA, dateB) {
+  const a = new Date(dateA)
+  const b = new Date(dateB)
+  const diffMs = Math.abs(b - a)
+  const diffDays = diffMs / (1000 * 60 * 60 * 24)
+  return diffDays === 1
 }
