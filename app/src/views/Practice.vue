@@ -153,7 +153,7 @@ import { useLang } from '../composables/i18n.js'
 import { useSync } from '../composables/sync.js'
 
 const { t } = useLang()
-const { syncStatus, gistToken, gistId, initGist, pushProgress, pullProgress, mergeProgress, debouncePush, clearSync } = useSync()
+const { syncStatus, gistToken, gistId, initGist, pushProgress, pullProgress, mergeProgress, debouncePush, clearSync, touchChapter, deviceId } = useSync()
 
 const PROGRESS_KEY = 'mc-algo-progress'
 const TOTALS_KEY  = '_chapterTotals'
@@ -176,7 +176,6 @@ function loadStorage() {
 
 function saveProgress() {
   localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress.value))
-  // Auto push on every change (debounced 3s)
   if (gistToken.value && gistId.value) {
     debouncePush(progress.value)
   }
@@ -189,6 +188,7 @@ function isChecked(chId, probId) {
 function toggleCheck(chId, probId) {
   if (!progress.value[chId]) progress.value[chId] = {}
   progress.value[chId][probId] = !progress.value[chId][probId]
+  touchChapter(progress.value, chId)
   progress.value = { ...progress.value }
   saveProgress()
 }
