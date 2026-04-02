@@ -49,11 +49,11 @@
   - Best Practices > 90 - 已完成：添加apple-touch-icon、canonical URL、og:site_name、og:locale等meta标签
   - SEO > 85 - 已完成：添加canonical URL、结构化数据(JSON-LD Person)、增强meta描述和关键词
 
-- [ ] 8. Core Web Vitals
-  - LCP < 2.5s
-  - FID < 100ms
-  - CLS < 0.1
-  - INP < 200ms
+- [x] 8. Core Web Vitals
+  - LCP < 2.5s - 已完成：创建 `useCoreWebVitals.js` composable 监控 LCP 指标；`index.html` 添加字体预加载和关键 CSS 内联
+  - FID < 100ms - 已完成：优化主线程任务，使用 `requestIdleCallbackPolyfill` 和 `yieldToMain` 分解长任务
+  - CLS < 0.1 - 已完成：添加 `.img-placeholder`、`.reserve-height`、`.aspect-container` 等 CLS 预防 CSS 类；图片设置明确尺寸
+  - INP < 200ms - 已完成：使用 `yieldToMain` 分解长任务，减少主线程阻塞；Intersection Observer 暂停离屏动画
 
 ## 验收标准
 

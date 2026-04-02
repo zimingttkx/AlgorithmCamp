@@ -3870,3 +3870,132 @@ textarea {
 .pause-when-offscreen.is-visible {
   animation-play-state: running;
 }
+
+/* ── Core Web Vitals - CLS Prevention ── */
+
+/* Reserve space for images to prevent layout shift during loading */
+.img-placeholder {
+  background: var(--bg-elevated, #1F2937);
+  min-height: 200px;
+  width: 100%;
+}
+
+.img-placeholder-square {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+}
+
+.img-placeholder-landscape {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.img-placeholder-portrait {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+}
+
+/* Reserve space for dynamic content to prevent CLS */
+.reserve-height {
+  min-height: var(--reserve-min-height, 100px);
+}
+
+.reserve-height-sm { min-height: 50px; }
+.reserve-height-md { min-height: 100px; }
+.reserve-height-lg { min-height: 200px; }
+.reserve-height-xl { min-height: 400px; }
+
+/* Reserve space for ad/banner slots */
+.ad-slot {
+  min-height: 250px;
+  background: var(--bg-elevated, #1F2937);
+  contain: layout;
+}
+
+/* Reserve space for lazy-loaded components */
+.lazy-component-placeholder {
+  min-height: 150px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-card, rgba(17, 24, 39, 0.7)) 0%,
+    var(--bg-elevated, #1F2937) 50%,
+    var(--bg-card, rgba(17, 24, 39, 0.7)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Aspect ratio containers for embedded content */
+.aspect-container {
+  position: relative;
+  width: 100%;
+}
+
+.aspect-container-16-9 { aspect-ratio: 16 / 9; }
+.aspect-container-4-3 { aspect-ratio: 4 / 3; }
+.aspect-container-1-1 { aspect-ratio: 1 / 1; }
+.aspect-container-21-9 { aspect-ratio: 21 / 9; }
+
+.aspect-container > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Prevent CLS for font loading - use font-display: swap */
+@font-face {
+  font-display: swap;
+}
+
+/* Ensure web fonts don't cause layout shift */
+.font-preload-hint {
+  font-size: 0.875em; /* Slightly smaller to reduce visible shift */
+}
+
+/* Dynamic content reservation - set explicit heights */
+.content-height-fixed {
+  height: var(--content-height, auto);
+  overflow: hidden;
+}
+
+/* Skeleton loader for content loading states */
+.skeleton-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-dark, #0A0F1C) 0%, var(--bg-panel, #111827) 100%);
+}
+
+.skeleton-item {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card, rgba(17, 24, 39, 0.7)) 0%,
+    var(--bg-elevated, #1F2937) 50%,
+    var(--bg-card, rgba(17, 24, 39, 0.7)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-title {
+  height: 2em;
+  width: 60%;
+  margin-bottom: 1em;
+}
+
+.skeleton-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+
+.skeleton-card {
+  min-height: 200px;
+  border-radius: 8px;
+}

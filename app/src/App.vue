@@ -70,11 +70,15 @@ import { useResponsive } from './composables/useResponsive.js'
 import { initA11y, useA11y } from './composables/useA11y.js'
 import { initKeyboardShortcuts, useKeyboardShortcuts, getAllShortcuts } from './composables/useKeyboardShortcuts.js'
 import { useAnimationPerformance } from './composables/useAnimationPerformance.js'
+import { useCoreWebVitals } from './composables/useCoreWebVitals.js'
 
 const router = useRouter()
 const { isDark, toggle: toggleTheme } = useTheme()
 const { toggle: toggleLang } = useLang()
 const { isMobile, isTablet, isSplitScreen, splitScreenType, viewportWidth } = useResponsive()
+
+// Core Web Vitals monitoring
+const { getMetrics, getScore, THRESHOLDS } = useCoreWebVitals({ debug: true })
 
 // Animation performance monitoring
 const { currentFPS, isLowPerformance, shouldAnimate, prefersReducedMotion } = useAnimationPerformance({ name: 'App' })
@@ -354,6 +358,19 @@ onMounted(() => {
   initA11y() // Initialize accessibility features
   document.addEventListener('visibilitychange', handleVisibility)
   window.addEventListener('scroll', onScroll, { passive: true })
+
+  // Log Core Web Vitals metrics after page load
+  setTimeout(() => {
+    const metrics = getMetrics()
+    const score = getScore()
+    console.log(`[Core Web Vitals] Score: ${score}/100`, {
+      LCP: metrics.LCP ? `${(metrics.LCP / 1000).toFixed(2)}s` : 'N/A',
+      CLS: metrics.CLS ? metrics.CLS.toFixed(3) : 'N/A',
+      FID: metrics.FID ? `${metrics.FID.toFixed(0)}ms` : 'N/A',
+      INP: metrics.INP ? `${metrics.INP.toFixed(0)}ms` : 'N/A',
+      Thresholds: THRESHOLDS,
+    })
+  }, 3000) // Wait for metrics to accumulate
 })
 onUnmounted(() => {
   if (animId) cancelAnimationFrame(animId)

@@ -40,6 +40,36 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
+    <!-- Preload critical fonts for better LCP -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" as="style" />
+    <link rel="preload" href="https://fonts.gstatic.com/s/spacegrotesk/v16/V8mDoQDjQSkFtoMM3T6r8E7mPbF4C_k3HqUt.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPVmUsaaDhw.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Critical CSS for faster render -->
+    <style>
+      /* Critical CSS - Inline above-the-fold styles */
+      :root {
+        --bg-dark: #0A0F1C;
+        --text-primary: #F9FAFB;
+        --neon-primary: #00f0ff;
+      }
+      body {
+        margin: 0;
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+      }
+      #app {
+        min-height: 100vh;
+        background: var(--bg-dark);
+      }
+      /* Reserve space for skeleton loader to prevent CLS */
+      .skeleton-screen {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0A0F1C 0%, #111827 100%);
+      }
+    </style>
+
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
     {
