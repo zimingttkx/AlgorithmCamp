@@ -57,11 +57,20 @@
     - 头像图片支持捏合缩放查看 (Home.vue, About.vue)
     - 移动端触摸目标尺寸 ≥ 44px 支持
 
-- [ ] 7. 平板优化
-  - 双栏布局支持
-  - 键盘快捷键
-  - 悬停效果转换为触摸
-  - 分屏模式支持
+- [x] 7. 平板优化
+  - 双栏布局支持 ✓
+  - 键盘快捷键 ✓
+  - 悬停效果转换为触摸 ✓
+  - 分屏模式支持 ✓
+  - **实现内容**:
+    - 创建 `useResponsive.js` composable，提供响应式检测（viewport、device type、split-screen）
+    - 创建 `useKeyboardShortcuts.js` composable，提供键盘快捷键管理
+    - 添加平板双栏布局 CSS（768px-1023px 断点）
+    - 实现悬停效果转换为触摸:active 状态
+    - 添加分屏模式检测和布局适配
+    - 键盘快捷键: G+H(首页), G+P(刷题), G+R(进度), G+S(统计), /(搜索), T(主题), L(语言), K(搜索), ?(帮助)
+    - 添加键盘帮助弹窗（? 键触发）
+    - 支持安全区域 (safe-area-inset) 适配
 
 - [ ] 8. PWA 支持
   - Service Worker 配置
