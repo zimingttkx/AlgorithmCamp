@@ -233,7 +233,7 @@
     <Teleport to="body">
       <div v-if="modalProject" class="modal-overlay" @click.self="closeProjectModal">
         <div class="modal-content pixel-card">
-          <button class="modal-close" @click="closeProjectModal">×</button>
+          <button class="modal-close" @click="closeProjectModal" aria-label="Close modal">×</button>
           <div class="modal-header">
             <span class="modal-lang-dot" :style="{background: modalProject.langColor}"></span>
             <span class="modal-lang">{{ modalProject.lang }}</span>

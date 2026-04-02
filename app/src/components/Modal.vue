@@ -2,7 +2,7 @@
   <Teleport to="body">
     <div v-if="visible" class="modal-overlay" @click.self="$emit('close')">
       <div class="modal-content pixel-card">
-        <button class="modal-close" @click="$emit('close')">×</button>
+        <button class="modal-close" @click="$emit('close')" aria-label="Close modal">×</button>
         <slot />
       </div>
     </div>

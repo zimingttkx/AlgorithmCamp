@@ -40,7 +40,7 @@
 
     <!-- Project Detail Modal -->
     <Teleport to="body">
-      <div
+<div
         v-if="selectedRepo"
         class="modal-overlay modal-overlay-pixelate"
         :class="{ 'modal-overlay-exit': isClosing }"
@@ -50,7 +50,7 @@
           class="modal-content pixel-card modal-content-bounce modal-neon-border modal-shine"
           :class="{ 'modal-content-exit-zoom': isClosing }"
         >
-          <button class="modal-close" @click="closeModal">×</button>
+          <button class="modal-close" @click="closeModal" aria-label="Close modal">×</button>
           <div class="modal-header">
             <span v-if="selectedRepo.language" class="modal-lang-dot" :style="{background: langColor(selectedRepo.language)}"></span>
             <span class="modal-lang">{{ selectedRepo.language || t('未知', 'Unknown') }}</span>
