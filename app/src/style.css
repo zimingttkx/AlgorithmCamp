@@ -3016,3 +3016,857 @@ textarea {
     transition: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATION PERFORMANCE OPTIMIZATION (Task 4)
+   GPU Acceleration, will-change optimization, and performance utilities
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── GPU Acceleration Core ── */
+/* Apply to elements that will be animated with transform/opacity */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* GPU acceleration for animated elements - use on elements with continuous animations */
+.gpu-animated {
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Force GPU layer for heavy animations */
+.gpu-heavy {
+  transform: translateZ(0) scale(1);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ── will-change Optimization ── */
+/* Predefine which properties will change for browser optimization */
+.will-transform {
+  will-change: transform;
+}
+
+.will-opacity {
+  will-change: opacity;
+}
+
+.will-transform-opacity {
+  will-change: transform, opacity;
+}
+
+/* ── Performance-Aware Animation Classes ── */
+/* Use these classes for 60fps animations */
+
+/* Smooth transform-based animations */
+.animate-transform {
+  transform: translateZ(0);
+  will-change: transform;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-transform-fast {
+  transform: translateZ(0);
+  will-change: transform;
+  transition: transform 0.15s ease-out;
+}
+
+/* Opacity fade animations - most performant */
+.animate-fade {
+  will-change: opacity;
+  transition: opacity 0.3s ease;
+}
+
+.animate-fade-fast {
+  will-change: opacity;
+  transition: opacity 0.15s ease;
+}
+
+/* Combined transform + opacity for complex animations */
+.animate-presence {
+  transform: translateZ(0);
+  opacity: 1;
+  will-change: transform, opacity;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+/* ── Animation Quality Levels ── */
+/* JS will set data-quality attribute for performance degradation */
+
+/* High quality - full effects */
+[data-quality="high"] .animate-presence {
+  filter: blur(0);
+}
+
+/* Medium quality - reduced blur */
+[data-quality="medium"] .animate-presence {
+  filter: blur(0);
+}
+
+/* Low quality - minimal effects */
+[data-quality="low"] .animate-presence {
+  transform: none !important;
+  transition: opacity 0.2s ease !important;
+}
+
+/* ── Reduced Motion Global Override ── */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all GPU-accelerated animations when user prefers reduced motion */
+  .gpu-accelerated,
+  .gpu-animated,
+  .gpu-heavy {
+    transform: none !important;
+    animation: none !important;
+    will-change: auto !important;
+    transition: none !important;
+  }
+
+  /* Disable canvas animations */
+  #particle-canvas,
+  #ambient-canvas {
+    display: none !important;
+  }
+
+  /* Simplify all transitions to opacity only */
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  /* But preserve essential opacity transitions */
+  .animate-fade,
+  .animate-fade-fast,
+  .opacity-transition-only {
+    transition: opacity 0.2s ease !important;
+    animation: none !important;
+  }
+}
+
+/* ── Continuous Animation Optimizations ── */
+/* For animations that run continuously (spinners, loaders, etc.) */
+
+/* CSS-only continuous animations - use transform for 60fps */
+@keyframes spin-transform {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-transform {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes float-transform {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Apply to spinning elements for GPU acceleration */
+.spin-gpu {
+  transform: translateZ(0) rotate(0deg);
+  will-change: transform;
+  animation: spin-transform var(--spin-duration, 1s) linear infinite;
+}
+
+/* ── Intersection Observer Animation Performance ── */
+/* Elements animated on scroll - disable when not in viewport */
+.scroll-animated {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.scroll-animated.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* GPU-accelerated scroll animations */
+.scroll-animated-gpu {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+  will-change: transform, opacity;
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-animated-gpu.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* ── Page Transition Performance ── */
+/* Vue router page transitions - GPU accelerated */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -10px, 0);
+}
+
+/* ── Hover Animation Performance ── */
+/* Lift on hover - use transform, not margin/padding */
+.hover-lift-gpu {
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.hover-lift-gpu:hover {
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Scale on hover */
+.hover-scale-gpu {
+  transform: translateZ(0) scale(1);
+  transition: transform 0.2s ease;
+  will-change: transform;
+}
+
+.hover-scale-gpu:hover {
+  transform: translateZ(0) scale(1.05);
+}
+
+/* ── 60fps Animation Checklist ── */
+/*
+ * For 60fps animations:
+ * 1. Use transform and opacity ONLY (GPU accelerated)
+ * 2. Add will-change before animation starts, remove after
+ * 3. Avoid animating width, height, top, left, margin, padding
+ * 4. Use requestAnimationFrame for JS animations
+ * 5. Use CSS animations for simple loops (spin, pulse)
+ * 6. Pause animations when off-screen (Intersection Observer)
+ * 7. Degrade gracefully on low-performance devices
+ */
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLET OPTIMIZATION (Task 7)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tablet Breakpoint Variables ── */
+:root {
+  --tablet-breakpoint: 768px;
+  --tablet-large-breakpoint: 900px;
+  --desktop-breakpoint: 1024px;
+}
+
+/* ── Tablet Dual-Column Layout System ── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Container max-width for tablet in split-screen */
+  :root {
+    --container-max-tablet: min(100%, 720px);
+  }
+
+  /* Dual column grid layouts for tablet */
+  .dual-column-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .dual-column-layout .column-primary {
+    order: 1;
+  }
+
+  .dual-column-layout .column-secondary {
+    order: 2;
+  }
+
+  /* Sidebar + content layout */
+  .sidebar-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .sidebar-layout .sidebar {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+
+  /* Card grid adjustments for tablet */
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .card-grid.cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Stats dashboard dual column */
+  .stats-dashboard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Practice overview tablet optimization */
+  .practice-overview {
+    flex-direction: row;
+    gap: 24px;
+  }
+
+  .practice-overview .pov-info {
+    width: 50%;
+  }
+
+  .practice-overview .pov-chapters {
+    width: 50%;
+  }
+
+  /* Chapter grid tablet optimization */
+  .chapter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Hero section tablet optimization */
+  .hero-inner {
+    gap: 40px;
+  }
+
+  .hero-stats {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Section layouts */
+  .section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  /* Modal adjustments for tablet dual-view */
+  .modal-content {
+    max-width: 600px;
+    padding: 28px;
+  }
+
+  /* Progress page dual panel */
+  .progress-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  /* Recommendation page tablet layout */
+  .recommendation-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  /* Search results tablet optimization */
+  .search-results {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Blog cards tablet */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* Projects grid tablet */
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* Profile page tablet */
+  .profile-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+/* ── Tablet Large (900px - 1023px) Additional Adjustments ── */
+@media (min-width: 900px) and (max-width: 1023px) {
+  .dual-column-layout {
+    gap: 32px;
+  }
+
+  .sidebar-layout {
+    grid-template-columns: 300px 1fr;
+  }
+
+  .hero-inner {
+    gap: 60px;
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .stats-dashboard {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── Hover-to-Touch-Active Conversion for Touch Devices ── */
+/* On touch devices, :hover states are converted to :active for better feedback */
+@media (hover: none) and (pointer: coarse) {
+  /* Disable hover effects on pure touch devices */
+  .nav-link:hover,
+  .pixel-btn:hover,
+  .card:hover,
+  .feat-card:hover,
+  .blog-card:hover,
+  .project-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* But keep subtle background changes */
+  .nav-link:active,
+  .pixel-btn:active {
+    opacity: 0.8;
+  }
+}
+
+/* ── Tablet Touch Optimization ── */
+/* On tablet devices that support both touch and hover */
+@media (hover: hover) and (pointer: coarse) and (min-width: 768px) {
+  /* Convert hover-only effects to work on tap too */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:active {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Nav links with tap-to-active */
+  .nav-link:active {
+    transform: translateY(-1px);
+    color: var(--neon-primary);
+    background: rgba(0, 243, 255, 0.08);
+  }
+
+  /* Cards tap feedback */
+  .pixel-card:active,
+  .feat-card:active,
+  .blog-card:active,
+  .project-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  /* Button tap feedback */
+  .pixel-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* Stat cards tap feedback */
+  .hstat:active,
+  .stat-card:active {
+    transform: scale(0.97);
+  }
+
+  /* Sidebar links tap feedback */
+  .sidebar-link:active {
+    transform: translateX(2px);
+    background: rgba(0, 243, 255, 0.05);
+  }
+
+  /* Chapter cards tap feedback */
+  .chapter-card:active,
+  .ch-mini:active {
+    transform: scale(0.97);
+  }
+
+  /* Modal close button */
+  .modal-close:active {
+    transform: scale(0.95);
+    background: var(--neon-pink);
+  }
+}
+
+/* ── Split-Screen Mode Support ── */
+@media (min-width: 768px) {
+  /* Detect narrow viewport in split-screen (viewport < 768px but device is tablet+) */
+  .is-split-screen,
+  [data-split-screen="true"] {
+    --split-screen: true;
+  }
+
+  /* Adjust container for split-screen */
+  .split-side-by-side {
+    --container-max: 100%;
+  }
+
+  /* Single column in narrow split-screen */
+  .split-side-by-side .dual-column-layout,
+  .split-side-by-side .sidebar-layout,
+  .split-side-by-side .section-grid,
+  .split-side-by-side .card-grid,
+  .split-side-by-side .stats-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  /* Full-width sections in split-screen */
+  .split-side-by-side .blog-grid,
+  .split-side-by-side .projects-grid,
+  .split-side-by-side .recommendation-grid,
+  .split-side-by-side .search-results,
+  .split-side-by-side .progress-panels {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stacked hero in split-screen */
+  .split-side-by-side .hero-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .split-side-by-side .hero-left {
+    align-items: center;
+  }
+
+  /* Practice overview stacked in split */
+  .split-side-by-side .practice-overview {
+    flex-direction: column;
+  }
+
+  .split-side-by-side .practice-overview .pov-info,
+  .split-side-by-side .practice-overview .pov-chapters {
+    width: 100%;
+  }
+
+  /* Profile grid stacked */
+  .split-side-by-side .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Chapter grid single column */
+  .split-side-by-side .chapter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Adjust navbar for narrow split-screen */
+  .split-side-by-side .nav-inner {
+    padding: 0 12px;
+    gap: 12px;
+  }
+
+  .split-side-by-side .nav-link {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Adjust for very narrow split (< 500px) */
+  @media (max-width: 500px) {
+    .split-side-by-side .nav-links {
+      display: none;
+    }
+
+    .split-side-by-side .nav-mobile-btn {
+      display: flex;
+    }
+  }
+}
+
+/* ── Split Top-Bottom (Picture-in-Picture style) ── */
+@media (max-height: 600px) and (min-width: 768px) {
+  .split-top-bottom .hero-inner {
+    flex-direction: row;
+    padding: 20px;
+  }
+
+  .split-top-bottom .hero-avatar-wrap {
+    width: 120px;
+    height: 120px;
+  }
+
+  .split-top-bottom .hero-avatar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .split-top-bottom .hero-name {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+  }
+
+  .split-top-bottom .section {
+    padding: 20px 0;
+  }
+}
+
+/* ── Keyboard Navigation Focus for Tablet ── */
+/* Enhance focus indicators for tablet keyboard users */
+@media (min-width: 768px) and (hover: hover) {
+  /* Tab navigation focus */
+  .nav-link:focus-visible,
+  .pixel-btn:focus-visible,
+  .sidebar-link:focus-visible {
+    outline: 2px solid var(--neon-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 12px var(--glow-primary-soft);
+  }
+
+  /* Card focus */
+  .pixel-card:focus-within,
+  .feat-card:focus-within,
+  .blog-card:focus-within {
+    outline: 2px solid var(--neon-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Tablet Safe Area Adjustments ── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Account for notched tablets in landscape */
+  @supports (padding: env(safe-area-inset-left)) {
+    .navbar {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    .bottom-nav {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .modal-content {
+      margin-left: env(safe-area-inset-left);
+      margin-right: env(safe-area-inset-right);
+      margin-bottom: env(safe-area-inset-bottom);
+    }
+  }
+
+  /* Safe area for inline safe areas */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* ── Keyboard Shortcut Hints ── */
+/* Visual hints for keyboard shortcuts on tablet */
+@media (min-width: 768px) {
+  .keyboard-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
+
+  .keyboard-hint:hover {
+    opacity: 1;
+  }
+
+  /* Kbd-style shortcuts in tooltips */
+  .shortcut-tooltip kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Shortcut badge next to nav items */
+  .nav-shortcut {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    opacity: 0.5;
+    margin-left: 4px;
+  }
+
+  .nav-link:hover .nav-shortcut,
+  .nav-link:focus-visible .nav-shortcut {
+    opacity: 1;
+  }
+}
+
+/* ── Tablet Performance Optimizations ── */
+/* Reduce complexity on tablet for better performance */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Simplify complex shadows */
+  .pixel-card,
+  .glass-card {
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Reduce backdrop-filter complexity */
+  .navbar,
+  .bottom-nav,
+  .nav-sidebar {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* Simplify scanlines effect */
+  .scanlines {
+    opacity: 0.5;
+  }
+
+  /* Simplify particle effects (reduced) */
+  #particle-canvas,
+  #ambient-canvas {
+    opacity: 0.5;
+  }
+}
+
+/* ── Tablet Print Optimization ── */
+@media print and (min-width: 768px) {
+  .navbar,
+  .bottom-nav,
+  .scanlines,
+  #particle-canvas,
+  #ambient-canvas,
+  .back-to-top,
+  .keyboard-hint {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+}
+
+/* ── Rendering Performance Optimizations ── */
+
+/* GPU acceleration hints for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.gpu-animated {
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+}
+
+/* Containment for isolated rendering */
+.contain-layout {
+  contain: layout;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-strict {
+  contain: strict;
+}
+
+.contain-content {
+  contain: content;
+}
+
+/* Reduce paint areas */
+.paint-freeze {
+  paint-order: contents;
+}
+
+/* Optimize scroll performance */
+.scroll-optimized {
+  will-change: scroll-position;
+  overflow-anchor: auto;
+}
+
+/* Batch-friendly class updates */
+.batch-friendly {
+  contain: style layout;
+}
+
+/* Virtual scroll item optimization */
+.virtual-item {
+  contain: layout paint;
+  will-change: transform;
+}
+
+/* Optimize for low-performance mode */
+@media (prefers-reduced-motion: reduce) {
+  .gpu-accelerated,
+  .gpu-animated {
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Force GPU layer for transform animations */
+.force-gpu {
+  transform: translate3d(0, 0, 0);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize text rendering during animations */
+.text-optimized {
+  text-rendering: optimizeSpeed;
+  font-synthesis: none;
+}
+
+/* Visibility-based animation control */
+.invisible-when-not-visible {
+  visibility: hidden;
+}
+
+.invisible-when-not-visible.is-visible {
+  visibility: visible;
+}
+
+/* Pause animations when off-screen */
+.pause-when-offscreen {
+  animation-play-state: paused;
+}
+
+.pause-when-offscreen.is-visible {
+  animation-play-state: running;
+}

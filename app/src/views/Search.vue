@@ -37,6 +37,56 @@
         <p>{{ isZh ? '输入关键词搜索题目' : 'Enter keywords to search problems' }}</p>
       </div>
 
+      <div v-else-if="filteredProblems.length > 100" class="results-list virtual-scroll-wrapper">
+        <VirtualScroll
+          :items="filteredProblems"
+          :item-height="76"
+          :buffer-size="3"
+          :container-height="600"
+          @scroll="onVirtualScroll"
+        >
+          <template #default="{ item: problem, index }">
+            <div
+              class="result-item"
+              :class="{ 'odd-row': index % 2 === 1 }"
+              @click="goToProblem(problem)"
+            >
+              <div class="result-main">
+                <span class="result-num font-mono">{{ problem.num }}</span>
+                <span class="result-title">{{ problem.title }}</span>
+                <span v-if="problem.isMember" class="lock-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="result-meta">
+                <span class="result-chapter" :style="{color: getChapterColor(problem.chapterId)}">
+                  {{ problem.chapterTitle }}
+                </span>
+                <span class="result-rating" :class="ratingCls(problem.rating)">
+                  {{ problem.rating || '—' }}
+                </span>
+                <span v-if="isProblemDone(problem)" class="result-status done">
+                  {{ isZh ? '已做' : 'Done' }}
+                </span>
+                <span v-else-if="isInReview(problem)" class="result-status review">
+                  {{ isZh ? '复习' : 'Review' }}
+                </span>
+                <span v-else class="result-status todo">
+                  {{ isZh ? '未做' : 'Todo' }}
+                </span>
+              </div>
+              <div v-if="problem.sectionH2" class="result-section">
+                {{ problem.sectionH2 }}
+                <span v-if="problem.sectionH3"> / {{ problem.sectionH3 }}</span>
+              </div>
+            </div>
+          </template>
+        </VirtualScroll>
+      </div>
+
       <div v-else class="results-list">
         <div
           v-for="problem in filteredProblems"
@@ -82,12 +132,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { CHAPTERS } from '../composables/data.js'
 import { useLang } from '../composables/i18n.js'
 import { useReviewReminder } from '../composables/useReviewReminder.js'
+import { useThrottle } from '../composables/useDebounce.js'
 import SearchFilter from '../components/SearchFilter.vue'
+import VirtualScroll from '../components/VirtualScroll.vue'
 import { useSearchFilter } from '../composables/useSearchFilter.js'
 
 const router = useRouter()
@@ -181,6 +233,16 @@ const filteredProblems = computed(() => {
 function onFilterChange() {
   // Filters are reactive, computed will update
 }
+
+// Throttled scroll handler for virtual scroll
+const { throttledFn: onVirtualScroll } = useThrottle((event) => {
+  // Virtual scroll handled internally, but we track for analytics
+}, 16)
+
+// Cleanup throttle on unmount
+onUnmounted(() => {
+  onVirtualScroll.cancel()
+})
 
 function resetAll() {
   resetFilters()
@@ -300,6 +362,17 @@ function ratingCls(r) {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* Virtual scroll wrapper */
+.virtual-scroll-wrapper {
+  contain: layout style;
+  will-change: scroll-position;
+}
+
+/* Alternating row for better visual tracking */
+.result-item.odd-row {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .result-item {

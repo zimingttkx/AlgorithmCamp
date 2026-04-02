@@ -93,10 +93,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { CHAPTERS } from '../composables/data.js'
 import { useLang } from '../composables/i18n.js'
 import { useSearchFilter } from '../composables/useSearchFilter.js'
+import { useDebounce } from '../composables/useDebounce.js'
 
 const props = defineProps({
   modelValue: {
@@ -124,6 +125,11 @@ const {
   hasActiveFilters
 } = useSearchFilter()
 
+// Debounce search input to reduce filter operations (150ms delay)
+const { debouncedFn: debouncedEmitChange, cancel: cancelDebounce } = useDebounce(() => {
+  emitChange()
+}, 150)
+
 // Sync with parent
 watch(() => props.modelValue, (val) => {
   if (val.searchQuery !== undefined) searchQuery.value = val.searchQuery
@@ -132,7 +138,7 @@ watch(() => props.modelValue, (val) => {
   if (val.chapterFilter !== undefined) chapterFilter.value = val.chapterFilter
 }, { immediate: true, deep: true })
 
-// Emit changes to parent
+// Emit changes to parent (debounced for search)
 function emitChange() {
   emit('update:modelValue', {
     searchQuery: searchQuery.value,
@@ -144,10 +150,12 @@ function emitChange() {
 }
 
 function onSearchInput() {
-  emitChange()
+  // Debounce search input changes
+  debouncedEmitChange()
 }
 
 function onChapterChange() {
+  // Chapter changes are immediate (not debounced)
   emitChange()
 }
 
@@ -170,6 +178,11 @@ function resetAll() {
   resetFilters()
   emitChange()
 }
+
+// Cleanup debounce on unmount
+onUnmounted(() => {
+  cancelDebounce()
+})
 
 // Difficulty levels for chips
 const difficultyLevels = computed(() => [
