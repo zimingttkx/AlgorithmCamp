@@ -83,6 +83,33 @@
                 <span v-else-if="isLoggedIn">☁</span>
               </span>
             </div>
+            <!-- LeetCode Sync -->
+            <div class="leetcode-sync-area">
+              <div v-if="!leetcodeUsername" class="leetcode-bind">
+                <input
+                  v-model="leetcodeInput"
+                  type="text"
+                  placeholder="LeetCode用户名"
+                  class="leetcode-input"
+                  @keyup.enter="handleLeetCodeBind"
+                />
+                <button class="leetcode-btn" @click="handleLeetCodeBind" :disabled="!leetcodeInput.trim()">
+                  ⚔ 绑定
+                </button>
+              </div>
+              <div v-else class="leetcode-bound">
+                <span class="leetcode-icon">⚔</span>
+                <span class="leetcode-name">{{ leetcodeUsername }}</span>
+                <button class="leetcode-sync-btn" :class="leetcodeSyncStatus" @click="handleLeetCodeSync" :title="leetcodeSyncStatusTitle">
+                  <span v-if="leetcodeSyncStatus === 'syncing'" class="sync-spin">↻</span>
+                  <span v-else-if="leetcodeSyncStatus === 'synced'">✓</span>
+                  <span v-else-if="leetcodeSyncStatus === 'error'">✗</span>
+                  <span v-else-if="leetcodeSyncStatus === 'pending'">●</span>
+                  <span v-else>↻</span>
+                </button>
+                <button class="leetcode-unbind-btn" @click="handleLeetCodeUnbind" title="解除绑定">×</button>
+              </div>
+            </div>
           </div>
           <p class="map-subtitle">点击章节卡片进入刷题 · 共 12 个专题</p>
           <div class="stats-row">
@@ -289,9 +316,21 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import { CHAPTERS } from '../composables/data.js'
 import { useAuth } from '../composables/auth.js'
 import { useProgressSync } from '../composables/progressSync.js'
+import { useLeetCodeSync } from '../composables/leetCodeSync.js'
 
 const { isLoggedIn, loginWithGithub } = useAuth()
 const { syncStatus, syncError, loadFromServer, saveProgress: serverSaveProgress } = useProgressSync()
+const {
+  leetcodeUsername,
+  syncStatus: leetcodeSyncStatus,
+  syncError: leetcodeSyncError,
+  bindUsername,
+  unbindUsername,
+  syncLeetCodeToProgress,
+  syncStatusTitle: leetcodeSyncStatusTitle,
+  leetcodeSolvedCount,
+  localMatchedCount,
+} = useLeetCodeSync()
 
 const PROGRESS_KEY = 'mc-algo-progress'
 const TOTALS_KEY  = '_chapterTotals'
@@ -317,6 +356,9 @@ const totals = ref({})
 const bubbleRefs = reactive({})
 const tiltData = reactive({})
 const openSections = reactive({})
+
+// LeetCode sync state
+const leetcodeInput = ref('')
 
 const syncStatusTitle = computed(() => {
   if (!isLoggedIn.value) return '未登录'
@@ -506,6 +548,38 @@ function handleLogin() {
   loginWithGithub()
 }
 
+// LeetCode sync handlers
+function handleLeetCodeBind() {
+  const username = leetcodeInput.value.trim()
+  if (!username) return
+  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+    alert('用户名格式不正确，只能包含字母、数字、下划线和连字符')
+    return
+  }
+  bindUsername(username)
+  leetcodeInput.value = ''
+}
+
+function handleLeetCodeUnbind() {
+  unbindUsername()
+}
+
+async function handleLeetCodeSync() {
+  if (!leetcodeUsername.value) return
+  // Pre-load all chapters before sync if not already loaded
+  await Promise.all(CHAPTERS.map(ch => {
+    if (!mdCache[ch.id]) {
+      return fetch(ch.file).then(r => r.text()).then(md => {
+        mdCache[ch.id] = parseMdTables(md)
+      })
+    }
+    return Promise.resolve()
+  }))
+  await syncLeetCodeToProgress(mdCache)
+  // Reload progress to reflect changes
+  loadStorage()
+}
+
 function triggerCelebration() {
   // Clear any existing timeout
   if (celebrationTimeout) {
@@ -676,6 +750,135 @@ onMounted(() => { syncOnLoad() })
 
 .sync-spin { display: inline-block; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* LeetCode Sync Styles */
+.leetcode-sync-area {
+  display: flex;
+  align-items: center;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--glass-border);
+}
+
+.leetcode-bind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leetcode-input {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  width: 140px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.leetcode-input:focus {
+  border-color: var(--neon-primary);
+  box-shadow: 0 0 8px var(--glow-primary-soft);
+}
+
+.leetcode-input::placeholder {
+  color: var(--text-dim);
+}
+
+.leetcode-btn {
+  background: var(--neon-primary);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.leetcode-btn:hover:not(:disabled) {
+  box-shadow: 0 0 12px var(--glow-primary);
+  transform: translateY(-1px);
+}
+
+.leetcode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.leetcode-bound {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leetcode-icon {
+  font-size: 1rem;
+}
+
+.leetcode-name {
+  font-size: 0.85rem;
+  color: var(--neon-cyan);
+  font-family: 'JetBrains Mono', monospace;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leetcode-sync-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 32px;
+  text-align: center;
+}
+
+.leetcode-sync-btn:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+}
+
+.leetcode-sync-btn.syncing {
+  color: var(--neon-blue);
+  border-color: var(--neon-blue);
+}
+
+.leetcode-sync-btn.synced {
+  color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+}
+
+.leetcode-sync-btn.error {
+  color: var(--neon-pink);
+  border-color: var(--neon-pink);
+}
+
+.leetcode-sync-btn.pending {
+  color: var(--mc-gold);
+  border-color: var(--mc-gold);
+}
+
+.leetcode-unbind-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.leetcode-unbind-btn:hover {
+  color: var(--neon-pink);
+}
 
 .map-subtitle {
   color: var(--text-secondary);
