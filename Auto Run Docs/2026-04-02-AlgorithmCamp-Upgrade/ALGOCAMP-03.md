@@ -23,13 +23,39 @@
   - 实现真正的像素级渲染效果（非简单模糊）
   - 添加像素马赛克过渡效果
 
-- [ ] 4. 高级动效设计
+- [x] 4. 高级动效设计
   - 添加 3D 悬浮效果 (transform: perspective)
+    - `.perspective-container`: perspective容器
+    - `.hover-3d`, `.hover-3d-lift`, `.hover-3d-glow`: 3D悬浮卡片效果
+    - `.tilt-card`: 3D倾斜卡片
+    - `.transform-3d-*`: 预设3D变换类
   - 实现流畅的视差滚动效果
+    - `.parallax-container`, `.parallax-layer`: 视差容器和层级
+    - `.parallax-back`, `.parallax-mid`, `.parallax-front`: 视差深度层级
+    - `.parallax-bg-fixed`: 背景固定视差
+    - `.parallax-speed-slow/normal/fast`: 视差速度控制
   - 添加粒子系统升级（GPU加速）
+    - `.gpu-accelerated`: GPU加速容器
+    - `.particle-container`, `.particle`: 粒子容器和基础类
+    - `.particle-circle`, `.particle-square`, `.particle-diamond`: 粒子形状
+    - `particleFloat`, `particleRise`, `particleDrift`, `particleGlow`, `particleBurst`, `particleTrail`: 粒子动画keyframes
+    - `.particle-primary/secondary/accent/white/gold`: 粒子颜色类
+    - `.particle-dense/normal/sparse`: 粒子密度类
   - 实现液态金属流动效果（CSS animation）
+    - `.liquid-metal`: 液态金属文字效果
+    - `.liquid-metal-bg`: 液态金属背景
+    - `.liquid-metal-border`: 液态金属边框
+    - 增强的 `liquidMetal` keyframe (4s周期)
   - 添加打字机效果（标题、描述）
+    - `.typewriter-container`, `.typewriter-text`: 打字机容器和文字
+    - `.typewriter-cursor`: 打字机光标
+    - `.typewriter-slow/fast/very-fast`: 打字速度变体
+    - `.typewriter-wrapper`: 带光标的打字机包装器
   - 实现弹幕/矩阵雨效果（可选）
+    - `.matrix-rain-container`: 矩阵雨容器
+    - `.matrix-column`: 矩阵雨列
+    - `.matrix-char`: 矩阵字符
+    - 增强的 `matrixRain` keyframe
 
 - [ ] 5. 玻璃拟态 2.0
   - 升级玻璃效果到更高级的模糊和反射
@@ -234,4 +260,78 @@
 - [x] 无障碍性增强
   - `@media (prefers-reduced-motion: reduce)` 完全支持
   - 所有动画都有对应的reduce motion处理
+
+### Task 4: 高级动效设计 (已完成 - 2026-04-02)
+- [x] 3D悬浮效果 (transform: perspective)
+  - `.perspective-container`: perspective容器 (perspective: 1000px)
+  - `.hover-3d`: 3D悬浮卡片效果 (translateZ + rotateX/Y)
+  - `.hover-3d-lift`: 3D提升悬浮效果 (translateY/Z + glow)
+  - `.hover-3d-glow`: 3D发光悬浮效果 (translateZ + scale + intense glow)
+  - `.tilt-card`: 3D倾斜卡片 (接收JS的--tilt-x/--tilt-y变量)
+  - `.transform-3d-rotateX-5/10`, `.transform-3d-rotateY-5/10`: 3D旋转预设
+  - `.transform-3d-scale-105`: 3D缩放预设
+  - `.transform-3d-translateZ-20/40`: 3D Z轴位移预设
+
+- [x] 视差滚动效果
+  - `.parallax-container`: 视差容器 (perspective: 2px)
+  - `.parallax-layer`, `.parallax-back/mid/front`: 视差深度层级
+  - `.parallax-bg-fixed`: 背景固定视差 (background-attachment: fixed)
+  - `.parallax-speed-slow/normal/fast`: 视差速度控制类
+  - `[data-parallax]`: scroll-driven视差属性选择器
+  - `.parallax-element`: 视差元素基础类
+
+- [x] GPU加速粒子系统
+  - `.gpu-accelerated`: GPU加速容器 (translateZ(0) + will-change)
+  - `.particle-container`, `.particle`: 粒子容器和基础类
+  - `.particle-circle`, `.particle-square`, `.particle-diamond`: 粒子形状类
+  - `.particle-primary/secondary/accent/white/gold`: 粒子颜色类
+  - `@keyframes particleFloat`: 漂浮粒子动画
+  - `@keyframes particleRise`: 上升消失粒子动画
+  - `@keyframes particleDrift`: 漂移粒子动画
+  - `@keyframes particleGlow`: 发光脉动粒子动画
+  - `@keyframes particleBurst`: 爆裂粒子动画 (支持--burst-x/--burst-y变量)
+  - `@keyframes particleTrail`: 拖尾粒子动画
+  - `.particle-dense/normal/sparse`: 粒子密度CSS变量 (--particle-count)
+  - `.particle-canvas`: 粒子画布层 (z-index: 9997)
+  - `.particle-animate-float/rise/drift/glow/burst/trail`: 粒子动画类
+
+- [x] 液态金属流动效果
+  - `.liquid-metal`: 液态金属文字效果 (background-clip: text)
+  - `.liquid-metal-bg`: 液态金属背景效果
+  - `.liquid-metal-border`: 液态金属边框 (带模糊光晕)
+  - 增强的 `liquidMetal` keyframe (4s周期, 135度彩虹渐变)
+  - 支持hue-rotate滤镜变化增强视觉效果
+
+- [x] 打字机效果
+  - `.typewriter-container`: 打字机容器 (overflow: hidden)
+  - `.typewriter-text`: 打字机文字 (width动画 + border-right光标)
+  - `.typewriter-cursor`: 打字机闪烁光标 (::after伪元素)
+  - `.typewriter-slow/fast/very-fast`: 打字速度变体
+  - `.typewriter-wrapper`: 带独立光标的打字机包装器
+  - `@keyframes typewriter`: 宽度从0到100%展开动画
+  - `@keyframes typewriterCursor`: 光标闪烁 (opacity 0/1)
+
+- [x] 弹幕/矩阵雨效果
+  - `.matrix-rain-container`: 矩阵雨容器 (position: fixed, overflow: hidden)
+  - `.matrix-column`: 矩阵雨列 (writing-mode: vertical-rl, animation: matrixRain)
+  - `.matrix-char`: 矩阵字符 (逐字符淡入动画)
+  - 矩阵列交替使用primary/secondary/accent颜色
+  - 不同列使用不同的动画持续时间(4s/5s/6s)
+  - `@keyframes matrixRain`: Y轴位移 (-100% 到 100vh)
+  - `@keyframes matrixCharFade`: 字符淡入动画
+  - z-index: 9999 (最顶层覆盖层)
+
+- [x] 增强动画工具类
+  - `.animate-3d-float`: 3D漂浮动画 (translate3d + rotateX/Y)
+  - `.animate-3d-spin`: 3D旋转动画 (rotateX/Y/Z 360度)
+  - `.animate-parallax-slow/medium/fast`: 视差浮动动画
+  - `.animate-liquid`: 液态金属动画
+  - `.animate-typewriter`: 打字机动画
+  - `.animate-matrix`: 矩阵雨动画
+
+- [x] 无障碍性增强
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+  - 所有动画使用 `animation: none !important`
+  - 所有transform和transition也被禁用
+  - 粒子动画、3D效果、视差等全部跳过
 
