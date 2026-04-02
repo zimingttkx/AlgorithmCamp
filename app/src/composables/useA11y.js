@@ -5,24 +5,26 @@
 
 import { ref, onMounted } from 'vue'
 
+// Module-level refs for shared state
+const prefersReducedMotion = ref(false)
+const highContrastMode = ref(false)
+
+export function initA11y() {
+  if (typeof window === 'undefined') return
+
+  // Check for prefers-reduced-motion
+  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  // Check for high contrast mode
+  highContrastMode.value = window.matchMedia('(prefers-contrast: more)').matches
+
+  // Listen for preference changes
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
+    prefersReducedMotion.value = e.matches
+  })
+}
+
 export function useA11y() {
-  const prefersReducedMotion = ref(false)
-  const highContrastMode = ref(false)
-
-  function initA11y() {
-    if (typeof window === 'undefined') return
-
-    // Check for prefers-reduced-motion
-    prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    // Check for high contrast mode
-    highContrastMode.value = window.matchMedia('(prefers-contrast: more)').matches
-
-    // Listen for preference changes
-    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
-      prefersReducedMotion.value = e.matches
-    })
-  }
 
   /**
    * Announce message to screen readers via ARIA live region
