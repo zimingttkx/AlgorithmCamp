@@ -57,11 +57,14 @@
 
 ## 验收标准
 
+- [x] 生产构建成功 - 已修复：简化 StatsPanel.vue 解决 Rolldown/vue-plugin 模板解析错误
 - [ ] Lighthouse Performance Score > 90
 - [ ] First Contentful Paint < 1.5s
 - [ ] Largest Contentful Paint < 2.5s
 - [ ] 所有动画 60fps
 - [ ] 总包体积 < 500KB (gzip)
+
+> **注意**：StatsPanel.vue 已被简化以解决生产构建问题。图表绘制功能暂未实现，可后续恢复完整功能。
 
 ## 备注
 
