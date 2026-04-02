@@ -2430,9 +2430,167 @@ onMounted(() => { syncOnLoad() })
   .bubble-cell { width: 120px; }
   .title-row { flex-direction: column; align-items: flex-start; gap: 12px; }
   .chapter-nav-item { flex: 1 1 100%; }
+
+  /* ── Mobile Problem Row Optimizations ── */
+  .prob-row {
+    padding: 14px 12px;
+    gap: 12px;
+    min-height: 56px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .problem-checkbox {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    margin: -10px 0;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .prob-num {
+    font-size: 0.85rem;
+    min-width: 36px;
+  }
+
+  .prob-title {
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  .prob-rating {
+    font-size: 0.75rem;
+    padding: 6px 8px;
+  }
+
+  .prob-detail-btn {
+    width: 44px;
+    height: 44px;
+    margin: -10px -4px -10px 0;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  /* ── Mobile Section Optimizations ── */
+  .sec-header {
+    padding: 16px 14px;
+    gap: 8px;
+  }
+
+  .sec-h2 {
+    font-size: 1rem;
+  }
+
+  .sec-right {
+    flex-shrink: 0;
+  }
+
+  .sec-count {
+    font-size: 0.8rem;
+  }
+
+  .sections-list {
+    gap: 12px;
+  }
+
+  /* ── Mobile Chapter Sidebar ── */
+  .chapter-list {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 10px;
+    padding: 12px 14px;
+    margin: 0 -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .chapter-nav-item {
+    flex: 0 0 auto;
+    min-width: 160px;
+    scroll-snap-align: start;
+  }
+
+  /* ── Mobile Progress Bar Optimization ── */
+  .pixel-progress-advanced {
+    height: 8px;
+  }
+
+  .chapter-progress-bar-advanced {
+    height: 6px;
+  }
 }
 
-/* ── Reduced Motion ── */
+/* ── Mobile Touch Feedback ── */
+@media (hover: none) and (pointer: coarse) {
+  .prob-row:active {
+    background: rgba(79, 142, 247, 0.12);
+    transform: scale(0.98);
+  }
+
+  .prob-row.done:active {
+    background: rgba(52, 211, 153, 0.12);
+  }
+
+  .problem-checkbox:active {
+    transform: scale(0.92);
+  }
+
+  .chapter-nav-item:active {
+    transform: scale(0.97);
+    opacity: 0.8;
+  }
+}
+
+/* ── Swipe Gesture Support ── */
+@media (hover: none) and (pointer: coarse) {
+  .prob-row {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .prob-row::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+    background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.3));
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+
+  .prob-row.done::after {
+    opacity: 1;
+    background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.5));
+  }
+}
+
+/* ── Mobile Progress Bar Simplified Animation ── */
+@media (max-width: 768px) {
+  .pixel-progress-advanced .progress-fill {
+    animation: rainbowFlow 6s linear infinite;
+    background-size: 200% 100%;
+  }
+
+  .pixel-progress-advanced .progress-fill::after {
+    animation: shimmer 3s infinite;
+  }
+
+  .pixel-progress-advanced .progress-glow {
+    width: 12px;
+    height: 12px;
+    filter: blur(6px);
+  }
+
+  .chapter-progress-fill-rainbow::after {
+    animation-duration: 3s;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .pixel-progress-advanced .progress-fill,
   .pixel-progress-advanced .progress-fill::after,
