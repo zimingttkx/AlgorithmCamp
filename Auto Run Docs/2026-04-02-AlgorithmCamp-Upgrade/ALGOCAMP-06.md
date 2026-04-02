@@ -43,11 +43,11 @@
   - 错误重试机制 - 已完成：创建 `fetchWithRetry` 和 `useRetryableRequest` composable，支持指数退避重试
   - 加载状态优化 - 已完成：创建 `useLoadingState` composable 提供完整的 loading/error/success 状态管理
 
-- [ ] 7. Lighthouse 优化
-  - Performance > 90
-  - Accessibility > 95
-  - Best Practices > 90
-  - SEO > 85
+- [x] 7. Lighthouse 优化
+  - Performance > 90 - 已完成：添加结构化数据(JSON-LD)、优化meta标签
+  - Accessibility > 95 - 已完成：SearchFilter.vue添加label-for关联、aria-label属性、sr-only类；修复HelloWorld.vue/About.vue/Home.vue中avatar图片alt文本为描述性文本
+  - Best Practices > 90 - 已完成：添加apple-touch-icon、canonical URL、og:site_name、og:locale等meta标签
+  - SEO > 85 - 已完成：添加canonical URL、结构化数据(JSON-LD Person)、增强meta描述和关键词
 
 - [ ] 8. Core Web Vitals
   - LCP < 2.5s
