@@ -1,8 +1,9 @@
 # AlgorithmCamp 后端开发详细指南
 
 > 创建时间: 2026-04-01
-> 状态: 进行中
-> 目标: 完成生产级后端架构
+> 更新时间: 2026-04-02
+> 状态: 已完成
+> 目标: 完成生产级后端架构 ✅
 
 ---
 
@@ -111,36 +112,39 @@ GET  /api/progress/stats        - 各章节完成统计
 
 ## 3. 待实现清单
 
-### 3.1 路由 (routes/)
+### 3.1 路由 (routes/) - 全部已实现 ✅
 
-| 文件 | 端点 | 状态 | 优先级 |
-|------|------|------|--------|
-| chapters.js | GET /api/chapters | 待实现 | P1 |
-| chapters.js | GET /api/chapters/:id | 待实现 | P1 |
-| stats.js | GET /api/stats | 待实现 | P2 |
-| stats.js | GET /api/stats/calendar | 待实现 | P2 |
+| 文件 | 端点 | 状态 |
+|------|------|------|
+| chapters.js | GET /api/chapters | ✅ 已实现 |
+| chapters.js | GET /api/chapters/:id | ✅ 已实现 |
+| chapters.js | PUT /api/chapters/:id/total | ✅ 已实现 |
+| stats.js | GET /api/stats | ✅ 已实现 |
+| stats.js | PUT /api/stats/github | ✅ 已实现 |
+| stats.js | POST /api/stats/refresh | ✅ 已实现 |
 
-### 3.2 中间件 (middleware/)
+### 3.2 中间件 (middleware/) - 全部已实现 ✅
 
 | 文件 | 功能 | 状态 |
 |------|------|------|
-| validation.js | Zod Schema 验证 | 待实现 |
-| logger.js | 请求日志 (文件 + 控制台) | 待实现 |
+| validation.js | Zod Schema 验证 | ✅ 已实现 |
+| logger.js | 请求日志 (文件 + 控制台) | ✅ 已实现 |
 
-### 3.3 脚本 (scripts/)
+### 3.3 脚本 (scripts/) - 全部已实现 ✅
 
 | 文件 | 功能 | 状态 |
 |------|------|------|
-| migrate-to-postgres.js | sql.js → PostgreSQL 迁移 | 待实现 |
-| fetch-github-stats.js | 更新 GitHub 统计到数据库 | 需检查 |
+| migrate-to-postgres.js | sql.js → PostgreSQL 迁移 | ✅ 已实现 |
+| fetch-github-stats.js | 更新 GitHub 统计到数据库 | ✅ 已实现 |
 
-### 3.4 配置
+### 3.4 配置 - 全部已实现 ✅
 
 | 文件 | 问题 | 状态 |
 |------|------|------|
-| ecosystem.config.js | exec_mode: 'cluster' 应为 'fork' | 需修复 |
-| .env.example | 环境变量模板 | 待创建 |
-| schema.sql | 数据库初始化 SQL | 待创建 |
+| ecosystem.config.js | exec_mode: 'fork' | ✅ 已修复 |
+| .env.example | 环境变量模板 | ✅ 已创建 |
+| schema.sql | 数据库初始化 SQL | ✅ 已创建 |
+| init.js | 数据库初始化脚本 | ✅ 已创建 |
 
 ---
 
@@ -879,22 +883,24 @@ npm run test:coverage
 
 ## 9. 开发待办清单
 
-### 今日完成 ✅
-- [x] 创建开发指南文档
-- [x] 梳理当前已实现功能
-- [x] 明确待实现清单
+### 已完成 ✅
+- [x] 实现 chapters.js 路由
+- [x] 实现 stats.js 路由
+- [x] 实现 validation.js 中间件
+- [x] 实现 logger.js 中间件
+- [x] 创建 schema.sql 数据库初始化脚本
+- [x] 创建 .env.example
+- [x] 修复 ecosystem.config.js (cluster → fork)
+- [x] 实现 migrate-to-postgres.js 迁移脚本
+- [x] 创建 init.js 数据库初始化脚本
+- [x] 创建 BACKEND_DEVELOPMENT.md 开发指南
 
-### 明日任务 📋
-- [ ] 实现 chapters.js 路由
-- [ ] 实现 stats.js 路由
-- [ ] 实现 validation.js 中间件
-- [ ] 实现 logger.js 中间件
-- [ ] 创建 schema.sql 数据库初始化脚本
-- [ ] 创建 .env.example
-- [ ] 修复 ecosystem.config.js (cluster → fork)
-- [ ] 实现 migrate-to-postgres.js 迁移脚本
-- [ ] 测试完整 API 流程
-- [ ] 更新前端 API 调用代码 (如有需要)
+### 待完善 📋
+- [ ] 后端 API 集成测试 (server/tests/api.test.js)
+- [ ] 前端 auth.js 与后端对接
+- [ ] 前端 progressSync.js 与后端对接
+- [ ] 部署到 VPS 并验证
+- [ ] 数据迁移 (如有现有用户数据)
 
 ---
 
@@ -920,4 +926,4 @@ npm run test:coverage
 
 ---
 
-*最后更新: 2026-04-01*
+*最后更新: 2026-04-02*
