@@ -41,6 +41,11 @@ const { isZh } = useLang()
 const canvas = ref(null)
 const canvasSize = 280
 
+// Animation visibility control
+const isVisible = ref(true)
+let visibilityObserver = null
+let animFrame = null
+
 // Load progress data
 const progress = computed(() => {
   try {
@@ -214,19 +219,54 @@ function drawRadar() {
   })
 }
 
-let animFrame = null
+// Visibility-based animation control
+function startAnimation() {
+  if (animFrame) return
+  function loop() {
+    if (isVisible.value) {
+      animFrame = requestAnimationFrame(loop)
+    }
+  }
+  loop()
+}
 
-function animate() {
-  drawRadar()
-  animFrame = requestAnimationFrame(animate)
+function stopAnimation() {
+  if (animFrame) {
+    cancelAnimationFrame(animFrame)
+    animFrame = null
+  }
+}
+
+function initVisibilityObserver() {
+  if (!canvas.value) return
+
+  visibilityObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        isVisible.value = entry.isIntersecting
+        if (entry.isIntersecting) {
+          startAnimation()
+        } else {
+          stopAnimation()
+        }
+      })
+    },
+    { threshold: 0.1 }
+  )
+
+  visibilityObserver.observe(canvas.value)
 }
 
 onMounted(() => {
-  animate()
+  initVisibilityObserver()
+  startAnimation()
 })
 
 onUnmounted(() => {
-  if (animFrame) cancelAnimationFrame(animFrame)
+  stopAnimation()
+  if (visibilityObserver) {
+    visibilityObserver.disconnect()
+  }
 })
 
 watch(progress, () => {
