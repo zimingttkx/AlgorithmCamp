@@ -57,7 +57,7 @@
     - `.matrix-char`: 矩阵字符
     - 增强的 `matrixRain` keyframe
 
-- [ ] 5. 玻璃拟态 2.0
+- [x] 5. 玻璃拟态 2.0
   - 升级玻璃效果到更高级的模糊和反射
   - 添加光泽度效果（伪元素渐变）
   - 实现金属质感边框
@@ -334,4 +334,47 @@
   - 所有动画使用 `animation: none !important`
   - 所有transform和transition也被禁用
   - 粒子动画、3D效果、视差等全部跳过
+
+### Task 5: 玻璃拟态 2.0 (已完成 - 2026-04-02)
+- [x] 升级玻璃效果到更高级的模糊和反射
+  - CSS变量：`--glass-blur-sm`(8px) 到 `--glass-blur-xl`(40px)
+  - CSS变量：`--glass-opacity-light/medium/heavy` 透明度级别
+  - `.glass`: 基础玻璃效果 (backdrop-filter blur 16px)
+  - `.glass-2`: 增强玻璃 (blur 24px + 顶部渐变反射)
+  - `.glass-3`: 高级玻璃 (blur 40px + 多层渐变反射)
+  - `.glass-card`: 卡片玻璃变体 (hover时translateY提升)
+  - `.glass-panel`: 面板玻璃变体 (半透明背景)
+  - `.glass-nav`: 导航栏玻璃变体 (顶部固定)
+
+- [x] 添加光泽度效果（伪元素渐变）
+  - `.sheen`: 基础光泽效果 (45度斜向扫光动画)
+  - `.sheen-light/medium/heavy`: 光泽强度变体
+  - `.sheen-diagonal`: 对角线光泽 (横向扫光)
+  - `@keyframes sheenMove`: 光泽移动动画
+  - `@keyframes sheenDiagonal`: 对角光泽动画
+
+- [x] 实现金属质感边框
+  - `.metallic-border`: 金属边框 (mask + linear-gradient)
+  - `.metallic-border-light`: 亮色金属边框
+  - `.metallic-border-dark`: 暗色金属边框
+  - `.metallic-border-neon`: 霓虹金属边框 (三色渐变)
+  - CSS变量：`--metallic-light/mid/dark` 金属渐变色
+
+- [x] 添加内发光效果
+  - `.inner-glow`: 基础内发光
+  - `.inner-glow-primary`: 青色内发光 (#00f0ff)
+  - `.inner-glow-secondary`: 品红内发光 (#ff00aa)
+  - `.inner-glow-accent`: 黄绿内发光 (#f0ff00)
+  - `.inner-glow-soft/strong`: 柔和/强烈变体
+  - `.inner-shadow`, `.inner-shadow-soft/strong`: 内阴影效果
+  - CSS变量：`--inner-glow-primary/secondary/accent`
+
+- [x] 组合玻璃效果
+  - `.glass-neon-primary/secondary/accent`: 霓虹玻璃效果
+  - `.glass-glow-hover`: 悬停发光效果
+  - `.glass-panel-hover`: 面板悬停效果
+
+- [x] 无障碍性增强
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+  - 所有动画和backdrop-filter在reduce motion时禁用
 
