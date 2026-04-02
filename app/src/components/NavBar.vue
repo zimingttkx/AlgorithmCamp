@@ -76,6 +76,7 @@ const navItems = computed(() => isZh.value ? [
   { path: '/stats',    label: '统计' },
   { path: '/recommend', label: '推荐' },
   { path: '/review',   label: '复习', badge: dueReviewCount.value },
+  { path: '/goal',     label: '目标' },
   { path: '/blog',     label: '分享' },
   { path: '/about',    label: '关于' },
 ] : [
@@ -86,6 +87,7 @@ const navItems = computed(() => isZh.value ? [
   { path: '/stats',    label: 'STATS' },
   { path: '/recommend', label: 'RECOMMEND' },
   { path: '/review',   label: 'REVIEW', badge: dueReviewCount.value },
+  { path: '/goal',     label: 'GOAL' },
   { path: '/blog',     label: 'SHARE' },
   { path: '/about',    label: 'ABOUT' },
 ])

@@ -398,11 +398,13 @@ import { useLeetCodeSync } from '../composables/leetCodeSync.js'
 import { useRecommendations } from '../composables/useRecommendations.js'
 import { useReviewReminder } from '../composables/useReviewReminder.js'
 import { useLang } from '../composables/i18n.js'
+import { usePracticeGoal } from '../composables/usePracticeGoal.js'
 import SearchFilter from '../components/SearchFilter.vue'
 import { useSearchFilter } from '../composables/useSearchFilter.js'
 
 const router = useRouter()
 const { isZh } = useLang()
+const { recordPractice } = usePracticeGoal()
 
 const { isLoggedIn, loginWithGithub } = useAuth()
 const { syncStatus, syncError, loadFromServer, saveProgress: serverSaveProgress } = useProgressSync()
@@ -755,6 +757,8 @@ function handleProblemClick(chId, probId, row) {
     // Update review data for forgetting curve
     const problemKey = `${chId}::${probId}`
     updateReview(problemKey, 4) // Assume "easy" for manual solves
+    // Record practice for goal tracking
+    recordPractice(problemKey)
     // Check if chapter is now complete
     checkChapterCompletion(chId)
   } else {
