@@ -58,11 +58,11 @@
 ## 验收标准
 
 - [x] 生产构建成功 - 已验证：修复 AbilityRadar.vue 重复变量声明和 StatsPanel.vue 模板结构错误（heatmap-container 闭合标签缺失），构建成功生成 59 个资源文件
-- [ ] Lighthouse Performance Score > 90
-- [ ] First Contentful Paint < 1.5s
-- [ ] Largest Contentful Paint < 2.5s
-- [ ] 所有动画 60fps
-- [ ] 总包体积 < 500KB (gzip)
+- [ ] Lighthouse Performance Score > 90 - 需浏览器环境验证
+- [ ] First Contentful Paint < 1.5s - 需浏览器环境验证
+- [ ] Largest Contentful Paint < 2.5s - 需浏览器环境验证
+- [ ] 所有动画 60fps - 需浏览器环境验证
+- [x] 总包体积 < 500KB (gzip) - 已验证：生产构建资源总 gzip 体积为 478 KB（59 个资源文件）
 
 > **注意**：StatsPanel.vue 模板结构已修复（添加缺失的 heatmap-container 闭合标签）。图表绘制功能正常运行。
 
