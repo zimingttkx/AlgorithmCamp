@@ -23,6 +23,22 @@ const BUBBLE_POSITIONS = [
 let currentChapter = null;
 let mdCache = {};
 
+// ── Skeleton Screen Controller ──
+function hideSkeleton() {
+  const skeleton = document.getElementById('skeleton-screen');
+  if (skeleton) {
+    skeleton.classList.add('skeleton-hidden');
+    setTimeout(() => { skeleton.style.display = 'none'; }, 600);
+  }
+}
+
+function updateSkeletonProgress(pct) {
+  const bar = document.getElementById('skeleton-bar');
+  const label = document.getElementById('skeleton-label');
+  if (bar) bar.style.width = pct + '%';
+  if (label) label.textContent = pct < 100 ? 'Loading... ' + Math.floor(pct) + '%' : 'Ready!';
+}
+
 // ── Entry Screen ──
 function startEntry() {
   const bar = document.getElementById('entry-bar');
@@ -35,7 +51,14 @@ function startEntry() {
     if (pct >= 100) { pct = 100; clearInterval(iv); }
     bar.style.width = pct + '%';
     label.textContent = pct < 100 ? 'Loading... ' + Math.floor(pct) + '%' : 'Ready!';
-    if (pct >= 100) setTimeout(() => { btn.style.display = 'inline-block'; }, 300);
+    // Update skeleton progress too
+    updateSkeletonProgress(pct);
+    if (pct >= 100) {
+      setTimeout(() => {
+        hideSkeleton();
+        btn.style.display = 'inline-block';
+      }, 300);
+    }
   }, 70);
 }
 

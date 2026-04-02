@@ -4,16 +4,87 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Algorithm Camp · 刷题进度追踪</title>
-  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Critical CSS: Inlined for first screen render -->
+  <style>
+    /* Critical CSS - Minimal styles for entry screen */
+    :root {
+      --mc-bg: #1a1a2e;
+      --mc-sky-dark: #1a3a6e;
+      --mc-grass-top: #7cc427;
+      --mc-grass: #5a8a2a;
+      --mc-dirt: #8b6340;
+      --mc-stone: #7a7a7a;
+      --mc-stone-light: #9a9a9a;
+      --mc-wood: #9c7a3c;
+      --mc-diamond: #4de3e3;
+      --mc-text: #f0f0e0;
+      --mc-text-dim: #aaaaaa;
+      --mc-panel: #2d2d2d;
+      --mc-panel-light: #3a3a3a;
+      --mc-coal: #2a2a2a;
+      --mc-yellow: #ffff55;
+      --mc-sand: #d4c27a;
+      --pixel-font: 'JetBrains Mono', 'Courier New', Courier, monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px}
+    body{font-family:var(--pixel-font);background:var(--mc-bg);color:var(--mc-text);min-height:100vh;text-rendering:optimizeSpeed;-webkit-font-smoothing:none;-moz-osx-font-smoothing:unset}
+    /* Skeleton loading screen */
+    #skeleton-screen{position:fixed;inset:0;z-index:99999;background:var(--mc-sky-dark);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+    .skeleton-block{width:32px;height:32px;border:3px solid #000;border-bottom-color:#333;border-right-color:#333;animation:skeletonBounce .8s ease-in-out infinite}
+    .skeleton-block:nth-child(1){background:var(--mc-grass-top);animation-delay:0s}
+    .skeleton-block:nth-child(2){background:var(--mc-dirt);animation-delay:.15s}
+    .skeleton-block:nth-child(3){background:var(--mc-stone);animation-delay:.3s}
+    .skeleton-block:nth-child(4){background:var(--mc-wood);animation-delay:.45s}
+    .skeleton-block:nth-child(5){background:var(--mc-diamond);animation-delay:.6s}
+    @keyframes skeletonBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+    .skeleton-title{font-size:2rem;font-weight:700;color:var(--mc-grass-top);text-shadow:4px 4px 0 #000;letter-spacing:4px;text-transform:uppercase;animation:skeletonPulse 1.5s ease-in-out infinite}
+    @keyframes skeletonPulse{0%,100%{opacity:1}50%{opacity:.6}}
+    .skeleton-bar-wrap{width:280px;display:flex;flex-direction:column;gap:8px}
+    .skeleton-bar-label{font-size:.75rem;color:var(--mc-text-dim);text-align:center;letter-spacing:2px}
+    .skeleton-bar-outer{width:100%;height:18px;background:#111;border:3px solid #555;border-bottom-color:#222;border-right-color:#222;overflow:hidden}
+    .skeleton-bar-inner{height:100%;background:var(--mc-grass-top);width:0%;transition:width .05s linear}
+    .skeleton-hidden{display:none!important}
+  </style>
+
+  <!-- Font preload for faster text render -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+  <!-- Preload main JS for faster interaction -->
+  <link rel="preload" as="script" href="js/main.js">
+
+  <!-- Non-critical CSS: Loaded async -->
+  <link rel="stylesheet" href="css/style.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="css/style.css"></noscript>
 </head>
 <body>
+
+<!-- Skeleton Loading Screen -->
+<div id="skeleton-screen">
+  <div class="skeleton-blocks">
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+  </div>
+  <div class="skeleton-title">&#x26CF; Algorithm Camp &#x26CF;</div>
+  <div class="skeleton-bar-wrap">
+    <div class="skeleton-bar-label" id="skeleton-label">Loading...</div>
+    <div class="skeleton-bar-outer"><div class="skeleton-bar-inner" id="skeleton-bar"></div></div>
+  </div>
+</div>
 
 <!-- Entry Screen -->
 <div id="entry-screen">
   <!-- Left: Profile -->
   <div class="entry-left">
     <div class="entry-profile-hero">
-      <img id="profile-avatar" src="" alt="avatar" class="profile-avatar">
+      <img id="profile-avatar" src="" alt="avatar" class="profile-avatar" width="96" height="96" fetchpriority="high">
       <div class="profile-info">
         <div class="profile-name" id="profile-name">zimingttkx</div>
         <div class="profile-login" id="profile-login">@zimingttkx</div>
@@ -37,7 +108,7 @@
       </div>
       <div class="leetcode-profile hidden" id="leetcode-profile">
         <div class="leetcode-profile-header">
-          <img id="leetcode-avatar" src="" alt="avatar" class="leetcode-avatar">
+          <img id="leetcode-avatar" src="" alt="avatar" class="leetcode-avatar" width="56" height="56" loading="lazy">
           <div class="leetcode-info">
             <div class="leetcode-name" id="leetcode-name">—</div>
             <div class="leetcode-ranking" id="leetcode-ranking">全球排名: —</div>
