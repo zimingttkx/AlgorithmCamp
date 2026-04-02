@@ -1,14 +1,18 @@
 <template>
   <div id="app" :class="isDark ? 'theme-dark' : 'theme-light'">
+    <!-- Skip Link for Keyboard Navigation -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="scanlines"></div>
     <canvas ref="particleCanvas" id="particle-canvas"></canvas>
     <canvas ref="ambientCanvas" id="ambient-canvas"></canvas>
     <NavBar />
+    <main id="main-content">
     <router-view v-slot="{ Component }">
       <transition name="page" mode="out-in">
         <component :is="Component" />
       </transition>
     </router-view>
+    </main>
     <Footer />
     <button class="back-to-top" :class="{ visible: showBackTop }" @click="scrollToTop" aria-label="Back to top">&#9650;</button>
   </div>

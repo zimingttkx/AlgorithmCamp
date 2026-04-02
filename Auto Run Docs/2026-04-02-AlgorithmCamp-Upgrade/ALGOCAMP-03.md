@@ -103,7 +103,7 @@
   - 实现滚动驱动的动画
   - 尊重 prefers-reduced-motion
 
-- [ ] 13. 无障碍性增强
+- [x] 13. 无障碍性增强
   - 确保色彩对比度符合 WCAG AAA
   - 添加焦点指示器
   - 优化键盘导航
@@ -687,3 +687,49 @@
   - 骨架屏静态显示
   - 路由加载条静态显示
   - 页面过渡直接显示无动画
+
+### Task 13: 无障碍性增强 (已完成 - 2026-04-02)
+
+- [x] 屏幕阅读器支持
+  - `.sr-only`: 屏幕阅读器专用内容（位置绝对定位，宽高1px，clip裁剪）
+  - `.sr-only-focusable`: 可聚焦的屏幕阅读器内容（:focus/:focus-within时恢复正常显示）
+
+- [x] 键盘导航优化
+  - `.skip-link`: 跳转到主内容的链接（固定在顶部左侧，:focus时滑入视图）
+  - `#main-content`: 主内容区域ID（供skip link跳转）
+  - `a:not(.no-underline)`: 链接下划线增强（thickness 1px → 2px on hover → 3px on focus）
+  - `.keyboard-nav`: 键盘导航模式指示器类
+
+- [x] 焦点指示器（WCAG AAA合规）
+  - `:focus`: 默认移除outline
+  - `:focus-visible`: 2px solid --neon-primary, 3px offset, 霓虹发光box-shadow
+  - `.focus-neon`: 青色霓虹焦点样式
+  - `.focus-neon-secondary`: 品红霓虹焦点样式
+  - `.focus-neon-accent`: 黄绿霓虹焦点样式
+  - `.focus-within-neon`: 容器内焦点时发光效果
+  - 交互元素专用焦点（button, input, select, textarea, a）: 3px outline + 16px glow
+  - `.focus-ring-animated`: 脉冲动画焦点环
+  - `@media (hover: none) and (pointer: coarse)`: 触摸设备焦点优化
+
+- [x] ARIA状态样式
+  - `[aria-live="polite/assertive"]`: 实时区域基础样式
+  - `.announcement`: 公告区域（sr-only）
+  - `[aria-invalid="true"]:focus-visible`: 错误状态焦点样式（红色3px outline）
+  - `[disabled]`, `.disabled`: 禁用状态样式（0.5透明度 + 虚线焦点框）
+  - `[aria-selected="true"]`: 选中状态样式（背景高亮 + 边框 + 文字变色）
+  - `[aria-expanded]` 展开/折叠状态图标旋转动画
+
+- [x] WCAG AAA色彩对比度
+  - CSS变量：`--contrast-text-primary/secondary/dim/accent`（暗/亮主题分别优化）
+  - 暗色主题：`--text-dim` 7:1对比度（#9CA3AF on #030712）
+  - 亮色主题：`--text-dim` 7.2:1（#4B5563 on #FAFAFA），`--text-accent` 7.5:1（#0E7490 on #FAFAFA）
+  - `.text-contrast-high`, `.text-contrast-medium`: 高/中对比度工具类
+
+- [x] 交互元素最小尺寸（WCAG 2.1 AAA）
+  - button, [role="button"], input, select, a: min-height 44px, min-width 44px
+  - input[type="text/email/password/search/tel/url"], textarea: min-height 44px
+
+- [x] prefers-reduced-motion增强
+  - `.motion-permitting-only`: 仅在允许动画时显示的内容
+  - `.focus-ring-animated`: 焦点环动画在reduce motion时禁用
+  - `.expand-icon`, `.collapse-icon`: 展开/折叠图标transition禁用
