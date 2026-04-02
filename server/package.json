@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "init": "node db/init.js",
     "fetch-stats": "node scripts/fetch-github-stats.js",
     "migrate": "node scripts/migrate-to-postgres.js"
   },
