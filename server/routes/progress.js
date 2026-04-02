@@ -149,6 +149,139 @@ router.put('/:chapterId/:problemId', async (req, res) => {
   }
 })
 
+// POST /api/progress/sync - Incremental sync with conflict resolution (server wins)
+router.post('/sync', async (req, res) => {
+  const { items, lastSyncAt } = req.body
+
+  if (!items || !Array.isArray(items)) {
+    return res.status(400).json({ error: 'items array required' })
+  }
+
+  try {
+    const settings = await db.get('SELECT client_id FROM user_settings WHERE user_id = $1', [req.userId])
+    const clientId = settings?.client_id || req.clientId || 'unknown'
+    const syncTime = new Date()
+
+    const client = await db.getClient()
+
+    try {
+      await client.query('BEGIN')
+
+      const conflicts = []
+      const updated = []
+      const skipped = []
+      const resultItems = []
+
+      for (const item of items) {
+        const { chapterId, problemId, checked, clientTimestamp } = item
+
+        if (!chapterId || !problemId) {
+          skipped.push({ chapterId, problemId, reason: 'missing chapterId or problemId' })
+          continue
+        }
+
+        const clientTime = clientTimestamp ? new Date(clientTimestamp) : new Date(0)
+
+        // Get existing progress from server
+        const existing = await client.query(
+          'SELECT checked, checked_at FROM progress WHERE user_id = $1 AND chapter_id = $2 AND problem_id = $3',
+          [req.userId, chapterId, problemId]
+        )
+
+        if (existing.rows.length > 0) {
+          const serverRecord = existing.rows[0]
+          const serverTime = serverRecord.checked_at ? new Date(serverRecord.checked_at) : new Date(0)
+
+          // Server timestamp wins conflict resolution
+          if (serverTime > clientTime) {
+            // Server is newer - keep server value, report conflict
+            conflicts.push({
+              chapterId,
+              problemId,
+              serverValue: !!serverRecord.checked,
+              clientValue: !!checked,
+              serverTimestamp: serverRecord.checked_at,
+              resolution: 'server_wins'
+            })
+            resultItems.push({
+              chapterId,
+              problemId,
+              checked: !!serverRecord.checked,
+              checkedAt: serverRecord.checked_at,
+              source: 'server'
+            })
+          } else {
+            // Client is newer or equal - update server
+            await client.query(
+              'UPDATE progress SET checked = $1, checked_at = $2 WHERE user_id = $3 AND chapter_id = $4 AND problem_id = $5',
+              [checked, syncTime, req.userId, chapterId, problemId]
+            )
+
+            await client.query(
+              'INSERT INTO progress_history (user_id, chapter_id, problem_id, checked, client_id) VALUES ($1, $2, $3, $4, $5)',
+              [req.userId, chapterId, problemId, checked, clientId]
+            )
+
+            updated.push({ chapterId, problemId, checked })
+            resultItems.push({
+              chapterId,
+              problemId,
+              checked: !!checked,
+              checkedAt: syncTime.toISOString(),
+              source: 'client'
+            })
+          }
+        } else {
+          // No existing record - insert new
+          await client.query(
+            'INSERT INTO progress (user_id, chapter_id, problem_id, checked, checked_at) VALUES ($1, $2, $3, $4, $5)',
+            [req.userId, chapterId, problemId, checked, syncTime]
+          )
+
+          await client.query(
+            'INSERT INTO progress_history (user_id, chapter_id, problem_id, checked, client_id) VALUES ($1, $2, $3, $4, $5)',
+            [req.userId, chapterId, problemId, checked, clientId]
+          )
+
+          updated.push({ chapterId, problemId, checked })
+          resultItems.push({
+            chapterId,
+            problemId,
+            checked: !!checked,
+            checkedAt: syncTime.toISOString(),
+            source: 'client'
+          })
+        }
+      }
+
+      await client.query('COMMIT')
+
+      res.json({
+        success: true,
+        syncTime: syncTime.toISOString(),
+        stats: {
+          total: items.length,
+          updated: updated.length,
+          conflicts: conflicts.length,
+          skipped: skipped.length
+        },
+        updated,
+        conflicts,
+        skipped,
+        progress: resultItems
+      })
+    } catch (e) {
+      await client.query('ROLLBACK')
+      throw e
+    } finally {
+      client.release()
+    }
+  } catch (e) {
+    console.error('[Progress] Sync error:', e)
+    res.status(500).json({ error: 'sync failed' })
+  }
+})
+
 // GET /api/progress/history
 router.get('/history', async (req, res) => {
   const { chapterId, limit = 50, cursor } = req.query

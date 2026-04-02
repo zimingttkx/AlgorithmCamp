@@ -244,6 +244,54 @@ async function testProgress() {
   console.assert(typeof res.data.totalChapters === 'number', 'Should have totalChapters')
   console.assert(typeof res.data.completed === 'number', 'Should have completed count')
   console.log('  ✓ Stats passed')
+
+  // Test 11: Sync progress - new items
+  console.log('Test: Sync progress - new items...')
+  const oldTime = new Date(Date.now() - 60000).toISOString() // 1 minute ago
+  res = await apiRequest('POST', '/api/progress/sync', {
+    items: [
+      { chapterId: 'chapter-03', problemId: '1', checked: true, clientTimestamp: oldTime },
+      { chapterId: 'chapter-03', problemId: '2', checked: true, clientTimestamp: oldTime }
+    ]
+  }, auth)
+  console.assert(res.status === 200, `Expected 200, got ${res.status}`)
+  console.assert(res.data.success === true, 'Should return success')
+  console.assert(res.data.stats.updated === 2, 'Should update 2 items')
+  console.log('  ✓ Sync new items passed')
+
+  // Test 12: Sync progress - client wins (newer timestamp)
+  console.log('Test: Sync progress - client wins with newer timestamp...')
+  const futureTime = new Date(Date.now() + 60000).toISOString() // 1 minute in future
+  res = await apiRequest('POST', '/api/progress/sync', {
+    items: [
+      { chapterId: 'chapter-03', problemId: '1', checked: false, clientTimestamp: futureTime }
+    ]
+  }, auth)
+  console.assert(res.status === 200, `Expected 200, got ${res.status}`)
+  console.assert(res.data.stats.updated === 1, 'Should update 1 item')
+  console.assert(res.data.progress[0].checked === false, 'Should have checked=false')
+  console.log('  ✓ Sync client wins passed')
+
+  // Test 13: Sync progress - server wins (older timestamp)
+  console.log('Test: Sync progress - server wins with newer server timestamp...')
+  // First set it back to true on server
+  await apiRequest('PUT', '/api/progress/chapter-03/1', { checked: true }, auth)
+  // Now sync with old client timestamp - server should win
+  res = await apiRequest('POST', '/api/progress/sync', {
+    items: [
+      { chapterId: 'chapter-03', problemId: '1', checked: false, clientTimestamp: oldTime }
+    ]
+  }, auth)
+  console.assert(res.status === 200, `Expected 200, got ${res.status}`)
+  console.assert(res.data.stats.conflicts === 1, 'Should report 1 conflict')
+  console.assert(res.data.conflicts[0].resolution === 'server_wins', 'Should resolve to server')
+  console.log('  ✓ Sync server wins passed')
+
+  // Test 14: Sync with invalid items array
+  console.log('Test: Sync with invalid items...')
+  res = await apiRequest('POST', '/api/progress/sync', { items: 'not-an-array' }, auth)
+  console.assert(res.status === 400, `Expected 400, got ${res.status}`)
+  console.log('  ✓ Sync validation passed')
 }
 
 // ============ STATS TESTS ============
