@@ -281,6 +281,227 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE PERFORMANCE OPTIMIZATION (Task 5)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Breakpoint Variables ── */
+:root {
+  --bp-mobile-s: 320px;
+  --bp-mobile-m: 375px;
+  --bp-mobile-l: 414px;
+  --bp-tablet-s: 480px;
+  --bp-tablet-m: 600px;
+  --bp-tablet: 768px;
+  --bp-tablet-l: 900px;
+  --bp-desktop: 1024px;
+  --bp-desktop-m: 1280px;
+}
+
+/* ── Prefers Reduced Motion - Animation Degradation Strategy ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .rainbow-text,
+  .rainbow-text-slow {
+    animation: none !important;
+    background: var(--neon-primary) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+  }
+
+  .rainbow-border::before,
+  .pixel-btn-rainbow::before {
+    animation: none !important;
+  }
+
+  .pixel-progress-inner::after {
+    animation: none !important;
+  }
+
+  .xp-bar-inner {
+    animation: none !important;
+    background: var(--neon-primary) !important;
+  }
+
+  body::after {
+    animation: none !important;
+  }
+}
+
+/* ── Mobile Performance - Disable Heavy Animations ── */
+@media (max-width: 768px) {
+  /* Disable particle canvas on mobile */
+  .hero-particles {
+    display: none !important;
+  }
+
+  /* Disable 3D hover transforms on mobile */
+  .hover-3d,
+  .hover-3d-lift {
+    transform: none !important;
+  }
+
+  .avatar-3d-effect:hover .hero-avatar {
+    transform: none !important;
+    box-shadow: 0 0 60px var(--glow-blue) !important;
+  }
+
+  .avatar-3d-effect:hover .avatar-glow {
+    opacity: 0 !important;
+  }
+
+  /* Disable complex hover effects */
+  .hstat:hover,
+  .feat-card:hover,
+  .blog-card:hover,
+  .pixel-card:hover {
+    transform: none !important;
+    box-shadow: var(--shadow-md) !important;
+    border-color: var(--border-subtle) !important;
+  }
+
+  .hstat:hover .hstat-val {
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .hstat:hover .hstat-particle {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  /* Simplify page transitions */
+  .page-enter-active,
+  .page-leave-active {
+    transition: opacity 0.15s ease !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .page-fade-enter-active,
+  .page-fade-leave-active {
+    transition: opacity 0.15s ease !important;
+  }
+
+  /* Disable shimmer effects */
+  .pixel-progress-inner::after {
+    animation: none !important;
+  }
+
+  /* Simplify float animation for avatar */
+  .hero-avatar {
+    animation: none !important;
+  }
+
+  /* Disable pulse animations */
+  .avatar-ring {
+    animation: none !important;
+    opacity: 0.3 !important;
+  }
+
+  /* Simplify reveal animations */
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* Disable stagger animations */
+  .stagger-card {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+
+  /* Simplify backdrop filters on mobile (performance) */
+  .glass-card,
+  .pixel-card,
+  .hero-level,
+  .hstat,
+  .modal-overlay {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  /* Reduce shadow complexity on mobile */
+  .feat-card:hover,
+  .blog-card:hover {
+    box-shadow: var(--shadow-md) !important;
+  }
+
+  /* Disable rainbow glow animation on body */
+  body::after {
+    animation: none !important;
+  }
+}
+
+/* ── Mobile Performance - Further optimization for very small screens ── */
+@media (max-width: 480px) {
+  /* Even simpler transitions */
+  * {
+    transition-timing-function: ease-out !important;
+  }
+
+  /* Disable gradients on progress bars */
+  .pixel-progress-inner,
+  .xp-bar-inner {
+    background: var(--neon-primary) !important;
+    animation: none !important;
+  }
+
+  /* Simplify glow text effects */
+  .glow-blue,
+  .glow-purple,
+  .glow-cyan,
+  .glow-pink,
+  .glow-yellow {
+    text-shadow: none !important;
+  }
+
+  /* Reduce backdrop blur further */
+  .glass-card,
+  .pixel-card {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+}
+
+/* ── Image Lazy Loading Styles ── */
+img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+img[loading="lazy"].loaded,
+img[loading="lazy"]:not([src]) {
+  opacity: 1;
+}
+
+/* Placeholder for images while loading */
+.img-placeholder {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--glass-bg) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: imgShimmer 1.5s infinite;
+}
+
+@keyframes imgShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 body {
   font-family: 'Space Grotesk', 'JetBrains Mono', Consolas, Monaco, monospace;
   font-size: 1rem;

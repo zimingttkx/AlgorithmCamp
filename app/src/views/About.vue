@@ -4,7 +4,7 @@
     <section class="about-hero container">
       <div class="about-hero-inner">
         <div class="about-avatar-wrap">
-          <img :src="avatar" alt="avatar" class="about-avatar" @error="avatarFallback" />
+          <img :src="avatar" alt="avatar" class="about-avatar" loading="lazy" @error="avatarFallback" />
           <div class="about-avatar-label pixel-font">DEVELOPER PROFILE</div>
         </div>
         <div class="about-info">

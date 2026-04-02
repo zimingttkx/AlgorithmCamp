@@ -33,7 +33,7 @@
         <div class="hero-right">
           <div class="hero-avatar-wrap perspective-container">
             <div class="avatar-3d-effect">
-              <img :src="avatar" alt="avatar" class="hero-avatar hover-3d" @error="avatarFallback" />
+              <img :src="avatar" alt="avatar" class="hero-avatar hover-3d" loading="lazy" @error="avatarFallback" />
               <div class="avatar-ring"></div>
               <div class="avatar-ring ring2"></div>
               <div class="avatar-glow"></div>
@@ -425,6 +425,11 @@ function initHeroParticles() {
   let particles = []
   const colors = ['#00f0ff', '#ff00aa', '#f0ff00', '#00f0ff']
 
+  // Mobile detection - disable particles on mobile/low-power devices
+  const isMobile = window.innerWidth < 768 ||
+    window.navigator.hardwareConcurrency <= 2 ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   function resize() {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
@@ -436,12 +441,14 @@ function initHeroParticles() {
     constructor() {
       this.x = Math.random() * canvas.width
       this.y = Math.random() * canvas.height
-      this.size = Math.random() * 3 + 1
+      // Reduce particle size on mobile
+      this.size = isMobile ? Math.random() * 2 + 1 : Math.random() * 3 + 1
       this.speedX = (Math.random() - 0.5) * 0.5
       this.speedY = (Math.random() - 0.5) * 0.5
       this.color = colors[Math.floor(Math.random() * colors.length)]
       this.opacity = Math.random() * 0.5 + 0.2
-      this.pixelSize = Math.floor(Math.random() * 4) + 2
+      // Reduce pixel size on mobile
+      this.pixelSize = isMobile ? Math.floor(Math.random() * 2) + 1 : Math.floor(Math.random() * 4) + 2
     }
     update() {
       this.x += this.speedX
@@ -452,7 +459,7 @@ function initHeroParticles() {
     draw() {
       ctx.globalAlpha = this.opacity
       ctx.fillStyle = this.color
-      ctx.shadowBlur = 10
+      ctx.shadowBlur = isMobile ? 5 : 10
       ctx.shadowColor = this.color
       // Draw as pixelated square
       ctx.fillRect(Math.floor(this.x / this.pixelSize) * this.pixelSize, Math.floor(this.y / this.pixelSize) * this.pixelSize, this.pixelSize, this.pixelSize)
@@ -461,7 +468,13 @@ function initHeroParticles() {
 
   function init() {
     particles = []
-    const particleCount = Math.min(80, Math.floor((canvas.width * canvas.height) / 15000))
+    // Significantly reduce particle count on mobile
+    let particleCount
+    if (isMobile) {
+      particleCount = Math.min(20, Math.floor((canvas.width * canvas.height) / 40000))
+    } else {
+      particleCount = Math.min(80, Math.floor((canvas.width * canvas.height) / 15000))
+    }
     for (let i = 0; i < particleCount; i++) {
       particles.push(new Particle())
     }
@@ -473,23 +486,25 @@ function initHeroParticles() {
       p.update()
       p.draw()
     })
-    // Draw connections
-    particles.forEach((a, i) => {
-      particles.slice(i + 1).forEach(b => {
-        const dx = a.x - b.x
-        const dy = a.y - b.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < 120) {
-          ctx.globalAlpha = (1 - dist / 120) * 0.3
-          ctx.strokeStyle = '#00f0ff'
-          ctx.lineWidth = 0.5
-          ctx.beginPath()
-          ctx.moveTo(a.x, a.y)
-          ctx.lineTo(b.x, b.y)
-          ctx.stroke()
-        }
+    // Skip connection drawing on mobile for performance
+    if (!isMobile) {
+      particles.forEach((a, i) => {
+        particles.slice(i + 1).forEach(b => {
+          const dx = a.x - b.x
+          const dy = a.y - b.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < 120) {
+            ctx.globalAlpha = (1 - dist / 120) * 0.3
+            ctx.strokeStyle = '#00f0ff'
+            ctx.lineWidth = 0.5
+            ctx.beginPath()
+            ctx.moveTo(a.x, a.y)
+            ctx.lineTo(b.x, b.y)
+            ctx.stroke()
+          }
+        })
       })
-    })
+    }
     animationId = requestAnimationFrame(animate)
   }
 
