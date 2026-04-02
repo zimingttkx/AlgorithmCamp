@@ -75,7 +75,7 @@
   - 添加像素化 GitHub 贡献日历
   - 实现动态粒子背景
 
-- [ ] 8. 刷题页面 (Practice) 升级
+- [x] 8. 刷题页面 (Practice) 升级
   - 添加高级进度条动画
   - 实现题目卡片的 3D 翻转效果
   - 添加完成时的像素化庆祝动画
@@ -460,4 +460,57 @@
   - `@media (prefers-reduced-motion: reduce)` 完全支持
   - 粒子动画和3D transform在reduce motion时禁用/简化
   - cal-cell hover效果简化为仅scale(1.2)
+
+### Task 8: 刷题页面 (Practice) 升级 (已完成 - 2026-04-02)
+- [x] 添加高级进度条动画
+  - `.pixel-progress-advanced`: 高级像素进度条
+    - 像素网格叠加效果 (repeating-linear-gradient)
+    - 彩虹渐变填充动画
+    - 动态发光指示器 (progress-glow)
+    - 闪烁光效 (shimmer animation)
+  - `.pixel-progress-segmented`: 分段式像素进度条
+    - `.segment.filled`: 发光填充段
+    - `.segment.filling`: 填充动画
+    - segmentPulse/segmentFill keyframes
+  - `.chapter-progress-bar-advanced`: 章节进度条
+    - 彩虹渐变 + shimmer光效
+    - `.chapter-progress-fill-rainbow` 变体
+  - `.bubble-progress-advanced`: 气泡进度条
+    - 像素网格 + 发光边缘效果
+
+- [x] 实现题目卡片的 3D 翻转效果
+  - `.prob-row-flip`: 3D翻转卡片容器
+  - `.prob-card-3d`: 3D变换卡片
+  - `.prob-card-front/back`: 正面/背面
+  - `.flipped`: 翻转状态 (rotateY 180deg)
+  - `.prob-row-3d-lift`: 3D上浮效果
+  - `backface-visibility: hidden` 隐藏背面
+
+- [x] 添加完成时的像素化庆祝动画
+  - `.celebration-overlay`: 庆祝粒子覆盖层
+  - `.celebration-pixel`: 像素庆祝粒子
+    - `@keyframes pixelCelebrate`: 上升旋转消失
+    - `.celebration-pixel-heart`: 心形爆发动画
+    - `.celebration-pixel-star`: 星形爆发动画
+  - `.chapter-complete-banner`: 章节完成横幅
+    - 毛玻璃背景 + 霓虹边框
+    - 星星pop动画
+  - `.confetti-container`: 彩色纸屑
+  - `.pixel-heart-float`: 漂浮像素心形
+  - `triggerCelebration()`: 触发庆祝动画
+  - `checkChapterCompletion()`: 检测章节完成状态
+
+- [x] 升级章节导航的视觉效果
+  - `.chapter-nav-item-enhanced`: 增强导航项
+    - 悬停时渐变光效 + translateX/Z变换
+    - 活动状态发光点动画 (navPulse)
+    - 左侧边框发光
+  - `.nav-bar-enhanced`: 增强导航进度条
+    - 像素网格叠加
+    - shimmer光效扫过动画
+
+- [x] 无障碍性增强
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+  - 所有动画使用 `animation: none !important`
+  - 3D变换在reduce motion时禁用
 

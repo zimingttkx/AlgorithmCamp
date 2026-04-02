@@ -1,6 +1,62 @@
 <template>
   <div class="practice-page">
 
+    <!-- Celebration Overlay -->
+    <div v-if="showCelebration" class="celebration-overlay">
+      <div
+        v-for="p in celebrationParticles"
+        :key="p.id"
+        class="celebration-pixel"
+        :class="[p.type, { animate: p.animate }]"
+        :style="{
+          left: p.x + '%',
+          top: p.y + '%',
+          background: p.color,
+          animationDelay: p.delay + 's'
+        }"
+      ></div>
+    </div>
+
+    <!-- Chapter Complete Banner -->
+    <div v-if="showChapterBanner" class="chapter-complete-banner" :class="{ show: showChapterBanner }">
+      <h2>Chapter Complete!</h2>
+      <p>{{ currentChapter?.title || 'All problems solved!' }}</p>
+      <div class="celebration-stars">
+        <span class="star" style="color: var(--mc-gold)">&#9733;</span>
+        <span class="star" style="color: var(--neon-primary)">&#9733;</span>
+        <span class="star" style="color: var(--mc-gold)">&#9733;</span>
+      </div>
+    </div>
+
+    <!-- Pixel Hearts -->
+    <div v-if="showHearts" class="pixel-hearts-container">
+      <span
+        v-for="h in heartParticles"
+        :key="h.id"
+        class="pixel-heart-float"
+        :class="{ animate: h.animate }"
+        :style="{ left: h.x + '%', bottom: '0', animationDelay: h.delay + 's' }"
+      >&#10084;</span>
+    </div>
+
+    <!-- Confetti -->
+    <div v-if="showConfetti" class="confetti-container">
+      <div
+        v-for="c in confettiPieces"
+        :key="c.id"
+        class="confetti-piece"
+        :class="{ animate: c.animate }"
+        :style="{
+          left: c.x + '%',
+          background: c.color,
+          width: c.size + 'px',
+          height: c.size + 'px',
+          animationDelay: c.delay + 's',
+          animationDuration: c.duration + 's'
+        }"
+      ></div>
+    </div>
+
     <!-- Map View -->
     <div v-if="view === 'map'" class="practice-map">
       <div class="map-header container">
@@ -51,8 +107,8 @@
             </div>
           </div>
           <div class="progress-track">
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{width: globalPct+'%'}"></div>
+            <div class="pixel-progress-advanced">
+              <div class="progress-fill" :style="{width: globalPct+'%', background: `linear-gradient(90deg, var(--neon-primary), var(--neon-secondary), var(--neon-accent))`}"></div>
               <div class="progress-glow" :style="{left: globalPct+'%'}"></div>
             </div>
           </div>
@@ -78,7 +134,7 @@
             </div>
             <div class="bubble-title">{{ ch.short }}</div>
             <div class="bubble-progress">
-              <div class="bubble-progress-bar">
+              <div class="bubble-progress-advanced">
                 <div class="bubble-progress-fill" :style="{width: chPct(ch)+'%', background: `linear-gradient(90deg, ${ch.color}, ${ch.light})`}"></div>
               </div>
               <span class="bubble-progress-text font-mono">{{ chPct(ch) }}%</span>
@@ -104,9 +160,9 @@
           <div
             v-for="(ch, i) in CHAPTERS"
             :key="ch.id"
-            class="chapter-nav-item"
+            class="chapter-nav-item chapter-nav-item-enhanced"
             :class="{active: currentChapter && currentChapter.id === ch.id}"
-            :style="currentChapter && currentChapter.id === ch.id ? {'border-color': ch.color, '--ch-color': ch.color} : {}"
+            :style="currentChapter && currentChapter.id === ch.id ? {'border-color': ch.color, '--ch-color': ch.color} : {'--ch-color': ch.color}"
             @click="openChapter(ch)"
           >
             <span class="nav-num font-mono">{{ String(i+1).padStart(2,'0') }}</span>
@@ -116,7 +172,7 @@
                 {{ countDone(ch.id) }}/{{ totals[ch.id] || 0 }}
               </span>
             </div>
-            <div class="nav-bar">
+            <div class="nav-bar-enhanced">
               <div class="nav-bar-fill" :style="{width: chPct(ch)+'%', background: ch.color}"></div>
             </div>
           </div>
@@ -124,8 +180,9 @@
         <div class="sidebar-footer">
           <div class="footer-label font-mono">全站进度</div>
           <div class="footer-progress">
-            <div class="footer-progress-bar">
-              <div class="footer-progress-fill" :style="{width: globalPct+'%'}"></div>
+            <div class="pixel-progress-advanced" style="height: 8px;">
+              <div class="progress-fill" :style="{width: globalPct+'%', background: `linear-gradient(90deg, var(--neon-primary), var(--neon-secondary))`}"></div>
+              <div class="progress-glow" :style="{left: globalPct+'%'}"></div>
             </div>
             <span class="footer-pct font-mono">{{ globalPct }}%</span>
           </div>
@@ -162,8 +219,8 @@
                 <span class="ch-stat-label">完成率</span>
               </div>
             </div>
-            <div class="chapter-progress-bar">
-              <div class="chapter-progress-fill" :style="{width: chPct(currentChapter)+'%', background: `linear-gradient(90deg, ${currentChapter.color}, ${currentChapter.light})`}"></div>
+            <div class="chapter-progress-bar-advanced">
+              <div class="chapter-progress-fill chapter-progress-fill-rainbow" :style="{width: chPct(currentChapter)+'%', background: `linear-gradient(90deg, ${currentChapter.color}, ${currentChapter.light})`}"></div>
             </div>
           </div>
 
@@ -192,9 +249,9 @@
                   <div
                     v-for="row in sec.rows"
                     :key="row.probId"
-                    class="prob-row"
+                    class="prob-row prob-row-3d-lift"
                     :class="{done: isChecked(currentChapter.id, row.probId)}"
-                    @click="toggleCheck(currentChapter.id, row.probId)"
+                    @click="handleProblemClick(currentChapter.id, row.probId, row)"
                   >
                     <div class="problem-checkbox" :class="{checked: isChecked(currentChapter.id, row.probId)}">
                       <div v-if="isChecked(currentChapter.id, row.probId)" class="check-icon">
@@ -238,6 +295,16 @@ const { syncStatus, syncError, loadFromServer, saveProgress: serverSaveProgress 
 
 const PROGRESS_KEY = 'mc-algo-progress'
 const TOTALS_KEY  = '_chapterTotals'
+
+// Celebration state
+const showCelebration = ref(false)
+const showChapterBanner = ref(false)
+const showHearts = ref(false)
+const showConfetti = ref(false)
+const celebrationParticles = ref([])
+const heartParticles = ref([])
+const confettiPieces = ref([])
+let celebrationTimeout = null
 
 const view = ref('map')
 const currentChapter = ref(null)
@@ -437,6 +504,94 @@ async function syncOnLoad() {
 
 function handleLogin() {
   loginWithGithub()
+}
+
+function triggerCelebration() {
+  // Clear any existing timeout
+  if (celebrationTimeout) {
+    clearTimeout(celebrationTimeout)
+  }
+
+  // Generate pixel celebration particles
+  const colors = ['var(--neon-primary)', 'var(--neon-secondary)', 'var(--neon-accent)', 'var(--mc-gold)']
+  celebrationParticles.value = Array.from({ length: 30 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: 50 + Math.random() * 30,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    type: ['celebration-pixel', 'celebration-pixel-heart', 'celebration-pixel-star'][Math.floor(Math.random() * 3)],
+    delay: Math.random() * 0.5,
+    animate: false
+  }))
+
+  // Generate confetti
+  confettiPieces.value = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    size: 8 + Math.random() * 8,
+    delay: Math.random() * 1,
+    duration: 2 + Math.random() * 2,
+    animate: false
+  }))
+
+  // Generate floating hearts
+  heartParticles.value = Array.from({ length: 12 }, (_, i) => ({
+    id: i,
+    x: 10 + Math.random() * 80,
+    delay: Math.random() * 0.8,
+    animate: false
+  }))
+
+  // Trigger animations
+  showCelebration.value = true
+  showConfetti.value = true
+  showHearts.value = true
+
+  // Start animations
+  setTimeout(() => {
+    celebrationParticles.value = celebrationParticles.value.map(p => ({ ...p, animate: true }))
+    confettiPieces.value = confettiPieces.value.map(c => ({ ...c, animate: true }))
+    heartParticles.value = heartParticles.value.map(h => ({ ...h, animate: true }))
+  }, 50)
+
+  // Show chapter complete banner if applicable
+  setTimeout(() => {
+    showChapterBanner.value = true
+  }, 300)
+
+  // Cleanup
+  celebrationTimeout = setTimeout(() => {
+    showCelebration.value = false
+    showChapterBanner.value = false
+    showHearts.value = false
+    showConfetti.value = false
+    celebrationParticles.value = []
+    confettiPieces.value = []
+    heartParticles.value = []
+  }, 4000)
+}
+
+function handleProblemClick(chId, probId, row) {
+  // If not checked, this is a new completion
+  if (!isChecked(chId, probId)) {
+    // Toggle check
+    toggleCheck(chId, probId)
+    // Check if chapter is now complete
+    checkChapterCompletion(chId)
+  } else {
+    // Just toggle off
+    toggleCheck(chId, probId)
+  }
+}
+
+function checkChapterCompletion(chId) {
+  const total = totals.value[chId] || 0
+  const done = countDone(chId)
+  if (total > 0 && done === total) {
+    // Chapter complete!
+    triggerCelebration()
+  }
 }
 
 onMounted(() => { syncOnLoad() })
@@ -1116,6 +1271,547 @@ onMounted(() => { syncOnLoad() })
 }
 .r-none { color: var(--text-dim); border-color: var(--border-subtle); background: transparent; }
 .r-low  { color: var(--neon-green); border-color: var(--neon-green); background: rgba(52, 211, 153, 0.1); }
+/* ── Advanced Progress Bar Animations ── */
+.pixel-progress-advanced {
+  position: relative;
+  height: 10px;
+  background: var(--bg-elevated);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+.pixel-progress-advanced::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 8px,
+    rgba(0, 0, 0, 0.15) 8px,
+    rgba(0, 0, 0, 0.15) 10px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+.pixel-progress-advanced .progress-fill {
+  height: 100%;
+  background: var(--rainbow-gradient);
+  background-size: 400% 100%;
+  animation: rainbowFlow 3s linear infinite;
+  border-radius: 4px;
+  position: relative;
+  transition: width 0.8s var(--ease-out-expo);
+}
+.pixel-progress-advanced .progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  animation: shimmer 1.5s infinite;
+}
+.pixel-progress-advanced .progress-glow {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: var(--neon-primary);
+  border-radius: 50%;
+  filter: blur(8px);
+  opacity: 0.8;
+  transition: left 0.8s var(--ease-out-expo);
+  box-shadow: 0 0 10px var(--glow-primary), 0 0 20px var(--glow-primary);
+}
+.pixel-progress-advanced .progress-glow-secondary {
+  background: var(--neon-secondary);
+  box-shadow: 0 0 10px var(--glow-secondary), 0 0 20px var(--glow-secondary);
+}
+.pixel-progress-advanced .progress-glow-accent {
+  background: var(--neon-accent);
+  box-shadow: 0 0 10px var(--glow-accent), 0 0 20px var(--glow-accent);
+}
+
+/* Pixel-style segmented progress */
+.pixel-progress-segmented {
+  position: relative;
+  height: 12px;
+  background: var(--bg-elevated);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  gap: 3px;
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+}
+.pixel-progress-segmented .segment {
+  flex: 1;
+  height: 100%;
+  background: var(--bg-dark);
+  border-radius: 3px;
+  transition: all 0.3s var(--ease-out-expo);
+  position: relative;
+  overflow: hidden;
+}
+.pixel-progress-segmented .segment.filled {
+  background: var(--neon-primary);
+  box-shadow: 0 0 8px var(--glow-primary);
+  animation: segmentPulse 2s ease-in-out infinite;
+}
+.pixel-progress-segmented .segment.filled-secondary {
+  background: var(--neon-secondary);
+  box-shadow: 0 0 8px var(--glow-secondary);
+}
+.pixel-progress-segmented .segment.filled-accent {
+  background: var(--neon-accent);
+  box-shadow: 0 0 8px var(--glow-accent);
+}
+.pixel-progress-segmented .segment.filling {
+  animation: segmentFill 0.5s var(--ease-out-expo) forwards;
+}
+
+@keyframes segmentPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+@keyframes segmentFill {
+  0% { transform: scaleX(0); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: left; }
+}
+
+/* Chapter Progress Bar with rainbow */
+.chapter-progress-bar-advanced {
+  height: 8px;
+  background: var(--bg-elevated);
+  border-radius: 4px;
+  overflow: visible;
+  position: relative;
+  border: 1px solid var(--border-subtle);
+}
+.chapter-progress-bar-advanced::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 6px,
+    rgba(0, 0, 0, 0.1) 6px,
+    rgba(0, 0, 0, 0.1) 8px
+  );
+  border-radius: 4px;
+}
+.chapter-progress-bar-advanced .chapter-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s var(--ease-out-expo);
+  position: relative;
+  overflow: hidden;
+}
+.chapter-progress-bar-advanced .chapter-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+.chapter-progress-bar-advanced .chapter-progress-fill-rainbow {
+  background: var(--rainbow-gradient) !important;
+  background-size: 400% 100%;
+  animation: rainbowFlow 3s linear infinite;
+  box-shadow: 0 0 10px var(--glow-primary);
+}
+
+/* Bubble progress with advanced animation */
+.bubble-progress-advanced {
+  position: relative;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.bubble-progress-advanced::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 4px,
+    rgba(0, 0, 0, 0.12) 4px,
+    rgba(0, 0, 0, 0.12) 6px
+  );
+}
+.bubble-progress-advanced .bubble-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s var(--ease-out-expo);
+  position: relative;
+}
+.bubble-progress-advanced .bubble-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 6px;
+  height: 100%;
+  background: white;
+  border-radius: 2px;
+  opacity: 0.6;
+  filter: blur(2px);
+  animation: progressGlow 1s ease-in-out infinite alternate;
+}
+@keyframes progressGlow {
+  0% { opacity: 0.4; }
+  100% { opacity: 0.8; }
+}
+
+/* ── 3D Flip Card Effect for Problem Cards ── */
+.prob-row-flip {
+  perspective: 1000px;
+  cursor: pointer;
+}
+.prob-card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s var(--ease-out-expo);
+}
+.prob-card-3d.flipped {
+  transform: rotateY(180deg);
+}
+.prob-card-front,
+.prob-card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.prob-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: rotateY(180deg);
+  background: var(--bg-card);
+  border: 1px solid var(--neon-primary);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow-neon-primary);
+}
+.prob-card-back-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.prob-card-back-title {
+  font-size: 0.85rem;
+  color: var(--neon-primary);
+  font-weight: 600;
+}
+.prob-card-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--neon-cyan);
+  text-decoration: none;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 6px;
+  transition: all 0.2s var(--ease-out-expo);
+}
+.prob-card-back-link:hover {
+  background: var(--neon-cyan);
+  color: var(--bg-base);
+  box-shadow: 0 0 15px var(--glow-primary);
+}
+.prob-card-back-hint {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* 3D Hover lift for prob rows */
+.prob-row-3d-lift {
+  transition: all 0.3s var(--ease-out-expo);
+  transform-style: preserve-3d;
+}
+.prob-row-3d-lift:hover {
+  transform: translateY(-4px) translateZ(20px);
+  box-shadow: 0 20px 40px rgba(0, 240, 255, 0.15);
+  border-color: var(--neon-primary);
+}
+
+/* ── Pixelated Celebration Animation ── */
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+.celebration-pixel {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  opacity: 0;
+}
+.celebration-pixel.animate {
+  animation: pixelCelebrate 1.5s var(--ease-out-expo) forwards;
+}
+@keyframes pixelCelebrate {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-100px) scale(1.5) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-200px) scale(0.5) rotate(360deg);
+  }
+}
+.celebration-pixel-heart {
+  animation: pixelHeartBurst 1.2s var(--ease-out-expo) forwards;
+}
+@keyframes pixelHeartBurst {
+  0% {
+    opacity: 1;
+    transform: scale(0) rotate(0deg);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.5) rotate(-10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5) translateY(-150px) rotate(20deg);
+  }
+}
+.celebration-pixel-star {
+  animation: pixelStarBurst 1s var(--ease-out-expo) forwards;
+}
+@keyframes pixelStarBurst {
+  0% {
+    opacity: 1;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-120px) rotate(360deg);
+  }
+}
+
+/* Confetti particles */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+}
+.confetti-piece.animate {
+  animation: confettiFall 3s var(--ease-out-expo) forwards;
+}
+@keyframes confettiFall {
+  0% {
+    opacity: 1;
+    transform: translateY(-20px) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
+/* Chapter completion celebration */
+.chapter-complete-banner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  border: 2px solid var(--neon-primary);
+  border-radius: 20px;
+  padding: 32px 48px;
+  text-align: center;
+  z-index: 10000;
+  box-shadow: var(--shadow-neon-primary), 0 0 60px var(--glow-primary-soft);
+  opacity: 0;
+  transition: all 0.5s var(--ease-out-expo);
+}
+.chapter-complete-banner.show {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+.chapter-complete-banner h2 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 2rem;
+  color: var(--neon-primary);
+  text-shadow: 0 0 20px var(--glow-primary);
+  margin-bottom: 8px;
+  animation: celebrateTitle 0.5s var(--ease-out-expo);
+}
+.chapter-complete-banner p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+.chapter-complete-banner .celebration-stars {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.chapter-complete-banner .star {
+  font-size: 2rem;
+  animation: starPop 0.5s var(--ease-out-back) both;
+}
+.chapter-complete-banner .star:nth-child(1) { animation-delay: 0.1s; }
+.chapter-complete-banner .star:nth-child(2) { animation-delay: 0.2s; }
+.chapter-complete-banner .star:nth-child(3) { animation-delay: 0.3s; }
+@keyframes celebrateTitle {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes starPop {
+  0% { transform: scale(0) rotate(-180deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Pixel hearts floating animation */
+.pixel-hearts-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+}
+.pixel-heart-float {
+  position: absolute;
+  font-size: 20px;
+  opacity: 0;
+}
+.pixel-heart-float.animate {
+  animation: pixelHeartFloat 2s var(--ease-out-expo) forwards;
+}
+@keyframes pixelHeartFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50vh) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100vh) scale(0.3);
+  }
+}
+
+/* ── Enhanced Chapter Navigation Visual Effects ── */
+.chapter-nav-item-enhanced {
+  padding: 14px 20px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.3s var(--ease-out-expo);
+  margin: 4px 12px;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.chapter-nav-item-enhanced::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--ch-color, var(--neon-primary)) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out-expo);
+  border-radius: 10px;
+}
+.chapter-nav-item-enhanced:hover::before {
+  opacity: 0.08;
+}
+.chapter-nav-item-enhanced:hover {
+  transform: translateX(4px) translateZ(10px);
+  border-left-color: var(--ch-color, var(--neon-primary));
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.1);
+}
+.chapter-nav-item-enhanced.active {
+  background: rgba(0, 240, 255, 0.08);
+  border-left: 3px solid var(--ch-color, var(--neon-primary));
+  box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.05);
+}
+.chapter-nav-item-enhanced.active::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: var(--ch-color, var(--neon-primary));
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--ch-color, var(--neon-primary));
+  animation: navPulse 2s ease-in-out infinite;
+}
+@keyframes navPulse {
+  0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+  50% { opacity: 0.6; transform: translateY(-50%) scale(0.8); }
+}
+
+/* Enhanced nav bar with glow */
+.nav-bar-enhanced {
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.nav-bar-enhanced::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.15) 3px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+}
+.nav-bar-enhanced .nav-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s var(--ease-out-expo);
+  position: relative;
+  overflow: hidden;
+}
+.nav-bar-enhanced .nav-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
 .r-med  { color: var(--mc-gold); border-color: var(--mc-gold); background: rgba(250, 204, 21, 0.1); }
 .r-high { color: var(--neon-pink); border-color: var(--neon-pink); background: rgba(244, 114, 182, 0.1); }
 
@@ -1138,5 +1834,26 @@ onMounted(() => { syncOnLoad() })
   .bubble-cell { width: 120px; }
   .title-row { flex-direction: column; align-items: flex-start; gap: 12px; }
   .chapter-nav-item { flex: 1 1 100%; }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pixel-progress-advanced .progress-fill,
+  .pixel-progress-advanced .progress-fill::after,
+  .chapter-progress-bar-advanced .chapter-progress-fill,
+  .chapter-progress-bar-advanced .chapter-progress-fill::after,
+  .celebration-pixel,
+  .celebration-pixel-heart,
+  .celebration-pixel-star,
+  .confetti-piece,
+  .pixel-heart-float {
+    animation: none !important;
+  }
+  .chapter-nav-item-enhanced:hover {
+    transform: none;
+  }
+  .prob-row-3d-lift:hover {
+    transform: none;
+  }
 }
 </style>
