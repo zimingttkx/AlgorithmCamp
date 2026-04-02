@@ -27,6 +27,33 @@
         <a id="profile-link" href="https://github.com/zimingttkx" target="_blank" class="mc-btn mc-btn-sm" style="margin-top:10px;display:inline-block">&#x1F517; GitHub</a>
       </div>
     </div>
+
+    <!-- LeetCode Profile Section -->
+    <div class="entry-profile-section leetcode-section" id="leetcode-section">
+      <div class="profile-section-title">&#x2694; LeetCode 用户绑定</div>
+      <div class="leetcode-bind-form" id="leetcode-bind-form">
+        <input type="text" id="leetcode-username-input" placeholder="输入 LeetCode 用户名" class="leetcode-input" maxlength="50">
+        <button class="mc-btn mc-btn-sm" id="leetcode-bind-btn" onclick="bindLeetCode()">&#x2714; 绑定</button>
+      </div>
+      <div class="leetcode-profile hidden" id="leetcode-profile">
+        <div class="leetcode-profile-header">
+          <img id="leetcode-avatar" src="" alt="avatar" class="leetcode-avatar">
+          <div class="leetcode-info">
+            <div class="leetcode-name" id="leetcode-name">—</div>
+            <div class="leetcode-ranking" id="leetcode-ranking">全球排名: —</div>
+          </div>
+          <button class="mc-btn mc-btn-sm" id="leetcode-change-btn" onclick="changeLeetCode()">&#x270E; 修改</button>
+        </div>
+        <div class="leetcode-stats">
+          <div class="leetcode-stat"><span id="leetcode-total">0</span><br>总解题</div>
+          <div class="leetcode-stat easy"><span id="leetcode-easy">0</span><br>简单</div>
+          <div class="leetcode-stat medium"><span id="leetcode-medium">0</span><br>中等</div>
+          <div class="leetcode-stat hard"><span id="leetcode-hard">0</span><br>困难</div>
+        </div>
+      </div>
+      <div class="leetcode-error hidden" id="leetcode-error"></div>
+    </div>
+
     <div class="entry-profile-section">
       <div class="profile-section-title">&#x1F4E6; 项目仓库</div>
       <div class="repo-grid" id="repo-grid"><div class="profile-loading">加载中...</div></div>

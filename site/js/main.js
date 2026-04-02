@@ -340,6 +340,9 @@ function loadProfile() {
   const totalStars = REPO_DATA.reduce((s, r) => s + r.stars, 0);
   document.getElementById('stat-stars').textContent = totalStars;
 
+  // Load LeetCode profile
+  loadLeetCodeProfile();
+
   // Fetch live data from GitHub API
   fetch('https://api.github.com/users/' + GITHUB_USER)
     .then(r => r.json())
@@ -434,3 +437,157 @@ function renderEvents(events) {
   }).join('');
   list.innerHTML = items || '<div class="profile-loading">暂无动态</div>';
 }
+
+// ── LeetCode User Binding ──
+const LEETCODE_API = '/api/leetcode';
+
+function getLeetCodeUsername() {
+  return localStorage.getItem('leetcode_username') || '';
+}
+
+function saveLeetCodeUsername(username) {
+  localStorage.setItem('leetcode_username', username);
+}
+
+async function bindLeetCode() {
+  const input = document.getElementById('leetcode-username-input');
+  const btn = document.getElementById('leetcode-bind-btn');
+  const form = document.getElementById('leetcode-bind-form');
+  const profile = document.getElementById('leetcode-profile');
+  const errorEl = document.getElementById('leetcode-error');
+
+  let username = input.value.trim();
+
+  // If in change mode, get from input; otherwise use saved
+  if (!username && profile.classList.contains('hidden')) {
+    username = getLeetCodeUsername();
+  }
+
+  if (!username) {
+    showLeetCodeError('请输入 LeetCode 用户名');
+    return;
+  }
+
+  // Validate username format (basic validation)
+  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+    showLeetCodeError('用户名格式不正确（只允许字母、数字、下划线、连字符）');
+    return;
+  }
+
+  // Show loading state
+  btn.textContent = '验证中...';
+  btn.disabled = true;
+  errorEl.classList.add('hidden');
+
+  try {
+    const response = await fetch(`${LEETCODE_API}/${encodeURIComponent(username)}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || '验证失败，用户不存在');
+    }
+
+    // Success - save and display
+    saveLeetCodeUsername(username);
+    displayLeetCodeProfile(data);
+
+    // Hide form, show profile
+    form.classList.add('hidden');
+    profile.classList.remove('hidden');
+
+  } catch (e) {
+    showLeetCodeError(e.message || '验证失败，请检查用户名是否正确');
+  } finally {
+    btn.textContent = '绑定';
+    btn.disabled = false;
+  }
+}
+
+function displayLeetCodeProfile(data) {
+  const avatar = document.getElementById('leetcode-avatar');
+  const name = document.getElementById('leetcode-name');
+  const ranking = document.getElementById('leetcode-ranking');
+  const total = document.getElementById('leetcode-total');
+  const easy = document.getElementById('leetcode-easy');
+  const medium = document.getElementById('leetcode-medium');
+  const hard = document.getElementById('leetcode-hard');
+
+  // Set avatar
+  if (data.avatar) {
+    avatar.src = data.avatar;
+  } else {
+    avatar.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect fill="%23333" width="96" height="96"/><text x="48" y="60" font-size="48" text-anchor="middle" fill="%23666">?</text></svg>';
+  }
+
+  name.textContent = data.username || '—';
+  ranking.textContent = data.ranking ? `全球排名: #${data.ranking.toLocaleString()}` : '全球排名: —';
+  total.textContent = data.totalSolved || 0;
+  easy.textContent = data.easySolved || 0;
+  medium.textContent = data.mediumSolved || 0;
+  hard.textContent = data.hardSolved || 0;
+}
+
+function showLeetCodeError(message) {
+  const errorEl = document.getElementById('leetcode-error');
+  errorEl.textContent = message;
+  errorEl.classList.remove('hidden');
+}
+
+function changeLeetCode() {
+  const form = document.getElementById('leetcode-bind-form');
+  const profile = document.getElementById('leetcode-profile');
+  const input = document.getElementById('leetcode-username-input');
+  const errorEl = document.getElementById('leetcode-error');
+
+  // Populate input with current username
+  input.value = getLeetCodeUsername();
+  errorEl.classList.add('hidden');
+
+  // Toggle visibility
+  form.classList.remove('hidden');
+  profile.classList.add('hidden');
+}
+
+function loadLeetCodeProfile() {
+  const username = getLeetCodeUsername();
+  if (!username) {
+    // Show form, hide profile
+    document.getElementById('leetcode-bind-form').classList.remove('hidden');
+    document.getElementById('leetcode-profile').classList.add('hidden');
+    return;
+  }
+
+  // Fetch profile from API
+  fetch(`${LEETCODE_API}/${encodeURIComponent(username)}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        // Show form with saved username for retry
+        document.getElementById('leetcode-bind-form').classList.remove('hidden');
+        document.getElementById('leetcode-profile').classList.add('hidden');
+        document.getElementById('leetcode-username-input').value = username;
+        return;
+      }
+      displayLeetCodeProfile(data);
+      document.getElementById('leetcode-bind-form').classList.add('hidden');
+      document.getElementById('leetcode-profile').classList.remove('hidden');
+    })
+    .catch(() => {
+      // Show form with saved username for retry
+      document.getElementById('leetcode-bind-form').classList.remove('hidden');
+      document.getElementById('leetcode-profile').classList.add('hidden');
+      document.getElementById('leetcode-username-input').value = username;
+    });
+}
+
+// Handle Enter key in input
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('leetcode-username-input');
+  if (input) {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        bindLeetCode();
+      }
+    });
+  }
+});
