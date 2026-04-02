@@ -299,7 +299,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     }
 
     const settings = await db.get(
-      'SELECT theme, lang, client_id FROM user_settings WHERE user_id = $1',
+      'SELECT theme, lang, client_id, practice_goal_daily, practice_goal_weekly, notification_email, notification_progress, notification_github FROM user_settings WHERE user_id = $1',
       [req.userId]
     )
 
@@ -317,7 +317,7 @@ router.get('/me', authMiddleware, async (req, res) => {
         createdAt: user.created_at,
         lastLogin: user.last_login
       },
-      settings: settings || { theme: 'dark', lang: 'zh', clientId: '' },
+      settings: settings || { theme: 'dark', lang: 'zh', clientId: '', practiceGoalDaily: 3, practiceGoalWeekly: 15, notificationEmail: true, notificationProgress: true, notificationGithub: false },
       githubStats
     })
   } catch (e) {
@@ -328,7 +328,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 
 // PUT /api/auth/settings
 router.put('/settings', authMiddleware, async (req, res) => {
-  const { theme, lang } = req.body
+  const { theme, lang, practiceGoalDaily, practiceGoalWeekly, notificationEmail, notificationProgress, notificationGithub } = req.body
 
   try {
     const updates = []
@@ -345,6 +345,31 @@ router.put('/settings', authMiddleware, async (req, res) => {
       updates.push(`lang = $${paramCount}`)
       values.push(lang)
     }
+    if (practiceGoalDaily !== undefined && Number.isInteger(practiceGoalDaily) && practiceGoalDaily >= 0 && practiceGoalDaily <= 100) {
+      paramCount++
+      updates.push(`practice_goal_daily = $${paramCount}`)
+      values.push(practiceGoalDaily)
+    }
+    if (practiceGoalWeekly !== undefined && Number.isInteger(practiceGoalWeekly) && practiceGoalWeekly >= 0 && practiceGoalWeekly <= 500) {
+      paramCount++
+      updates.push(`practice_goal_weekly = $${paramCount}`)
+      values.push(practiceGoalWeekly)
+    }
+    if (notificationEmail !== undefined && typeof notificationEmail === 'boolean') {
+      paramCount++
+      updates.push(`notification_email = $${paramCount}`)
+      values.push(notificationEmail)
+    }
+    if (notificationProgress !== undefined && typeof notificationProgress === 'boolean') {
+      paramCount++
+      updates.push(`notification_progress = $${paramCount}`)
+      values.push(notificationProgress)
+    }
+    if (notificationGithub !== undefined && typeof notificationGithub === 'boolean') {
+      paramCount++
+      updates.push(`notification_github = $${paramCount}`)
+      values.push(notificationGithub)
+    }
 
     if (updates.length > 0) {
       paramCount++
@@ -356,7 +381,7 @@ router.put('/settings', authMiddleware, async (req, res) => {
     }
 
     const settings = await db.get(
-      'SELECT theme, lang, client_id FROM user_settings WHERE user_id = $1',
+      'SELECT theme, lang, client_id, practice_goal_daily, practice_goal_weekly, notification_email, notification_progress, notification_github FROM user_settings WHERE user_id = $1',
       [req.userId]
     )
 

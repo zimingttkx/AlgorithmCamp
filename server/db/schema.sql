@@ -51,10 +51,15 @@ CREATE TABLE IF NOT EXISTS github_stats (
 
 -- User settings
 CREATE TABLE IF NOT EXISTS user_settings (
-  user_id   BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  theme     TEXT DEFAULT 'dark',
-  lang      TEXT DEFAULT 'zh',
-  client_id TEXT NOT NULL
+  user_id             BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  theme               TEXT DEFAULT 'dark',
+  lang                TEXT DEFAULT 'zh',
+  client_id           TEXT NOT NULL,
+  practice_goal_daily INTEGER DEFAULT 3,
+  practice_goal_weekly INTEGER DEFAULT 15,
+  notification_email   BOOLEAN DEFAULT TRUE,
+  notification_progress BOOLEAN DEFAULT TRUE,
+  notification_github  BOOLEAN DEFAULT FALSE
 );
 
 -- Chapters (seed data)
