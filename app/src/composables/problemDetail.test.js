@@ -26,7 +26,7 @@ describe('useProblemDetail', () => {
   })
 
   it('should save and retrieve notes', async () => {
-    const { useProblemDetail } = await import('../src/composables/useProblemDetail.js')
+    const { useProblemDetail } = await import('./useProblemDetail.js')
     const { saveNote, getNote } = useProblemDetail()
 
     saveNote('chapter-01', '1', 'Test note content')
@@ -35,7 +35,7 @@ describe('useProblemDetail', () => {
   })
 
   it('should toggle favorites correctly', async () => {
-    const { useProblemDetail } = await import('../src/composables/useProblemDetail.js')
+    const { useProblemDetail } = await import('./useProblemDetail.js')
     const { isFavorite, toggleFavorite } = useProblemDetail()
 
     expect(isFavorite('chapter-01', '1')).toBe(false)
@@ -48,7 +48,7 @@ describe('useProblemDetail', () => {
   })
 
   it('should save and retrieve solutions', async () => {
-    const { useProblemDetail } = await import('../src/composables/useProblemDetail.js')
+    const { useProblemDetail } = await import('./useProblemDetail.js')
     const { saveSolution, getSolution } = useProblemDetail()
 
     saveSolution('chapter-01', '1', '# Solution\n\nThis is the solution', 'TestUser')
@@ -56,7 +56,7 @@ describe('useProblemDetail', () => {
   })
 
   it('should track favorite count', async () => {
-    const { useProblemDetail } = await import('../src/composables/useProblemDetail.js')
+    const { useProblemDetail } = await import('./useProblemDetail.js')
     const { toggleFavorite, favoriteCount } = useProblemDetail()
 
     expect(favoriteCount.value).toBe(0)
@@ -69,7 +69,7 @@ describe('useProblemDetail', () => {
   })
 
   it('should delete solutions', async () => {
-    const { useProblemDetail } = await import('../src/composables/useProblemDetail.js')
+    const { useProblemDetail } = await import('./useProblemDetail.js')
     const { saveSolution, getSolution, deleteSolution } = useProblemDetail()
 
     saveSolution('chapter-01', '1', 'Solution content', 'User')
