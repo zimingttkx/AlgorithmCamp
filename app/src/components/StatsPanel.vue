@@ -106,8 +106,10 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { CHAPTERS } from '../composables/data.js'
+import { useProblemMetadata } from '../composables/useProblemMetadata.js'
 
 const { isZh } = useLang()
+const { loadAllMetadata, getProblem, getDifficultyFromRating } = useProblemMetadata()
 
 const timeRange = ref('week') // week | month | all
 const timeOptions = [
@@ -172,33 +174,25 @@ const pieData = computed(() => {
   return data.sort((a, b) => b.value - a.value)
 })
 
-// Calculate difficulty distribution (mock based on chapter distribution)
-// In a real implementation, this would come from problem metadata
+// Calculate difficulty distribution based on actual problem ratings
 const barData = computed(() => {
   const data = { easy: 0, medium: 0, hard: 0 }
 
-  for (const ch of CHAPTERS) {
-    const chapterProgress = progress.value[ch.id] || {}
-    const done = Object.values(chapterProgress).filter(v => {
-      if (typeof v === 'object' && v !== null) return !!v.checked
-      return !!v
-    }).length
+  for (const [chapterId, problems] of Object.entries(progress.value)) {
+    for (const [probId, status] of Object.entries(problems)) {
+      // Check if problem is solved
+      const isSolved = status && typeof status === 'object' ? !!status.checked : !!status
+      if (!isSolved) continue
 
-    // Distribute based on chapter characteristics
-    // Earlier chapters (easier) have higher easy ratio
-    const idx = CHAPTERS.findIndex(c => c.id === ch.id)
-    if (idx < 4) { // First 4 chapters - easier
-      data.easy += Math.round(done * 0.6)
-      data.medium += Math.round(done * 0.3)
-      data.hard += Math.round(done * 0.1)
-    } else if (idx < 8) { // Middle chapters - medium
-      data.easy += Math.round(done * 0.3)
-      data.medium += Math.round(done * 0.5)
-      data.hard += Math.round(done * 0.2)
-    } else { // Later chapters - harder
-      data.easy += Math.round(done * 0.2)
-      data.medium += Math.round(done * 0.4)
-      data.hard += Math.round(done * 0.4)
+      // Get problem metadata to find actual difficulty rating
+      const prob = getProblem(chapterId, probId)
+      if (prob) {
+        const difficulty = getDifficultyFromRating(prob.rating)
+        data[difficulty]++
+      } else {
+        // Fallback: if problem metadata not found, count as medium
+        data.medium++
+      }
     }
   }
 
@@ -547,11 +541,13 @@ function drawCharts() {
 }
 
 // Watch for changes
-watch([timeRange, progress, durationsData], () => {
+watch([timeRange, progress, durationsData, metadataCache], () => {
   drawCharts()
 }, { deep: true })
 
-onMounted(() => {
+onMounted(async () => {
+  // Load problem metadata first for accurate difficulty data
+  await loadAllMetadata()
   drawCharts()
   window.addEventListener('resize', drawCharts)
 })
