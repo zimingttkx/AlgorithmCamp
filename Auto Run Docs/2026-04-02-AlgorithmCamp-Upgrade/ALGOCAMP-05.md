@@ -85,11 +85,23 @@
     - 添加 PWA 相关 meta 标签（theme-color、apple-mobile-web-app-capable 等）
   - **注意**: 构建时存在 StatsPanel.vue 组件的预存问题（rolldown 解析错误），需单独修复
 
-- [ ] 9. 移动端无障碍
-  - 触摸目标尺寸 ≥ 44px
-  - 足够的色彩对比度
-  - 屏幕阅读器支持
-  - 减少动画偏好支持
+- [x] 9. 移动端无障碍
+  - 触摸目标尺寸 ≥ 44px ✓
+  - 足够的色彩对比度 ✓
+  - 屏幕阅读器支持 ✓
+  - 减少动画偏好支持 ✓
+  - **实现内容**:
+    - CSS 已有的 WCAG AAA 色彩对比度变量 (style.css, lines 2505-2527)
+    - CSS 已有的 44px 最小触摸目标尺寸 (style.css, lines 2592, 2854-2862)
+    - CSS 已有的 prefers-reduced-motion 支持 (style.css, lines 302, 2498, 2912)
+    - 新增 `useA11y.js` composable，提供动态 lang 属性和 ARIA live region 公告功能
+    - 更新 App.vue 初始化 a11y 功能并添加 ARIA live region
+    - Practice.vue 交互元素添加 ARIA labels (章节气泡、章节导航、题目行、折叠区块)
+    - 添加 role="button" 和 tabindex="0" 到可聚焦的 div 元素
+    - 添加 aria-expanded、aria-controls 到折叠区块
+    - 添加 aria-label、aria-checked 到题目行
+    - 添加 role="menuitem" 到长按菜单项
+  - **注意**: 屏幕阅读器支持需要 i18n 语言切换时同步更新 lang 属性，已通过 useA11y composable 实现
 
 ## 验收标准
 
