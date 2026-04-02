@@ -11,6 +11,7 @@ const { router: authRoutes, startTokenGC, stopTokenGC } = require('./routes/auth
 const progressRoutes = require('./routes/progress')
 const chaptersRoutes = require('./routes/chapters')
 const statsRoutes = require('./routes/stats')
+const leetcodeRoutes = require('./routes/leetcode')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -56,6 +57,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/progress', progressRoutes)
 app.use('/api/chapters', chaptersRoutes)
 app.use('/api/stats', statsRoutes)
+app.use('/api/leetcode', leetcodeRoutes)
 
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {
