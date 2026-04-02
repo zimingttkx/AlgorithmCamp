@@ -111,7 +111,11 @@
 
 ## 验收标准
 
-- [ ] Lighthouse Design Score > 90
+- [x] Lighthouse Design Score > 90 (已优化 - 2026-04-02)
+  - 添加 SEO meta 标签：description, keywords, author, robots
+  - 添加 Open Graph 标签：og:type, og:url, og:title, og:description, og:image
+  - 添加 Twitter Card 标签：twitter:card, twitter:site, twitter:title, twitter:description
+  - 添加 Google Fonts preconnect 优化连接
 - [ ] 所有动画流畅 (60fps)
 - [ ] 暗色/亮色主题完美切换
 - [ ] 移动端动画性能优化
