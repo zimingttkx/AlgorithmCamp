@@ -94,5 +94,39 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    // Enable CSS code splitting
+    cssCodeSplit: true,
+    // Chunk size warning threshold
+    chunkSizeWarningLimit: 500,
+    rollupOptions: {
+      // Manual chunks for better code splitting
+      output: {
+        // Manual chunk splitting for vendor code
+        manualChunks: (id) => {
+          // Vue core packages
+          if (id.includes('node_modules/vue') || id.includes('node_modules/@vue')) {
+            return 'vue-vendor'
+          }
+          // Vue Router
+          if (id.includes('node_modules/vue-router')) {
+            return 'vue-router-vendor'
+          }
+          // Marked (markdown parser) - used only in BlogPost/ProblemDetail
+          if (id.includes('node_modules/marked')) {
+            return 'marked-vendor'
+          }
+          // Highlight.js - used only in BlogPost/ProblemDetail
+          if (id.includes('node_modules/highlight.js')) {
+            return 'highlight-vendor'
+          }
+          // PWA plugin
+          if (id.includes('node_modules/vite-plugin-pwa') || id.includes('workbox-')) {
+            return 'pwa-vendor'
+          }
+        }
+      }
+    }
   }
 })

@@ -1,38 +1,24 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import About from '../views/About.vue'
-import Blog from '../views/Blog.vue'
-import BlogPost from '../views/BlogPost.vue'
-import Projects from '../views/Projects.vue'
-import Practice from '../views/Practice.vue'
-import Progress from '../views/Progress.vue'
-import Stats from '../views/Stats.vue'
-import Review from '../views/Review.vue'
-import Login from '../views/Login.vue'
-import Recommendation from '../views/Recommendation.vue'
-import ProblemDetail from '../views/ProblemDetail.vue'
-import Search from '../views/Search.vue'
-import Goal from '../views/Goal.vue'
-import Export from '../views/Export.vue'
-import NotFound from '../views/NotFound.vue'
 
+// Route-based code splitting: all route components are lazy-loaded
+// This enables tree-shaking and reduces initial bundle size
 const routes = [
-  { path: '/', component: Home },
-  { path: '/about', component: About },
-  { path: '/blog', component: Blog },
-  { path: '/blog/:id', component: BlogPost },
-  { path: '/projects', component: Projects },
-  { path: '/practice', component: Practice },
-  { path: '/progress', component: Progress },
-  { path: '/stats', component: Stats },
-  { path: '/recommend', component: Recommendation },
-  { path: '/review', component: Review },
-  { path: '/problem/:chapterId/:probId', component: ProblemDetail },
-  { path: '/search', component: Search },
-  { path: '/goal', component: Goal },
-  { path: '/export', component: Export },
-  { path: '/login', component: Login },
-  { path: '/:pathMatch(.*)+', component: NotFound },
+  { path: '/', component: () => import('../views/Home.vue') },
+  { path: '/about', component: () => import('../views/About.vue') },
+  { path: '/blog', component: () => import('../views/Blog.vue') },
+  { path: '/blog/:id', component: () => import('../views/BlogPost.vue') },
+  { path: '/projects', component: () => import('../views/Projects.vue') },
+  { path: '/practice', component: () => import('../views/Practice.vue') },
+  { path: '/progress', component: () => import('../views/Progress.vue') },
+  { path: '/stats', component: () => import('../views/Stats.vue') },
+  { path: '/recommend', component: () => import('../views/Recommendation.vue') },
+  { path: '/review', component: () => import('../views/Review.vue') },
+  { path: '/problem/:chapterId/:probId', component: () => import('../views/ProblemDetail.vue') },
+  { path: '/search', component: () => import('../views/Search.vue') },
+  { path: '/goal', component: () => import('../views/Goal.vue') },
+  { path: '/export', component: () => import('../views/Export.vue') },
+  { path: '/login', component: () => import('../views/Login.vue') },
+  { path: '/:pathMatch(.*)+', component: () => import('../views/NotFound.vue') },
 ]
 
 export default createRouter({
