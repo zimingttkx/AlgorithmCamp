@@ -39,18 +39,48 @@
         <span></span><span></span><span></span>
       </button>
     </div>
-    <div class="nav-mobile-menu" :class="{ open: menuOpen }">
-      <router-link v-for="item in navItems" :key="item.path"
-        :to="item.path" class="nav-link"
-        @click="menuOpen = false"
-      >
-        {{ item.label }}
-        <span v-if="item.badge && item.badge > 0" class="nav-badge">{{ item.badge }}</span>
-      </router-link>
-      <button class="lang-btn" @click="toggleLang(); menuOpen=false" style="margin:8px 16px;width:fit-content">
-        {{ isZh ? 'EN' : '中' }}
-      </button>
+
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="nav-sidebar-backdrop" :class="{ open: menuOpen }" @click="menuOpen = false"></div>
+
+    <!-- Mobile Slide-out Sidebar -->
+    <div class="nav-sidebar" :class="{ open: menuOpen }" ref="sidebarRef">
+      <div class="sidebar-header">
+        <span class="sidebar-title pixel-font">{{ isZh ? '菜单' : 'MENU' }}</span>
+        <button class="sidebar-close" @click="menuOpen = false" aria-label="close">
+          <span></span><span></span>
+        </button>
+      </div>
+      <div class="sidebar-links">
+        <router-link v-for="item in navItems" :key="item.path"
+          :to="item.path" class="sidebar-link"
+          :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path) && item.path !== '/') }"
+          @click="menuOpen = false"
+        >
+          <span class="sidebar-link-text">{{ item.label }}</span>
+          <span v-if="item.badge && item.badge > 0" class="sidebar-badge">{{ item.badge }}</span>
+        </router-link>
+      </div>
+      <div class="sidebar-actions">
+        <button class="sidebar-btn" @click="toggleLang(); menuOpen=false">
+          <span class="btn-icon">{{ isZh ? '🌐 EN' : '🌐 中' }}</span>
+        </button>
+        <button class="sidebar-btn" @click="toggleTheme(); menuOpen=false">
+          <span class="btn-icon">{{ isDark ? '☀ ' + (isZh ? '亮色模式' : 'Light Mode') : '◐ ' + (isZh ? '暗色模式' : 'Dark Mode') }}</span>
+        </button>
+      </div>
     </div>
+
+    <!-- Bottom Navigation Bar (Mobile Only) -->
+    <nav class="bottom-nav" aria-label="Mobile navigation">
+      <router-link v-for="item in bottomNavItems" :key="item.path"
+        :to="item.path" class="bottom-nav-item"
+        :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path) && item.path !== '/') }"
+      >
+        <span class="bottom-nav-icon">{{ item.icon }}</span>
+        <span class="bottom-nav-label">{{ item.label }}</span>
+      </router-link>
+    </nav>
   </nav>
 </template>
 
@@ -67,6 +97,12 @@ const menuOpen = ref(false)
 const navHidden = ref(false)
 const isScrolled = ref(false)
 const scrollProgress = ref(0)
+const sidebarRef = ref(null)
+
+// Touch gesture state
+let touchStartX = 0
+let touchEndX = 0
+const SWIPE_THRESHOLD = 50
 
 const navItems = computed(() => isZh.value ? [
   { path: '/',         label: '首页' },
@@ -94,6 +130,51 @@ const navItems = computed(() => isZh.value ? [
   { path: '/about',    label: 'ABOUT' },
 ])
 
+// Bottom navigation items (primary destinations)
+const bottomNavItems = computed(() => isZh.value ? [
+  { path: '/',         label: '首页',   icon: '🏠' },
+  { path: '/practice', label: '刷题',   icon: '📝' },
+  { path: '/search',   label: '搜索',   icon: '🔍' },
+  { path: '/progress', label: '进度',   icon: '📊' },
+  { path: '/review',   label: '复习',   icon: '📚' },
+] : [
+  { path: '/',         label: 'HOME',     icon: '🏠' },
+  { path: '/practice', label: 'PRACTICE', icon: '📝' },
+  { path: '/search',   label: 'SEARCH',   icon: '🔍' },
+  { path: '/progress', label: 'PROGRESS', icon: '📊' },
+  { path: '/review',   label: 'REVIEW',   icon: '📚' },
+])
+
+// Touch gesture handlers for sidebar swipe
+function onTouchStart(e) {
+  touchStartX = e.changedTouches[0].screenX
+}
+
+function onTouchEnd(e) {
+  touchEndX = e.changedTouches[0].screenX
+  handleSwipeGesture()
+}
+
+function handleSwipeGesture() {
+  const swipeDistance = touchEndX - touchStartX
+
+  // Swipe left to close sidebar (if open)
+  if (swipeDistance < -SWIPE_THRESHOLD && menuOpen.value) {
+    menuOpen.value = false
+  }
+  // Swipe right from left edge to open sidebar (if closed)
+  if (swipeDistance > SWIPE_THRESHOLD && touchStartX < 30 && !menuOpen.value) {
+    menuOpen.value = true
+  }
+}
+
+// Prevent body scroll when sidebar is open
+function onBodyTouchStart(e) {
+  if (menuOpen.value && !sidebarRef.value?.contains(e.target)) {
+    e.preventDefault()
+  }
+}
+
 // Scroll hide/show and progress tracking
 let lastScrollY = 0
 function onScroll() {
@@ -111,11 +192,37 @@ function onScroll() {
   lastScrollY = currentY
 }
 
+// Close sidebar on route change
+function onRouteChange() {
+  menuOpen.value = false
+}
+
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
+  document.addEventListener('touchstart', onTouchStart, { passive: true })
+  document.addEventListener('touchend', onTouchEnd, { passive: true })
+  document.addEventListener('touchstart', onBodyTouchStart, { passive: false })
+
+  // Watch route changes
+  const unsubscribe = window.__VUE_ROUTER__?.subscribe((to) => {
+    if (to.path !== window.location.pathname) {
+      menuOpen.value = false
+    }
+  })
+
+  // Use router.afterEach if available
+  if (window.__VUE_ROUTER__) {
+    window.__VUE_ROUTER__.afterEach(() => {
+      menuOpen.value = false
+    })
+  }
 })
+
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
+  document.removeEventListener('touchstart', onTouchStart)
+  document.removeEventListener('touchend', onTouchEnd)
+  document.removeEventListener('touchstart', onBodyTouchStart)
 })
 </script>
 
@@ -492,22 +599,211 @@ onUnmounted(() => {
   box-shadow: 0 0 8px var(--neon-cyan);
 }
 
-/* ── Mobile Menu ── */
-.nav-mobile-menu {
-  max-height: 0;
-  overflow: hidden;
-  flex-direction: column;
-  gap: 2px;
-  padding: 0 24px;
-  background: var(--navbar-mobile-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--navbar-border);
-  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s;
+/* ── Mobile Slide-out Sidebar ── */
+.nav-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
 }
-.nav-mobile-menu.open {
-  max-height: 400px;
-  padding: 8px 24px 12px;
+.nav-sidebar-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nav-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  max-width: 80vw;
+  height: 100vh;
+  background: var(--navbar-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-right: 1px solid var(--navbar-border);
+  box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4);
+  transform: translateX(-100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.nav-sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--navbar-border);
+}
+.sidebar-title {
+  font-size: 0.9rem;
+  color: var(--neon-primary);
+  letter-spacing: 0.1em;
+}
+.sidebar-close {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+.sidebar-close:hover {
+  background: rgba(0, 243, 255, 0.1);
+}
+.sidebar-close span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 4px var(--neon-cyan);
+}
+.sidebar-close span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.sidebar-close span:nth-child(2) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.sidebar-links {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-link {
+  font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  letter-spacing: 0.05em;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-link:hover {
+  transform: translateX(4px);
+  color: var(--neon-primary);
+  border-color: rgba(0, 243, 255, 0.3);
+  background: rgba(0, 243, 255, 0.05);
+}
+.sidebar-link.active {
+  color: var(--neon-primary);
+  font-weight: 600;
+  border-color: rgba(0, 243, 255, 0.3);
+  background: rgba(0, 243, 255, 0.08);
+}
+.sidebar-link-text {
+  position: relative;
+  z-index: 2;
+}
+.sidebar-badge {
+  background: var(--neon-red);
+  color: #fff;
+  font-size: 0.7em;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  box-shadow: 0 0 8px var(--neon-red);
+}
+
+.sidebar-actions {
+  padding: 16px;
+  border-top: 1px solid var(--navbar-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sidebar-btn {
+  font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
+  font-size: 0.85rem;
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--navbar-border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  text-align: left;
+}
+.sidebar-btn:hover {
+  color: var(--neon-primary);
+  border-color: var(--neon-primary);
+  background: rgba(0, 243, 255, 0.05);
+}
+.sidebar-btn .btn-icon {
+  margin-right: 8px;
+}
+
+/* ── Bottom Navigation Bar (Mobile Only) ── */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--navbar-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--navbar-border);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 9998;
+  padding: 0 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--text-dim);
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 6px 4px;
+}
+.bottom-nav-item:hover {
+  color: var(--neon-primary);
+  background: rgba(0, 243, 255, 0.05);
+}
+.bottom-nav-item.active {
+  color: var(--neon-primary);
+}
+.bottom-nav-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.bottom-nav-label {
+  font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.02em;
 }
 
 /* ── Responsive ── */
@@ -515,6 +811,18 @@ onUnmounted(() => {
   .nav-links { display: none; }
   .nav-actions { display: none; }
   .nav-mobile-btn { display: flex; margin-left: auto; }
+  .bottom-nav { display: flex; }
+  .navbar { padding-bottom: 60px; }
+}
+
+/* ── Extra Small Screens ── */
+@media (max-width: 360px) {
+  .nav-sidebar {
+    width: 260px;
+  }
+  .bottom-nav-label {
+    font-size: 0.55rem;
+  }
 }
 
 /* ── Reduced Motion ── */
