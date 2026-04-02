@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser')
 
 const db = require('./db')
 const { logger } = require('./middleware/logger')
-const authRoutes = require('./routes/auth')
+const { router: authRoutes, startTokenGC, stopTokenGC } = require('./routes/auth')
 const progressRoutes = require('./routes/progress')
 const chaptersRoutes = require('./routes/chapters')
 const statsRoutes = require('./routes/stats')
@@ -83,6 +83,9 @@ async function start() {
     await db.all('SELECT 1')
     console.log('[DB] PostgreSQL connected')
 
+    // Start token garbage collection scheduler
+    startTokenGC()
+
     app.listen(PORT, () => {
       console.log(`AlgorithmCamp server running on port ${PORT}`)
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
@@ -96,6 +99,7 @@ async function start() {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully')
+  stopTokenGC()
   await db.close()
   process.exit(0)
 })

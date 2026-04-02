@@ -503,4 +503,144 @@ router.get('/github/callback', async (req, res) => {
   }
 })
 
-module.exports = router
+// Refresh token garbage collection interval (24 hours)
+const GC_INTERVAL_MS = 24 * 60 * 60 * 1000
+// Keep revoked/expired tokens for 7 days before deletion (for audit)
+const TOKEN_RETENTION_DAYS = 7
+
+let gcTimer = null
+
+/**
+ * Garbage collect expired and old revoked tokens
+ * Called on startup and periodically
+ */
+async function cleanupExpiredTokens() {
+  try {
+    const cutoffDate = new Date(Date.now() - TOKEN_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+
+    // Delete expired tokens older than retention period
+    const result = await db.run(
+      `DELETE FROM refresh_tokens
+       WHERE expires_at < $1 AND created_at < $2`,
+      [new Date(), cutoffDate]
+    )
+
+    if (result.changes > 0) {
+      console.log(`[Auth] GC: Removed ${result.changes} old expired refresh tokens`)
+    }
+
+    // Also clean up orphaned tokens (user deleted but tokens remain)
+    const orphanedResult = await db.run(
+      `DELETE FROM refresh_tokens rt
+       WHERE NOT EXISTS (SELECT 1 FROM users u WHERE u.id = rt.user_id)`
+    )
+
+    if (orphanedResult.changes > 0) {
+      console.log(`[Auth] GC: Removed ${orphanedResult.changes} orphaned refresh tokens`)
+    }
+  } catch (e) {
+    console.error('[Auth] GC error:', e)
+  }
+}
+
+/**
+ * Start garbage collection scheduler
+ */
+function startTokenGC() {
+  if (gcTimer) return
+
+  // Run immediately on start
+  cleanupExpiredTokens()
+
+  // Then run periodically
+  gcTimer = setInterval(cleanupExpiredTokens, GC_INTERVAL_MS)
+  console.log(`[Auth] Token GC scheduled every ${GC_INTERVAL_MS / (60 * 60 * 1000)} hours`)
+}
+
+/**
+ * Stop garbage collection scheduler
+ */
+function stopTokenGC() {
+  if (gcTimer) {
+    clearInterval(gcTimer)
+    gcTimer = null
+  }
+}
+
+// GET /api/auth/token-status - Check token expiration status
+router.get('/token-status', async (req, res) => {
+  const accessToken = req.cookies?.accessToken || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null)
+
+  if (!accessToken) {
+    return res.json({
+      authenticated: false,
+      accessTokenExpiresAt: null,
+      refreshTokenExpiresAt: null,
+      needsRefresh: true
+    })
+  }
+
+  try {
+    const payload = jwt.verify(accessToken, process.env.JWT_SECRET)
+    const now = Math.floor(Date.now() / 1000)
+    const expiresAt = payload.exp
+    const timeUntilExpiry = expiresAt - now
+
+    // Access token expires in 15 minutes, consider refresh if < 5 minutes left
+    const needsRefresh = timeUntilExpiry < 5 * 60
+
+    // Check refresh token status if present
+    const refreshToken = req.cookies?.refreshToken
+    let refreshExpiresAt = null
+    let refreshNeedsRefresh = false
+
+    if (refreshToken) {
+      const refreshResult = verifyRefresh(refreshToken)
+      if (refreshResult.payload) {
+        refreshExpiresAt = refreshResult.payload.exp
+        const refreshTimeLeft = refreshExpiresAt - now
+        // Need to refresh if < 1 day left
+        refreshNeedsRefresh = refreshTimeLeft < 24 * 60 * 60
+      } else {
+        // Refresh token invalid or expired
+        refreshNeedsRefresh = true
+      }
+    }
+
+    res.json({
+      authenticated: true,
+      userId: payload.userId,
+      username: payload.username,
+      accessTokenExpiresAt: new Date(expiresAt * 1000).toISOString(),
+      timeUntilAccessExpiry: timeUntilExpiry,
+      needsAccessRefresh: needsRefresh,
+      hasRefreshToken: !!refreshToken,
+      refreshTokenExpiresAt: refreshExpiresAt ? new Date(refreshExpiresAt * 1000).toISOString() : null,
+      needsRefresh: needsRefresh || refreshNeedsRefresh || !refreshToken
+    })
+  } catch (e) {
+    if (e.name === 'TokenExpiredError') {
+      return res.json({
+        authenticated: false,
+        accessTokenExpired: true,
+        needsRefresh: true,
+        error: 'access token expired'
+      })
+    }
+    return res.status(401).json({ error: 'invalid token' })
+  }
+})
+
+// POST /api/auth/cleanup - Manual cleanup endpoint (admin only)
+router.post('/cleanup', authMiddleware, async (req, res) => {
+  // Simple admin check - in production, use proper role-based access
+  if (!process.env.ADMIN_API_KEY || req.headers['x-admin-key'] !== process.env.ADMIN_API_KEY) {
+    return res.status(403).json({ error: 'admin access required' })
+  }
+
+  await cleanupExpiredTokens()
+  res.json({ success: true, message: 'Token cleanup completed' })
+})
+
+// Export GC functions for server lifecycle
+module.exports = { router, startTokenGC, stopTokenGC }

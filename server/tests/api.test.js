@@ -145,6 +145,24 @@ async function testAuth() {
   })
   console.assert(res.status === 401, `Expected 401, got ${res.status}`)
   console.log('  ✓ Invalid refresh token rejected')
+
+  // Test 10: Token status with valid token
+  console.log('Test: Get token status with valid token...')
+  res = await apiRequest('GET', '/api/auth/token-status', null, {
+    'Authorization': `Bearer ${accessToken}`
+  })
+  console.assert(res.status === 200, `Expected 200, got ${res.status}`)
+  console.assert(res.data.authenticated === true, 'Should be authenticated')
+  console.assert(res.data.timeUntilAccessExpiry > 0, 'Should have time until expiry')
+  console.log('  ✓ Token status passed')
+
+  // Test 11: Token status without token
+  console.log('Test: Get token status without token...')
+  res = await apiRequest('GET', '/api/auth/token-status')
+  console.assert(res.status === 200, `Expected 200, got ${res.status}`)
+  console.assert(res.data.authenticated === false, 'Should not be authenticated')
+  console.assert(res.data.needsRefresh === true, 'Should need refresh')
+  console.log('  ✓ Token status without token passed')
 }
 
 // ============ PROGRESS TESTS ============
