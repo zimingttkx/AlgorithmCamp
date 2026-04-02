@@ -69,7 +69,7 @@
   - 添加滚动进度指示器
   - 实现毛玻璃导航栏
 
-- [ ] 7. 首页 Hero 区域升级
+- [x] 7. 首页 Hero 区域升级
   - 添加 3D 头像悬浮效果
   - 升级统计数据卡片动效
   - 添加像素化 GitHub 贡献日历
@@ -424,4 +424,40 @@
   - `@media (prefers-reduced-motion: reduce)` 完全支持
   - 所有动画和transition在reduce motion时禁用
   - 悬停transform效果在reduce motion时禁用
+
+### Task 7: 首页 Hero 区域升级 (已完成 - 2026-04-02)
+- [x] 添加 3D 头像悬浮效果
+  - `.perspective-container`: 1000px perspective容器
+  - `.avatar-3d-effect`: 3D效果包装器 (transform-style: preserve-3d)
+  - `.hover-3d`: 3D悬浮效果 (translateZ + scale on hover)
+  - `.avatar-glow`: 头像发光光晕 (radial-gradient, hover时显现)
+  - 悬停时头像上浮30px + 缩放1.05倍 + 增强发光阴影
+
+- [x] 升级统计数据卡片动效
+  - `.hstat` 卡片添加 `.hover-3d-lift` 效果
+  - 悬停时上浮8px + translateZ(20px) + 边框发光
+  - 数值放大1.1倍 + 亮度增强
+  - 添加 `.hstat-particles` 粒子爆发动画
+  - 爆发动画使用 `--burst-x/y` CSS变量控制方向
+
+- [x] 添加像素化 GitHub 贡献日历
+  - 添加4px像素网格背景图案叠加层
+  - `.cal-cell` 添加 `image-rendering: pixelated`
+  - 悬停时更激进的放大效果 (scale 1.5) + 霓虹发光边框
+  - `.cal-tooltip` 也添加 pixelated 渲染
+  - 添加 `prefers-reduced-motion` 支持
+
+- [x] 实现动态粒子背景
+  - `.hero-particles`: 绝对定位的粒子容器 (z-index: 0)
+  - Canvas元素实现GPU加速粒子系统
+  - 粒子颜色使用三色霓虹系统 (primary/secondary/accent)
+  - 粒子以像素方块形式绘制 (`pixelSize: 2-6px`)
+  - 粒子间距离<120px时绘制连接线
+  - 粒子数量根据视口大小动态计算 (最多80个)
+  - `resize` 事件处理响应式画布尺寸
+
+- [x] 无障碍性增强
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+  - 粒子动画和3D transform在reduce motion时禁用/简化
+  - cal-cell hover效果简化为仅scale(1.2)
 

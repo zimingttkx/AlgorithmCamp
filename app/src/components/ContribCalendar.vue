@@ -95,6 +95,19 @@ function hideTip() { tip.value.show = false }
   position: relative;
   user-select: none;
 }
+/* Pixelated grid overlay */
+.contrib-calendar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79, 142, 247, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 142, 247, 0.03) 1px, transparent 1px);
+  background-size: 4px 4px;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 4px;
+}
 .cal-months {
   display: flex;
   margin-bottom: 4px;
@@ -129,6 +142,8 @@ function hideTip() { tip.value.show = false }
   display: flex;
   gap: 3px;
   overflow-x: auto;
+  position: relative;
+  z-index: 2;
 }
 .cal-week {
   display: flex;
@@ -142,10 +157,15 @@ function hideTip() { tip.value.show = false }
   border: 1px solid rgba(255,255,255,0.05);
   cursor: pointer;
   transition: transform 0.1s;
+  image-rendering: pixelated;
+  position: relative;
 }
+/* Pixelated hover effect */
 .cal-cell:hover {
-  transform: scale(1.4);
-  border-color: rgba(255,255,255,0.3);
+  transform: scale(1.5) !important;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--glow-cyan);
+  z-index: 10;
 }
 .cal-legend {
   display: flex;
@@ -173,11 +193,16 @@ function hideTip() { tip.value.show = false }
   z-index: 100;
   transform: translateX(-50%);
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  image-rendering: pixelated;
 }
 @media (max-width: 768px) {
   .cal-months { display: none; }
   .cal-days { display: none; }
   .cal-grid { overflow-x: auto; }
   .cal-cell { width: 11px; height: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cal-cell { transition: none; }
+  .cal-cell:hover { transform: scale(1.2) !important; }
 }
 </style>

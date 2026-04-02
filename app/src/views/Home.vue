@@ -1,5 +1,10 @@
 <template>
   <div class="home">
+    <!-- Dynamic Particle Background -->
+    <div class="hero-particles" ref="particleCanvas">
+      <canvas ref="particleCanvasEl"></canvas>
+    </div>
+
     <!-- Hero -->
     <section class="hero">
       <div class="hero-bg-grid"></div>
@@ -26,23 +31,41 @@
           </div>
         </div>
         <div class="hero-right">
-          <div class="hero-avatar-wrap">
-            <img :src="avatar" alt="avatar" class="hero-avatar" @error="avatarFallback" />
-            <div class="avatar-ring"></div>
-            <div class="avatar-ring ring2"></div>
+          <div class="hero-avatar-wrap perspective-container">
+            <div class="avatar-3d-effect">
+              <img :src="avatar" alt="avatar" class="hero-avatar hover-3d" @error="avatarFallback" />
+              <div class="avatar-ring"></div>
+              <div class="avatar-ring ring2"></div>
+              <div class="avatar-glow"></div>
+            </div>
           </div>
           <div class="hero-stats">
-            <div class="hstat pixel-card">
+            <div class="hstat pixel-card hover-3d-lift">
               <div class="hstat-val glow-cyan">{{ stats.repos }}</div>
               <div class="hstat-label">{{ t('仓库', 'Repos') }}</div>
+              <div class="hstat-particles">
+                <span class="hstat-particle"></span>
+                <span class="hstat-particle"></span>
+                <span class="hstat-particle"></span>
+              </div>
             </div>
-            <div class="hstat pixel-card">
+            <div class="hstat pixel-card hover-3d-lift" style="animation-delay: 0.1s">
               <div class="hstat-val glow-purple">{{ stats.stars }}</div>
               <div class="hstat-label">Stars</div>
+              <div class="hstat-particles">
+                <span class="hstat-particle"></span>
+                <span class="hstat-particle"></span>
+                <span class="hstat-particle"></span>
+              </div>
             </div>
-            <div class="hstat pixel-card">
+            <div class="hstat pixel-card hover-3d-lift" style="animation-delay: 0.2s">
               <div class="hstat-val glow-pink">{{ stats.followers }}</div>
               <div class="hstat-label">{{ t('粉丝', 'Followers') }}</div>
+              <div class="hstat-particles">
+                <span class="hstat-particle"></span>
+                <span class="hstat-particle"></span>
+                <span class="hstat-particle"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -261,6 +284,7 @@ const chapters = CHAPTERS
 const latestPosts = BLOG_POSTS.slice(0, 3)
 const modalProject = ref(null)
 const ghStats = ref({ totalCommits: 0, calendar: {} })
+const particleCanvasEl = ref(null)
 const heroLevel = computed(() => {
   const xp = (ghStats.value.totalCommits || 0) * STATS_CONFIG.xpPerCommit
   return calcLevel(xp)
@@ -392,6 +416,89 @@ const featuredProjects = [
   },
 ]
 
+// Initialize hero particle animation
+function initHeroParticles() {
+  const canvas = particleCanvasEl.value
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  let animationId
+  let particles = []
+  const colors = ['#00f0ff', '#ff00aa', '#f0ff00', '#00f0ff']
+
+  function resize() {
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+  }
+  resize()
+  window.addEventListener('resize', resize)
+
+  class Particle {
+    constructor() {
+      this.x = Math.random() * canvas.width
+      this.y = Math.random() * canvas.height
+      this.size = Math.random() * 3 + 1
+      this.speedX = (Math.random() - 0.5) * 0.5
+      this.speedY = (Math.random() - 0.5) * 0.5
+      this.color = colors[Math.floor(Math.random() * colors.length)]
+      this.opacity = Math.random() * 0.5 + 0.2
+      this.pixelSize = Math.floor(Math.random() * 4) + 2
+    }
+    update() {
+      this.x += this.speedX
+      this.y += this.speedY
+      if (this.x < 0 || this.x > canvas.width) this.speedX *= -1
+      if (this.y < 0 || this.y > canvas.height) this.speedY *= -1
+    }
+    draw() {
+      ctx.globalAlpha = this.opacity
+      ctx.fillStyle = this.color
+      ctx.shadowBlur = 10
+      ctx.shadowColor = this.color
+      // Draw as pixelated square
+      ctx.fillRect(Math.floor(this.x / this.pixelSize) * this.pixelSize, Math.floor(this.y / this.pixelSize) * this.pixelSize, this.pixelSize, this.pixelSize)
+    }
+  }
+
+  function init() {
+    particles = []
+    const particleCount = Math.min(80, Math.floor((canvas.width * canvas.height) / 15000))
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle())
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    particles.forEach(p => {
+      p.update()
+      p.draw()
+    })
+    // Draw connections
+    particles.forEach((a, i) => {
+      particles.slice(i + 1).forEach(b => {
+        const dx = a.x - b.x
+        const dy = a.y - b.y
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        if (dist < 120) {
+          ctx.globalAlpha = (1 - dist / 120) * 0.3
+          ctx.strokeStyle = '#00f0ff'
+          ctx.lineWidth = 0.5
+          ctx.beginPath()
+          ctx.moveTo(a.x, a.y)
+          ctx.lineTo(b.x, b.y)
+          ctx.stroke()
+        }
+      })
+    })
+    animationId = requestAnimationFrame(animate)
+  }
+
+  init()
+  animate()
+
+  // Cleanup on component unmount would go here if needed
+}
+
 async function loadGitHub() {
   try {
     const r = await fetch('https://api.github.com/users/zimingttkx')
@@ -419,11 +526,28 @@ onMounted(() => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') })
   }, { threshold: 0.1 })
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
+
+  // Initialize hero particle animation
+  initHeroParticles()
 })
 </script>
 
 <style scoped>
 .home { padding-top: 64px; }
+
+/* ── Hero Particle Background ── */
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-particles canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 
 /* ── Hero Section ── */
 .hero {
@@ -502,7 +626,20 @@ onMounted(() => {
 
 /* ── Avatar ── */
 .hero-right { display: flex; flex-direction: column; align-items: center; gap: 24px; flex-shrink: 0; }
-.hero-avatar-wrap { position: relative; width: 280px; height: 280px; }
+.hero-avatar-wrap {
+  position: relative;
+  width: 280px;
+  height: 280px;
+}
+.perspective-container {
+  perspective: 1000px;
+}
+.avatar-3d-effect {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
 .hero-avatar {
   width: 280px;
   height: 280px;
@@ -511,6 +648,13 @@ onMounted(() => {
   box-shadow: 0 0 60px var(--glow-blue);
   animation: float 4s ease-in-out infinite;
   display: block;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.4s var(--ease-out-expo), box-shadow 0.4s var(--ease-out-expo);
+}
+.avatar-3d-effect:hover .hero-avatar {
+  transform: translateZ(30px) scale(1.05);
+  box-shadow: 0 0 80px var(--glow-primary), 0 0 120px var(--glow-secondary-soft);
 }
 .avatar-ring {
   position: absolute;
@@ -520,12 +664,26 @@ onMounted(() => {
   opacity: 0.5;
   animation: neonPulse 3s ease-in-out infinite;
   pointer-events: none;
+  z-index: 1;
 }
 .ring2 {
   inset: -32px;
   border-color: var(--neon-cyan);
   opacity: 0.3;
   animation-delay: 1.5s;
+}
+.avatar-glow {
+  position: absolute;
+  inset: -50px;
+  background: radial-gradient(circle, var(--glow-primary-soft) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+.avatar-3d-effect:hover .avatar-glow {
+  opacity: 1;
+  animation: glowPulse 2s ease-in-out infinite;
 }
 .hero-stats { display: flex; gap: 16px; }
 .hstat {
@@ -536,6 +694,14 @@ onMounted(() => {
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   min-width: 80px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s var(--ease-out-expo);
+}
+.hstat:hover {
+  transform: translateY(-8px) translateZ(20px);
+  border-color: var(--neon-primary);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px var(--glow-primary-soft);
 }
 .hstat-val {
   font-family: 'JetBrains Mono', monospace;
@@ -545,6 +711,11 @@ onMounted(() => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  transition: all 0.3s ease;
+}
+.hstat:hover .hstat-val {
+  transform: scale(1.1);
+  filter: brightness(1.2);
 }
 .hstat-label {
   font-size: 0.8rem;
@@ -553,6 +724,34 @@ onMounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+.hstat-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hstat-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--neon-primary);
+  opacity: 0;
+  border-radius: 1px;
+}
+.hstat:hover .hstat-particle {
+  animation: statParticleBurst 0.8s ease-out forwards;
+}
+.hstat:hover .hstat-particle:nth-child(1) { left: 50%; top: 50%; animation-delay: 0s; }
+.hstat:hover .hstat-particle:nth-child(2) { left: 30%; top: 40%; animation-delay: 0.1s; }
+.hstat:hover .hstat-particle:nth-child(3) { left: 70%; top: 60%; animation-delay: 0.2s; }
+
+@keyframes statParticleBurst {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--burst-x, 30px), var(--burst-y, -30px)) scale(0); }
+}
+.hstat-particle:nth-child(1) { --burst-x: 30px; --burst-y: -30px; }
+.hstat-particle:nth-child(2) { --burst-x: -25px; --burst-y: -20px; }
+.hstat-particle:nth-child(3) { --burst-x: 20px; --burst-y: 25px; }
 
 /* ── Sections ── */
 .section { padding: 80px 0; }
@@ -695,6 +894,19 @@ onMounted(() => {
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   overflow-x: auto;
+  position: relative;
+}
+/* Pixelated contribution calendar styling */
+.stats-calendar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79, 142, 247, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 142, 247, 0.02) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+  border-radius: 16px;
 }
 
 /* ── Profile Section ── */
