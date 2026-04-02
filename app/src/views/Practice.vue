@@ -132,11 +132,71 @@
               <span class="stat-value font-mono" style="color: var(--neon-purple)">LV.{{ level }}</span>
               <span class="stat-label">等级</span>
             </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item recommend-stat">
+              <button class="recommend-btn" @click="toggleRecommendations" :class="{active: showRecommendations}">
+                <span class="recommend-icon">🧠</span>
+                <span class="stat-value font-mono" style="color: var(--neon-pink)">{{ learningStats?.reviewDue || 0 }}</span>
+              </button>
+              <span class="stat-label">待复习</span>
+            </div>
           </div>
           <div class="progress-track">
             <div class="pixel-progress-advanced">
               <div class="progress-fill" :style="{width: globalPct+'%', background: `linear-gradient(90deg, var(--neon-primary), var(--neon-secondary), var(--neon-accent))`}"></div>
               <div class="progress-glow" :style="{left: globalPct+'%'}"></div>
+            </div>
+          </div>
+
+          <!-- Recommendation Panel -->
+          <div v-if="showRecommendations" class="recommend-panel glass-card">
+            <div class="recommend-header">
+              <h3 class="recommend-title">
+                <span class="recommend-icon-large">🧠</span>
+                智能推荐
+                <span class="recommend-badge" v-if="learningStats">LV.{{ learningStats.skillLevelLabel }}</span>
+              </h3>
+              <button class="recommend-close" @click="showRecommendations = false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="recommend-tabs">
+              <button
+                v-for="tab in ['chapter', 'difficulty', 'forgetting']"
+                :key="tab"
+                class="recommend-tab"
+                :class="{active: recommendTab === tab}"
+                @click="recommendTab = tab"
+              >
+                {{ tab === 'chapter' ? '📚 章节' : tab === 'difficulty' ? '🎯 难度' : '🧠 复习' }}
+              </button>
+            </div>
+            <div class="recommend-list">
+              <div v-if="recommendations.length === 0" class="recommend-empty">
+                <p>暂无推荐，开始刷题吧！</p>
+              </div>
+              <div
+                v-else
+                v-for="rec in filteredRecommendations"
+                :key="`${rec.chapterId}::${rec.probId}`"
+                class="recommend-item"
+                @click="goToProblem(rec)"
+              >
+                <div class="rec-info">
+                  <span class="rec-num font-mono">{{ rec.num }}</span>
+                  <span class="rec-title">{{ rec.title }}</span>
+                </div>
+                <div class="rec-meta">
+                  <span class="rec-chapter" :style="{color: rec.chapterColor}">{{ rec.chapterTitle }}</span>
+                  <span class="rec-rating font-mono" :class="ratingCls(rec.rating)">{{ rec.rating || '—' }}</span>
+                </div>
+                <div class="rec-reason">{{ rec.reason }}</div>
+              </div>
+            </div>
+            <div class="recommend-footer">
+              <a href="#/recommend" class="recommend-more">查看推荐算法说明 →</a>
             </div>
           </div>
         </div>
@@ -317,6 +377,7 @@ import { CHAPTERS } from '../composables/data.js'
 import { useAuth } from '../composables/auth.js'
 import { useProgressSync } from '../composables/progressSync.js'
 import { useLeetCodeSync } from '../composables/leetCodeSync.js'
+import { useRecommendations } from '../composables/useRecommendations.js'
 
 const { isLoggedIn, loginWithGithub } = useAuth()
 const { syncStatus, syncError, loadFromServer, saveProgress: serverSaveProgress } = useProgressSync()
@@ -359,6 +420,17 @@ const openSections = reactive({})
 
 // LeetCode sync state
 const leetcodeInput = ref('')
+
+// Recommendation state
+const { getCombinedRecommendations, getLearningStats, updateReview } = useRecommendations()
+const showRecommendations = ref(false)
+const recommendations = ref([])
+const learningStats = ref(null)
+const recommendTab = ref('chapter')
+
+const filteredRecommendations = computed(() => {
+  return recommendations.value.filter(r => r.algorithm === recommendTab.value)
+})
 
 const syncStatusTitle = computed(() => {
   if (!isLoggedIn.value) return '未登录'
@@ -580,6 +652,51 @@ async function handleLeetCodeSync() {
   loadStorage()
 }
 
+// Recommendation handlers
+async function loadRecommendations() {
+  // Pre-load all chapters if not already loaded
+  await Promise.all(CHAPTERS.map(ch => {
+    if (!mdCache[ch.id]) {
+      return fetch(ch.file).then(r => r.text()).then(md => {
+        mdCache[ch.id] = parseMdTables(md)
+      })
+    }
+    return Promise.resolve()
+  }))
+  recommendations.value = getCombinedRecommendations(progress.value, mdCache, 10)
+  learningStats.value = getLearningStats(progress.value, mdCache)
+}
+
+function toggleRecommendations() {
+  showRecommendations.value = !showRecommendations.value
+  if (showRecommendations.value) {
+    loadRecommendations()
+  }
+}
+
+function goToProblem(rec) {
+  const ch = CHAPTERS.find(c => c.id === rec.chapterId)
+  if (ch) {
+    openChapter(ch)
+  }
+}
+
+function handleProblemClick(chId, probId, row) {
+  // If not checked, this is a new completion
+  if (!isChecked(chId, probId)) {
+    // Toggle check
+    toggleCheck(chId, probId)
+    // Update review data for forgetting curve
+    const problemKey = `${chId}::${probId}`
+    updateReview(problemKey, 4) // Assume "easy" for manual solves
+    // Check if chapter is now complete
+    checkChapterCompletion(chId)
+  } else {
+    // Just toggle off
+    toggleCheck(chId, probId)
+  }
+}
+
 function triggerCelebration() {
   // Clear any existing timeout
   if (celebrationTimeout) {
@@ -644,19 +761,6 @@ function triggerCelebration() {
     confettiPieces.value = []
     heartParticles.value = []
   }, 4000)
-}
-
-function handleProblemClick(chId, probId, row) {
-  // If not checked, this is a new completion
-  if (!isChecked(chId, probId)) {
-    // Toggle check
-    toggleCheck(chId, probId)
-    // Check if chapter is now complete
-    checkChapterCompletion(chId)
-  } else {
-    // Just toggle off
-    toggleCheck(chId, probId)
-  }
 }
 
 function checkChapterCompletion(chId) {
@@ -948,6 +1052,202 @@ onMounted(() => { syncOnLoad() })
   filter: blur(10px);
   opacity: 0.6;
   transition: left 1s var(--ease-out-expo);
+}
+
+/* ── Recommend Button ── */
+.recommend-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.recommend-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.recommend-btn:hover,
+.recommend-btn.active {
+  background: var(--glass-bg);
+}
+
+.recommend-icon {
+  font-size: 1rem;
+}
+
+.recommend-stat .stat-value {
+  font-size: 1.2rem;
+}
+
+/* ── Recommend Panel ── */
+.recommend-panel {
+  margin-top: 24px;
+  padding: 20px;
+}
+
+.recommend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.recommend-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.recommend-icon-large {
+  font-size: 1.5rem;
+}
+
+.recommend-badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+  color: #fff;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.recommend-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.recommend-close:hover {
+  color: var(--neon-pink);
+}
+
+.recommend-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.recommend-tab {
+  padding: 8px 16px;
+  background: var(--bg-base);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recommend-tab:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+}
+
+.recommend-tab.active {
+  background: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+  color: #000;
+  font-weight: 600;
+}
+
+.recommend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.recommend-empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-dim);
+}
+
+.recommend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  background: var(--bg-base);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.recommend-item:hover {
+  border-color: var(--neon-cyan);
+  transform: translateX(4px);
+}
+
+.rec-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rec-num {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  min-width: 40px;
+}
+
+.rec-title {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.rec-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+}
+
+.rec-chapter {
+  font-weight: 500;
+}
+
+.rec-rating {
+  color: var(--text-dim);
+}
+
+.rec-reason {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.recommend-footer {
+  margin-top: 16px;
+  text-align: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.recommend-more {
+  font-size: 0.85rem;
+  color: var(--neon-cyan);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.recommend-more:hover {
+  color: var(--neon-primary);
 }
 
 /* ── Bubble Container ── */
