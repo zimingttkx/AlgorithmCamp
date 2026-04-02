@@ -38,7 +38,7 @@
   - 标记需要复习的题目
   - 邮件/站内通知提醒
 
-- [ ] 7. 题目详情页
+- [x] 7. 题目详情页
   - 题目链接到 LeetCode
   - 快速笔记功能
   - 收藏题目功能
@@ -184,3 +184,24 @@
   - 更新 router 添加 /review 路由
   - 更新 NavBar 添加「复习」导航链接和待复习数量徽章
   - 创建 reviewReminder.test.js 测试文件
+
+### Task 7: 题目详情页 ✓
+- **完成时间**: 2026-04-02
+- **提交**: (pending)
+- **实现内容**:
+  - 创建 useProblemDetail.js composable 实现笔记、收藏、解题心得功能
+    - 笔记存储在 localStorage (key: mc-algo-problem-notes)
+    - 收藏存储在 localStorage (key: mc-algo-problem-favorites)
+    - 解题心得支持 Markdown 渲染和代码高亮
+    - 使用 highlight.js 实现代码高亮
+  - 创建 ProblemDetail.vue 页面视图
+    - 题目头部显示题号、标题、难度、是否解决
+    - 链接到 LeetCode 打开题目
+    - 收藏按钮支持切换状态
+    - 快速笔记功能（自动保存到 localStorage）
+    - 解题心得分享（支持 Markdown 编辑和发布）
+    - 章节信息显示
+  - 更新 router 添加 /problem/:chapterId/:probId 路由
+  - 在 Practice.vue 添加详情按钮（圆形问号图标）
+    - 点击可跳转到题目详情页
+  - 创建 problemDetail.test.js 测试文件

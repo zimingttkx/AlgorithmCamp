@@ -359,6 +359,17 @@
                       </span>
                     </span>
                     <span class="prob-rating" :class="ratingCls(row.rating)">{{ row.rating }}</span>
+                    <button
+                      class="prob-detail-btn"
+                      :title="isZh ? '题目详情' : 'Problem Details'"
+                      @click.stop="navigateToProblemDetail(currentChapter.id, row.probId)"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -373,11 +384,16 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { CHAPTERS } from '../composables/data.js'
 import { useAuth } from '../composables/auth.js'
 import { useProgressSync } from '../composables/progressSync.js'
 import { useLeetCodeSync } from '../composables/leetCodeSync.js'
 import { useRecommendations } from '../composables/useRecommendations.js'
+import { useLang } from '../composables/i18n.js'
+
+const router = useRouter()
+const { isZh } = useLang()
 
 const { isLoggedIn, loginWithGithub } = useAuth()
 const { syncStatus, syncError, loadFromServer, saveProgress: serverSaveProgress } = useProgressSync()
@@ -679,6 +695,10 @@ function goToProblem(rec) {
   if (ch) {
     openChapter(ch)
   }
+}
+
+function navigateToProblemDetail(chId, probId) {
+  router.push(`/problem/${chId}/${probId}`)
 }
 
 function handleProblemClick(chId, probId, row) {
@@ -1774,6 +1794,26 @@ onMounted(() => { syncOnLoad() })
 }
 .r-none { color: var(--text-dim); border-color: var(--border-subtle); background: transparent; }
 .r-low  { color: var(--neon-green); border-color: var(--neon-green); background: rgba(52, 211, 153, 0.1); }
+
+.prob-detail-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  padding: 6px;
+  margin-left: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.prob-detail-btn:hover {
+  color: var(--primary);
+  background: rgba(233, 69, 96, 0.1);
+}
+
 /* ── Advanced Progress Bar Animations ── */
 .pixel-progress-advanced {
   position: relative;
