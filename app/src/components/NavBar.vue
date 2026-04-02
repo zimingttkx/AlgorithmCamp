@@ -22,6 +22,7 @@
           :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path) && item.path !== '/') }"
         >
           <span class="nav-link-text">{{ item.label }}</span>
+          <span v-if="item.badge && item.badge > 0" class="nav-badge">{{ item.badge }}</span>
           <span class="nav-link-underline"></span>
           <span class="nav-link-glow"></span>
         </router-link>
@@ -42,7 +43,10 @@
       <router-link v-for="item in navItems" :key="item.path"
         :to="item.path" class="nav-link"
         @click="menuOpen = false"
-      >{{ item.label }}</router-link>
+      >
+        {{ item.label }}
+        <span v-if="item.badge && item.badge > 0" class="nav-badge">{{ item.badge }}</span>
+      </router-link>
       <button class="lang-btn" @click="toggleLang(); menuOpen=false" style="margin:8px 16px;width:fit-content">
         {{ isZh ? 'EN' : '中' }}
       </button>
@@ -54,9 +58,11 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { useTheme } from '../composables/theme.js'
+import { useReviewReminder } from '../composables/useReviewReminder.js'
 
 const { isZh, toggle: toggleLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
+const { dueReviewCount } = useReviewReminder()
 const menuOpen = ref(false)
 const navHidden = ref(false)
 const isScrolled = ref(false)
@@ -68,6 +74,7 @@ const navItems = computed(() => isZh.value ? [
   { path: '/progress', label: '进度' },
   { path: '/stats',    label: '统计' },
   { path: '/recommend', label: '推荐' },
+  { path: '/review',   label: '复习', badge: dueReviewCount.value },
   { path: '/blog',     label: '分享' },
   { path: '/about',    label: '关于' },
 ] : [
@@ -76,6 +83,7 @@ const navItems = computed(() => isZh.value ? [
   { path: '/progress', label: 'PROGRESS' },
   { path: '/stats',    label: 'STATS' },
   { path: '/recommend', label: 'RECOMMEND' },
+  { path: '/review',   label: 'REVIEW', badge: dueReviewCount.value },
   { path: '/blog',     label: 'SHARE' },
   { path: '/about',    label: 'ABOUT' },
 ])
@@ -338,6 +346,23 @@ onUnmounted(() => {
 .nav-link.active .nav-link-text,
 .nav-link.router-link-exact-active .nav-link-text {
   text-shadow: 0 0 10px var(--glow-primary);
+}
+
+/* Nav Badge */
+.nav-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--neon-red);
+  color: #fff;
+  font-size: 0.65em;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  font-family: 'Ubuntu Mono', monospace;
+  box-shadow: 0 0 8px var(--neon-red);
 }
 
 /* ── Nav Actions (Theme & Lang buttons) ── */
