@@ -31,11 +31,11 @@
   - 动画帧率监控 - 已完成：实现 FPS 实时监控（`currentFPS`），低帧率时自动降级（<45fps 触发 `isLowPerformance`），提供 `animationQuality` 状态（high/medium/low）
   - 动画降级策略 - 已完成：检测 `prefers-reduced-motion`，自动禁用粒子动画和复杂效果；低性能设备自动简化动画；Intersection Observer 暂停离屏动画
 
-- [ ] 5. 渲染优化
-  - 虚拟滚动（长列表）
-  - 防抖/节流优化
-  - 重排/重绘最小化
-  - Intersection Observer
+- [x] 5. 渲染优化
+  - 虚拟滚动（长列表）- 已完成：创建 `useVirtualScroll.js` composable 和 `VirtualScroll.vue` 组件，支持虚拟滚动渲染长列表
+  - 防抖/节流优化 - 已完成：创建 `useDebounce.js` composable，提供 `useDebounce`、`useThrottle`、`useDebouncedRef`、`useThrottledRef` 工具函数；已应用于 SearchFilter 搜索输入防抖
+  - 重排/重绘最小化 - 已完成：创建 `useReflowOptimization.js` composable，提供 DOM 操作批处理、CSS contain、will-change、class 批量操作、布局缓存等优化工具；在 style.css 添加 `.gpu-accelerated`、`.contain-layout` 等性能优化 CSS 类
+  - Intersection Observer - 已完成：创建 `useIntersectionObserver.js` composable，提供 `useIntersectionObserver`、`useScrollAnimation`、`useLazyLoad`、`useInfiniteScroll` 工具；增强 App.vue 滚动动画Observer，支持离屏动画暂停
 
 - [ ] 6. 网络优化
   - API 请求合并
