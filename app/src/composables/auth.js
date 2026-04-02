@@ -79,9 +79,13 @@ export function useAuth() {
    * Get current user info
    */
   async function fetchMe() {
-    const res = await apiFetch('/api/auth/me')
-    if (!res || !res.ok) return null
-    return res.json()
+    try {
+      const res = await apiFetch('/api/auth/me')
+      if (!res || !res.ok) return null
+      return res.json()
+    } catch (e) {
+      return null
+    }
   }
 
   /**

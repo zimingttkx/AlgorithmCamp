@@ -98,13 +98,14 @@ export function useProgressSync() {
     ])
 
     for (const chId of allChapters) {
-      result[chId] = {}
       const localProblems = local?.[chId] || {}
       const serverProblems = server?.[chId] || {}
       const allProblems = new Set([
         ...Object.keys(localProblems),
         ...Object.keys(serverProblems)
       ])
+
+      const chapterResult = {}
 
       for (const probId of allProblems) {
         const localVal = localProblems[probId]
@@ -134,8 +135,13 @@ export function useProgressSync() {
             // Only one is checked - use that one (union: checked wins)
             newerVal = localChecked ? localVal : serverVal
           }
-          result[chId][probId] = newerVal
+          chapterResult[probId] = newerVal
         }
+      }
+
+      // Only include chapter if it has at least one checked problem
+      if (Object.keys(chapterResult).length > 0) {
+        result[chId] = chapterResult
       }
     }
 

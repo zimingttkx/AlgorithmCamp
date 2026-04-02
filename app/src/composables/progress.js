@@ -19,7 +19,10 @@ export function getProgress(chapterId) {
   if (chapterId) {
     // chapter-level
     const checked = raw[chapterId] || {}
-    const done = Object.values(checked).filter(Boolean).length
+    const done = Object.values(checked).filter(v => {
+      if (typeof v === 'object' && v !== null) return !!v.checked
+      return !!v
+    }).length
     const total = totals[chapterId] || Object.keys(checked).length || 1
     return { donePct: Math.round(done / total * 100), done, total }
   }
@@ -28,7 +31,10 @@ export function getProgress(chapterId) {
   let done = 0, total = 0
   for (const ch of CHAPTERS) {
     const checked = raw[ch.id] || {}
-    done += Object.values(checked).filter(Boolean).length
+    done += Object.values(checked).filter(v => {
+      if (typeof v === 'object' && v !== null) return !!v.checked
+      return !!v
+    }).length
     total += totals[ch.id] || Object.keys(checked).length
   }
   const doneTotal = ref(done)
