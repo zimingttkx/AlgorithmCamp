@@ -37,11 +37,11 @@
   - 重排/重绘最小化 - 已完成：创建 `useReflowOptimization.js` composable，提供 DOM 操作批处理、CSS contain、will-change、class 批量操作、布局缓存等优化工具；在 style.css 添加 `.gpu-accelerated`、`.contain-layout` 等性能优化 CSS 类
   - Intersection Observer - 已完成：创建 `useIntersectionObserver.js` composable，提供 `useIntersectionObserver`、`useScrollAnimation`、`useLazyLoad`、`useInfiniteScroll` 工具；增强 App.vue 滚动动画Observer，支持离屏动画暂停
 
-- [ ] 6. 网络优化
-  - API 请求合并
-  - 请求取消 (AbortController)
-  - 错误重试机制
-  - 加载状态优化
+- [x] 6. 网络优化
+  - API 请求合并 - 已完成：创建 `useBatchedRequest` 支持请求批量处理
+  - 请求取消 (AbortController) - 已完成：创建 `fetchWithAbort` 和 `useCancellableRequest` composable
+  - 错误重试机制 - 已完成：创建 `fetchWithRetry` 和 `useRetryableRequest` composable，支持指数退避重试
+  - 加载状态优化 - 已完成：创建 `useLoadingState` composable 提供完整的 loading/error/success 状态管理
 
 - [ ] 7. Lighthouse 优化
   - Performance > 90
