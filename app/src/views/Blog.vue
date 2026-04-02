@@ -36,7 +36,7 @@
       <!-- Blog posts -->
       <div v-if="posts.length" class="blog-list">
         <div v-for="post in posts" :key="post.id"
-          class="pixel-card blog-item"
+          class="pixel-card blog-item blog-card-advanced tunnel-container"
           @click="$router.push('/blog/'+post.id)">
           <div class="blog-item-meta">
             <span class="blog-item-date">{{ post.date }}</span>
@@ -45,6 +45,9 @@
           <div class="blog-item-title">{{ post.title }}</div>
           <div class="blog-item-desc">{{ post.desc }}</div>
           <div class="blog-item-more">READ MORE ▶</div>
+          <div class="blog-card-glow"></div>
+          <div class="blog-card-corner blog-card-corner-tl"></div>
+          <div class="blog-card-corner blog-card-corner-br"></div>
         </div>
       </div>
 
@@ -218,5 +221,256 @@ const sitesData = SITES_DATA
   opacity: 1;
   transform: translateY(0);
   max-height: 50px;
+}
+
+/* ── Advanced Blog Card Hover Effects (Task 10) ── */
+.blog-card-advanced {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease;
+}
+
+.blog-card-advanced::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--neon-primary-rgb), 0.1) 0%,
+    rgba(var(--neon-secondary-rgb), 0.05) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.blog-card-advanced:hover::before {
+  opacity: 1;
+}
+
+.blog-card-advanced:hover {
+  transform: translateY(-8px) translateZ(20px) scale(1.02);
+  border-color: var(--neon-primary);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 40px rgba(var(--neon-primary-rgb), 0.3),
+    0 0 80px rgba(var(--neon-primary-rgb), 0.15),
+    inset 0 0 30px rgba(var(--neon-primary-rgb), 0.05);
+}
+
+/* Glow effect overlay */
+.blog-card-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--neon-primary-rgb), 0.15) 0%,
+    transparent 50%
+  );
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.blog-card-advanced:hover .blog-card-glow {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+/* Pixel corner decorations */
+.blog-card-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.blog-card-corner::before,
+.blog-card-corner::after {
+  content: '';
+  position: absolute;
+  background: var(--neon-primary);
+  box-shadow: 0 0 8px var(--glow-primary);
+}
+
+.blog-card-corner-tl {
+  top: 8px;
+  left: 8px;
+}
+
+.blog-card-corner-tl::before {
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 2px;
+}
+
+.blog-card-corner-tl::after {
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 12px;
+}
+
+.blog-card-corner-br {
+  bottom: 8px;
+  right: 8px;
+}
+
+.blog-card-corner-br::before {
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 2px;
+}
+
+.blog-card-corner-br::after {
+  bottom: 0;
+  right: 0;
+  width: 2px;
+  height: 12px;
+}
+
+.blog-card-advanced:hover .blog-card-corner {
+  opacity: 1;
+}
+
+.blog-card-advanced:hover .blog-card-corner-tl {
+  top: 12px;
+  left: 12px;
+}
+
+.blog-card-advanced:hover .blog-card-corner-br {
+  bottom: 12px;
+  right: 12px;
+}
+
+/* Enhanced title hover effect */
+.blog-card-advanced .blog-item-title {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.blog-card-advanced:hover .blog-item-title {
+  color: var(--neon-primary);
+  text-shadow: 0 0 20px var(--glow-primary-soft);
+  transform: translateX(4px);
+}
+
+/* Enhanced description reveal */
+.blog-card-advanced .blog-item-desc {
+  position: relative;
+  max-height: 3.6em;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.3s ease;
+}
+
+.blog-card-advanced:hover .blog-item-desc {
+  max-height: 7.2em;
+  color: var(--text-secondary);
+}
+
+/* Enhanced READ MORE hover */
+.blog-card-advanced .blog-item-more {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blog-card-advanced .blog-item-more::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  width: 0;
+  height: 100%;
+  background: rgba(var(--neon-primary-rgb), 0.2);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blog-card-advanced:hover .blog-item-more {
+  color: var(--neon-primary);
+  text-shadow: 0 0 10px var(--glow-primary);
+  gap: 12px;
+}
+
+.blog-card-advanced:hover .blog-item-more::before {
+  width: 16px;
+}
+
+/* 3D tilt effect on card */
+.blog-card-advanced .tunnel-effect {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blog-card-advanced:hover .tunnel-effect {
+  transform: scale(1.02) translateZ(10px);
+}
+
+/* Pixel scanline effect on hover */
+.blog-card-advanced::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(var(--neon-primary-rgb), 0.03) 2px,
+    rgba(var(--neon-primary-rgb), 0.03) 4px
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.blog-card-advanced:hover::after {
+  opacity: 1;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .blog-card-advanced {
+    transition: none;
+  }
+
+  .blog-card-advanced:hover {
+    transform: scale(1.02);
+    border-color: var(--neon-primary);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(var(--neon-primary-rgb), 0.2);
+  }
+
+  .blog-card-advanced:hover .blog-card-glow,
+  .blog-card-advanced:hover .blog-card-corner,
+  .blog-card-advanced::after {
+    display: none;
+  }
+
+  .blog-card-advanced:hover .blog-item-title {
+    transform: none;
+  }
+
+  .blog-card-advanced:hover .blog-item-desc {
+    max-height: 3.6em;
+  }
 }
 </style>

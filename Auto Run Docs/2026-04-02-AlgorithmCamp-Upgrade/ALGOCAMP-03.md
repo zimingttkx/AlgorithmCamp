@@ -86,7 +86,7 @@
   - 实现高级模态框动效
   - 添加像素化项目预览
 
-- [ ] 10. 博客页面升级
+- [x] 10. 博客页面升级
   - 添加文章卡片的高级悬停效果
   - 实现阅读进度条
   - 添加页面切换的像素过渡效果
@@ -548,3 +548,39 @@
   - 所有动画使用 `animation: none !important`
   - 3D变换和隧道效果在reduce motion时禁用
 
+### Task 10: 博客页面升级 (已完成 - 2026-04-02)
+
+- [x] 添加文章卡片的高级悬停效果
+  - `.blog-card-advanced`: 高级博客卡片容器
+  - 3D悬浮效果 (translateY + translateZ + scale)
+  - 霓虹发光边框 (border-color + box-shadow)
+  - 渐变光效覆盖层 (::before伪元素)
+  - `.blog-card-glow`: 径向渐变光晕效果
+  - `.blog-card-corner`: 像素角落装饰 (左上/右下)
+  - 标题悬停颜色变化 + 发光 + 位移
+  - 描述区域悬停展开动画 (max-height)
+  - "READ MORE" 悬停增强效果 (颜色 + 发光 + 间距)
+  - 像素扫描线叠加效果 (::after)
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+
+- [x] 实现阅读进度条
+  - `.reading-progress-bar`: 固定在页面顶部的进度条容器
+  - `.reading-progress-fill`: 彩虹渐变填充动画
+  - shimmer光效扫过动画
+  - 基于滚动位置实时计算进度 (scroll事件 + getBoundingClientRect)
+  - 使用`--neon-primary-rgb`变量实现透明渐变
+  - 进度条高度4px，z-index: 9999
+
+- [x] 添加页面切换的像素过渡效果
+  - `.page-pixel-enter/leave`: 像素入场/退场动画 (scale + blur)
+  - `.pixel-transition-overlay`: 像素网格过渡覆盖层
+  - `.pixel-transition-cell`: 过渡网格单元格
+  - `.mosaic-transition-enter/leave`: 马赛克过渡效果
+  - `.page-scanline-enter/leave`: 扫描线过渡效果 (clip-path)
+  - `.page-glitch-enter/leave`: 故障效果过渡 (hue-rotate + skew)
+  - `.page-pixelate-enter/leave`: 像素化过渡 (blur + brightness)
+  - `.page-pixel-slide-enter/leave`: 组合像素+滑动过渡
+  - `.page-crt-enter/leave`: CRT电视开关效果 (scaleY + scaleX)
+  - `.page-rainbow-border-enter/leave`: 彩虹边框裁剪过渡
+  - `.page-view`: 适用于Vue路由视图的will-change优化
+  - 无障碍性增强：所有动画在reduce motion时禁用
