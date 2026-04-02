@@ -311,9 +311,15 @@
             </div>
           </div>
 
+          <!-- Search and Filter -->
+          <SearchFilter
+            :result-count="filteredResultCount"
+            @change="onFilterChange"
+          />
+
           <div class="sections-list">
             <div
-              v-for="(sec, secIdx) in sections"
+              v-for="(sec, secIdx) in filteredSections"
               :key="sec.h2 + sec.h3"
               class="section-block glass-card"
               :style="{animationDelay: secIdx * 50 + 'ms'}"
@@ -383,14 +389,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { CHAPTERS } from '../composables/data.js'
 import { useAuth } from '../composables/auth.js'
 import { useProgressSync } from '../composables/progressSync.js'
 import { useLeetCodeSync } from '../composables/leetCodeSync.js'
 import { useRecommendations } from '../composables/useRecommendations.js'
+import { useReviewReminder } from '../composables/useReviewReminder.js'
 import { useLang } from '../composables/i18n.js'
+import SearchFilter from '../components/SearchFilter.vue'
+import { useSearchFilter } from '../composables/useSearchFilter.js'
 
 const router = useRouter()
 const { isZh } = useLang()
@@ -443,6 +452,39 @@ const showRecommendations = ref(false)
 const recommendations = ref([])
 const learningStats = ref(null)
 const recommendTab = ref('chapter')
+
+// Review reminder state
+const { reviews: reviewData, isDueForReview, getMasteryLevel, getMasteryLabel } = useReviewReminder()
+
+// Search filter state
+const {
+  searchQuery,
+  difficultyFilter,
+  statusFilter,
+  chapterFilter,
+  filterChapterProblems,
+  hasActiveFilters,
+  resetFilters: resetSearchFilters
+} = useSearchFilter()
+
+const filteredSections = computed(() => {
+  if (!currentChapter.value || !sections.value) return []
+  return filterChapterProblems(
+    currentChapter.value.id,
+    sections.value,
+    progress.value,
+    reviewData.value
+  )
+})
+
+const filteredResultCount = computed(() => {
+  if (!hasActiveFilters.value) return chapterTotal.value
+  let count = 0
+  for (const sec of filteredSections.value) {
+    count += sec.rows.length
+  }
+  return count
+})
 
 const filteredRecommendations = computed(() => {
   return recommendations.value.filter(r => r.algorithm === recommendTab.value)
@@ -699,6 +741,10 @@ function goToProblem(rec) {
 
 function navigateToProblemDetail(chId, probId) {
   router.push(`/problem/${chId}/${probId}`)
+}
+
+function onFilterChange() {
+  // Filters are reactive, computed properties will update automatically
 }
 
 function handleProblemClick(chId, probId, row) {

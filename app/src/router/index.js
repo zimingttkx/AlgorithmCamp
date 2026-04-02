@@ -11,6 +11,7 @@ import Review from '../views/Review.vue'
 import Login from '../views/Login.vue'
 import Recommendation from '../views/Recommendation.vue'
 import ProblemDetail from '../views/ProblemDetail.vue'
+import Search from '../views/Search.vue'
 import NotFound from '../views/NotFound.vue'
 
 const routes = [
@@ -25,6 +26,7 @@ const routes = [
   { path: '/recommend', component: Recommendation },
   { path: '/review', component: Review },
   { path: '/problem/:chapterId/:probId', component: ProblemDetail },
+  { path: '/search', component: Search },
   { path: '/login', component: Login },
   { path: '/:pathMatch(.*)+', component: NotFound },
 ]
