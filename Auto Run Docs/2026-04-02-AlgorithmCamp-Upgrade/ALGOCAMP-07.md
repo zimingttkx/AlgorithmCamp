@@ -16,6 +16,11 @@
     - 新增测试文件: useDebounce.test.js, useResponsive.test.js, useCacheManager.test.js, useIntersectionObserver.test.js, useVirtualScroll.test.js, theme.test.js, auth.test.js, useDataExport.test.js
     - 修复 problemDetail.test.js 导入路径错误
     - 当前测试结果: 135 通过 / 148 总数 (部分预存测试失败)
+  - **后续需要修复的测试:**
+    - useProblemDetail.test.js: 5 个测试失败 (document.createElement 问题)
+    - useSearchFilter.test.js: 4 个测试失败 (过滤逻辑问题)
+    - usePracticeGoal.test.js: 1 个测试失败 (SM-2 算法精度问题)
+    - useNetworkOptimization.test.js: 3 个测试失败 (超时和重试逻辑问题)
 
 - [ ] 2. 集成测试
   - API 端点测试

@@ -4,6 +4,20 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useDataExport } from './useDataExport.js'
 
+// Mock localStorage
+const localStorageMock = (() => {
+  let store = {}
+  return {
+    getItem: (key) => store[key] || null,
+    setItem: (key, value) => { store[key] = value.toString() },
+    removeItem: (key) => { delete store[key] },
+    clear: () => { store = {} },
+    get length() { return Object.keys(store).length },
+    key: (i) => Object.keys(store)[i] || null
+  }
+})()
+Object.defineProperty(global, 'localStorage', { value: localStorageMock })
+
 describe('useDataExport', () => {
   beforeEach(() => {
     vi.clearAllMocks()

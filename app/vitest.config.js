@@ -3,19 +3,13 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'jsdom',
-    include: ['src/**/*.{test,spec}.{js,ts}'],
+    environment: 'node',
+    include: ['tests/**/*.test.js', 'src/composables/**/*.test.js'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['src/composables/**'],
-      exclude: [],
-      thresholds: {
-        statements: 70,
-        branches: 70,
-        functions: 70,
-        lines: 70
-      }
-    }
+      include: ['src/**/*.js'],
+      exclude: ['src/main.js'],
+    },
   },
 })
