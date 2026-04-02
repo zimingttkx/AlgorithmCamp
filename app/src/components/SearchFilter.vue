@@ -2,20 +2,22 @@
   <div class="search-filter-container">
     <!-- Search Bar -->
     <div class="search-bar">
+      <label for="search-input" class="sr-only">{{ isZh ? '搜索题目' : 'Search problems' }}</label>
       <div class="search-input-wrapper">
-        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="8"/>
           <path d="M21 21l-4.35-4.35"/>
         </svg>
         <input
+          id="search-input"
           v-model="searchQuery"
           type="text"
           class="search-input"
           :placeholder="isZh ? '搜索题目名称或题号...' : 'Search by name or number...'"
           @input="onSearchInput"
         />
-        <button v-if="searchQuery" class="search-clear" @click="clearSearch">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button v-if="searchQuery" class="search-clear" @click="clearSearch" :aria-label="isZh ? '清除搜索' : 'Clear search'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -59,8 +61,8 @@
 
       <!-- Chapter Filter -->
       <div class="filter-group filter-group-chapter">
-        <label class="filter-label">{{ isZh ? '章节' : 'Chapter' }}</label>
-        <select v-model="chapterFilter" class="filter-select" @change="onChapterChange">
+        <label for="chapter-filter" class="filter-label">{{ isZh ? '章节' : 'Chapter' }}</label>
+        <select id="chapter-filter" v-model="chapterFilter" class="filter-select" @change="onChapterChange">
           <option :value="null">{{ isZh ? '全部章节' : 'All Chapters' }}</option>
           <option v-for="ch in CHAPTERS" :key="ch.id" :value="ch.id">
             {{ ch.short }}
@@ -435,5 +437,18 @@ const statusLevels = computed(() => [
     margin-left: 0;
     justify-content: center;
   }
+}
+
+/* Screen reader only - visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

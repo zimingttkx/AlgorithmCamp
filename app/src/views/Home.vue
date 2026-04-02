@@ -33,7 +33,7 @@
         <div class="hero-right">
           <div class="hero-avatar-wrap perspective-container" @click="openAvatarZoom">
             <div class="avatar-3d-effect">
-              <img :src="avatar" alt="avatar" class="hero-avatar hover-3d pinch-zoom-image" loading="lazy" @error="avatarFallback"
+              <img :src="avatar" alt="Profile avatar of zimingttkx" class="hero-avatar hover-3d pinch-zoom-image" loading="lazy" @error="avatarFallback"
                 @touchstart="handleAvatarTouchStart"
                 @touchmove="handleAvatarTouchMove"
                 @touchend="handleAvatarTouchEnd" />
@@ -236,7 +236,7 @@
     <Teleport to="body">
       <div v-if="avatarZoom" class="pinch-zoom-overlay visible" @click="closeAvatarZoom">
         <button class="pinch-zoom-close" @click="closeAvatarZoom" aria-label="Close">×</button>
-        <img :src="avatar" alt="avatar" class="pinch-zoom-image"
+        <img :src="avatar" alt="Profile avatar of zimingttkx" class="pinch-zoom-image"
           :style="{ transform: `scale(${avatarZoomScale})` }"
           @touchstart="handleAvatarTouchStart"
           @touchmove="handleAvatarTouchMove"
@@ -651,6 +651,10 @@ onMounted(() => {
   padding: 80px 24px;
   position: relative;
   z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 .hero-left { flex: 1; min-width: 0; }
 .hero-tag {
@@ -702,6 +706,16 @@ onMounted(() => {
   max-width: 400px;
 }
 .hero-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+@media (max-width: 480px) {
+  .hero-btns { gap: 8px; }
+  .hero-btns .pixel-btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
 
 /* ── Avatar ── */
 .hero-right { display: flex; flex-direction: column; align-items: center; gap: 24px; flex-shrink: 0; }
@@ -709,6 +723,12 @@ onMounted(() => {
   position: relative;
   width: 280px;
   height: 280px;
+}
+@media (max-width: 480px) {
+  .hero-avatar-wrap {
+    width: 200px;
+    height: 200px;
+  }
 }
 .perspective-container {
   perspective: 1000px;
@@ -730,6 +750,12 @@ onMounted(() => {
   position: relative;
   z-index: 2;
   transition: transform 0.4s var(--ease-out-expo), box-shadow 0.4s var(--ease-out-expo);
+}
+@media (max-width: 480px) {
+  .hero-avatar {
+    width: 200px;
+    height: 200px;
+  }
 }
 .avatar-3d-effect:hover .hero-avatar {
   transform: translateZ(30px) scale(1.05);
@@ -765,6 +791,13 @@ onMounted(() => {
   animation: glowPulse 2s ease-in-out infinite;
 }
 .hero-stats { display: flex; gap: 16px; }
+@media (max-width: 480px) {
+  .hero-stats {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
 .hstat {
   text-align: center;
   padding: 20px 24px;
@@ -776,6 +809,18 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   transition: all 0.4s var(--ease-out-expo);
+}
+@media (max-width: 480px) {
+  .hstat {
+    padding: 14px 16px;
+    min-width: 70px;
+  }
+  .hstat-val {
+    font-size: 1.2rem;
+  }
+  .hstat-label {
+    font-size: 0.7rem;
+  }
 }
 .hstat:hover {
   transform: translateY(-8px) translateZ(20px);
@@ -859,6 +904,12 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 24px;
 }
+@media (max-width: 480px) {
+  .feat-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
 .feat-card {
   cursor: pointer;
   padding: 24px;
@@ -920,7 +971,29 @@ onMounted(() => {
 .ch-mini-pct { font-size: 0.85rem; font-weight: 600; }
 
 /* ── Blog Cards ── */
-.blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+@media (max-width: 768px) {
+  .blog-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 16px;
+    padding-bottom: 16px;
+    scrollbar-width: none;
+  }
+  .blog-grid::-webkit-scrollbar {
+    display: none;
+  }
+  .blog-card {
+    flex: 0 0 85%;
+    scroll-snap-align: start;
+  }
+}
 .blog-card {
   cursor: pointer;
   padding: 24px;
@@ -1113,7 +1186,7 @@ onMounted(() => {
 .pc-note { font-size: 0.8rem; color: var(--text-dim); }
 
 @media (max-width: 900px) {
-  .hero-inner { flex-direction: column-reverse; gap: 40px; text-align: center; }
+  .hero-inner { flex-direction: column-reverse; gap: 40px; text-align: center; padding: 60px 20px; }
   .hero-left { display: flex; flex-direction: column; align-items: center; }
   .hero-desc { text-align: center; }
   .hero-level { justify-content: center; }
@@ -1129,6 +1202,60 @@ onMounted(() => {
   .pov-info { width: 100%; }
 }
 
+@media (max-width: 600px) {
+  .hero { min-height: auto; padding: 20px 0; }
+  .hero-inner { gap: 24px; padding: 40px 16px; }
+  .hero-name { font-size: clamp(1.8rem, 6vw, 2.5rem); }
+  .hero-title { font-size: clamp(0.9rem, 3vw, 1.2rem); }
+  .hero-desc { font-size: 0.9rem; margin-bottom: 16px; }
+  .hero-level { padding: 12px 16px; gap: 10px; flex-wrap: wrap; }
+  .hero-btns { gap: 8px; }
+  .hero-btns .pixel-btn { font-size: 0.85rem; padding: 10px 16px; }
+  .hero-right { gap: 16px; }
+  .section { padding: 40px 0; }
+  .section :deep(.section-title) { font-size: clamp(1.2rem, 4vw, 1.5rem); margin-bottom: 20px; }
+  .feat-card { padding: 18px; }
+  .blog-grid { gap: 12px; }
+  .blog-card { padding: 18px; }
+  .pov-chapters { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .hero { min-height: auto; }
+  .hero-inner { padding: 30px 12px; gap: 20px; }
+  .hero-avatar-wrap { width: 180px; height: 180px; }
+  .hero-avatar { width: 180px; height: 180px; border-radius: 16px; }
+  .avatar-ring { inset: -12px; border-radius: 24px; }
+  .ring2 { inset: -24px; }
+  .hero-stats { gap: 8px; }
+  .hstat { padding: 12px 14px; min-width: 60px; }
+  .hstat-val { font-size: 1rem; }
+  .hstat-label { font-size: 0.65rem; }
+  .hero-btns { width: 100%; }
+  .hero-btns .pixel-btn { flex: 1; text-align: center; justify-content: center; font-size: 0.8rem; padding: 10px 12px; }
+  .feat-grid { grid-template-columns: 1fr; gap: 12px; }
+  .feat-card { padding: 16px; }
+  .feat-name { font-size: 1rem; }
+  .feat-desc { font-size: 0.85rem; }
+  .blog-grid { flex-direction: column; overflow-x: visible; }
+  .blog-card { flex: none; width: 100%; }
+  .blog-card-title { font-size: 1rem; }
+  .blog-card-desc { font-size: 0.85rem; }
+  .pov-chapters { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .ch-mini { padding: 10px 12px; }
+  .ch-mini-title { font-size: 0.75rem; }
+  .profile-grid { gap: 16px; }
+  .profile-block { padding: 20px; }
+  .profile-intro { padding: 20px; }
+  .plist li { font-size: 0.85rem; }
+  .pproj-name { font-size: 0.95rem; }
+  .profile-future { padding: 20px; }
+  .profile-contact { gap: 6px; padding: 16px 0; }
+  .pc-sep { margin: 0 8px; }
+  .stats-dashboard { gap: 16px; }
+  .stats-calendar { padding: 16px; }
+}
+
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -1141,6 +1268,12 @@ onMounted(() => {
   z-index: 1000;
   padding: 20px;
   animation: fadeIn 0.3s var(--ease-out-expo);
+}
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
 }
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -1158,6 +1291,13 @@ onMounted(() => {
   border: 1px solid var(--glass-border);
   border-radius: 20px;
   animation: slideUp 0.4s var(--ease-out-expo);
+}
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 20px;
+    border-radius: 16px 16px 0 0;
+    max-height: 85vh;
+  }
 }
 @keyframes slideUp {
   from { transform: translateY(30px); opacity: 0; }

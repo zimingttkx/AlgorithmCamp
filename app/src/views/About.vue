@@ -4,7 +4,7 @@
     <section class="about-hero container">
       <div class="about-hero-inner">
         <div class="about-avatar-wrap" @click="openAvatarZoom">
-          <img :src="avatar" alt="avatar" class="about-avatar pinch-zoom-image" loading="lazy" @error="avatarFallback"
+          <img :src="avatar" alt="Profile avatar of zimingttkx" class="about-avatar pinch-zoom-image" loading="lazy" @error="avatarFallback"
             @touchstart="handleAvatarTouchStart"
             @touchmove="handleAvatarTouchMove"
             @touchend="handleAvatarTouchEnd" />
@@ -308,7 +308,7 @@
   <Teleport to="body">
     <div v-if="avatarZoom" class="pinch-zoom-overlay visible" @click="closeAvatarZoom">
       <button class="pinch-zoom-close" @click="closeAvatarZoom" aria-label="Close">×</button>
-      <img :src="avatar" alt="avatar" class="pinch-zoom-image"
+      <img :src="avatar" alt="Profile avatar of zimingttkx" class="pinch-zoom-image"
         :style="{ transform: `scale(${avatarZoomScale})` }"
         @touchstart="handleAvatarTouchStart"
         @touchmove="handleAvatarTouchMove"
