@@ -733,6 +733,597 @@ body::after {
   transform: translateY(-1px);
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   TASK 9: PROJECT DISPLAY AREA UPGRADE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 9.1 Hover Tunnel Effect (悬浮隧道效果) ── */
+.tunnel-container {
+  perspective: 1000px;
+  perspective-origin: center center;
+}
+
+.tunnel-effect {
+  transform-style: preserve-3d;
+  transition: transform 0.5s var(--ease-out-expo), filter 0.4s ease;
+}
+
+.tunnel-effect:hover {
+  transform: scale(0.92) translateZ(-30px);
+  filter: brightness(0.8) saturate(1.2);
+}
+
+.tunnel-layers {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.tunnel-layer {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.5s var(--ease-out-expo), opacity 0.4s ease;
+}
+
+.tunnel-layer-back {
+  transform: translateZ(-40px) scale(1.1);
+  opacity: 0;
+}
+
+.tunnel-layer-mid {
+  transform: translateZ(-20px) scale(1.05);
+  opacity: 0;
+}
+
+.tunnel-effect:hover .tunnel-layer-back {
+  opacity: 0.3;
+}
+
+.tunnel-effect:hover .tunnel-layer-mid {
+  opacity: 0.2;
+}
+
+/* Tunnel border glow effect */
+.tunnel-border {
+  position: relative;
+  overflow: hidden;
+}
+
+.tunnel-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--neon-primary);
+  border-radius: inherit;
+  opacity: 0;
+  transform: scale(1.1);
+  transition: all 0.4s var(--ease-out-expo);
+  pointer-events: none;
+  box-shadow: inset 0 0 30px var(--glow-primary-soft);
+}
+
+.tunnel-effect:hover .tunnel-border::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Tunnel vignette effect */
+.tunnel-vignette {
+  position: relative;
+}
+
+.tunnel-vignette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tunnel-effect:hover .tunnel-vignette::before {
+  opacity: 1;
+}
+
+/* Tunnel zoom in effect for cards */
+.tunnel-zoom {
+  transition: transform 0.5s var(--ease-out-expo), box-shadow 0.4s ease;
+}
+
+.tunnel-zoom:hover {
+  transform: scale(1.03);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 40px var(--glow-primary-soft),
+    inset 0 0 20px var(--glow-primary-soft);
+}
+
+/* Tunnel depth classes */
+.tunnel-depth-1:hover { transform: translateZ(-10px) scale(0.98); }
+.tunnel-depth-2:hover { transform: translateZ(-20px) scale(0.96); }
+.tunnel-depth-3:hover { transform: translateZ(-30px) scale(0.94); }
+.tunnel-depth-4:hover { transform: translateZ(-40px) scale(0.92); }
+
+/* ── 9.2 Advanced Modal Animations (高级模态框动效) ── */
+
+/* Modal overlay advanced animations */
+.modal-overlay-fade {
+  animation: modalFadeIn 0.3s var(--ease-out-expo) forwards;
+}
+
+.modal-overlay-blur {
+  animation: modalBlurIn 0.4s var(--ease-out-expo) forwards;
+}
+
+.modal-overlay-glitch {
+  animation: modalGlitchIn 0.5s var(--ease-out-expo) forwards;
+}
+
+.modal-overlay-pixelate {
+  animation: modalPixelateIn 0.4s var(--ease-out-expo) forwards;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalBlurIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+@keyframes modalGlitchIn {
+  0% { opacity: 0; transform: scale(1.1); filter: hue-rotate(90deg); }
+  20% { opacity: 0.8; transform: scale(0.98) translateX(5px); filter: hue-rotate(-90deg); }
+  40% { opacity: 0.6; transform: scale(1.02) translateX(-5px); filter: hue-rotate(45deg); }
+  60% { opacity: 0.9; transform: scale(0.99); filter: hue-rotate(0deg); }
+  80% { opacity: 0.95; transform: scale(1.01); }
+  100% { opacity: 1; transform: scale(1); filter: hue-rotate(0deg); }
+}
+
+@keyframes modalPixelateIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.2);
+    filter: blur(8px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.95);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* Modal content advanced animations */
+.modal-content-zoom {
+  animation: modalZoomIn 0.4s var(--ease-out-expo) forwards;
+}
+
+.modal-content-slide {
+  animation: modalSlideUp 0.4s var(--ease-out-expo) forwards;
+}
+
+.modal-content-flip {
+  animation: modalFlipIn 0.5s var(--ease-out-expo) forwards;
+}
+
+.modal-content-bounce {
+  animation: modalBounceIn 0.6s var(--ease-out-back) forwards;
+}
+
+.modal-content-reveal {
+  animation: modalRevealIn 0.5s var(--ease-out-expo) forwards;
+}
+
+@keyframes modalZoomIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalFlipIn {
+  0% { opacity: 0; transform: perspective(1000px) rotateX(-15deg) translateY(30px); }
+  100% { opacity: 1; transform: perspective(1000px) rotateX(0deg) translateY(0); }
+}
+
+@keyframes modalBounceIn {
+  0% { opacity: 0; transform: scale(0.6); }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modalRevealIn {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Modal exit animations */
+.modal-overlay-exit {
+  animation: modalFadeOut 0.3s var(--ease-out-expo) forwards;
+}
+
+.modal-content-exit-zoom {
+  animation: modalZoomOut 0.3s var(--ease-out-expo) forwards;
+}
+
+.modal-content-exit-slide {
+  animation: modalSlideDown 0.3s var(--ease-out-expo) forwards;
+}
+
+@keyframes modalFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modalZoomOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.9); }
+}
+
+@keyframes modalSlideDown {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(20px); }
+}
+
+/* Modal glitch effect on hover */
+.modal-glitch-effect {
+  position: relative;
+}
+
+.modal-glitch-effect:hover {
+  animation: modalGlitchHover 0.3s ease infinite;
+}
+
+@keyframes modalGlitchHover {
+  0%, 100% { transform: translateX(0); filter: hue-rotate(0deg); }
+  25% { transform: translateX(-2px); filter: hue-rotate(10deg); }
+  50% { transform: translateX(2px); filter: hue-rotate(-10deg); }
+  75% { transform: translateX(-1px); filter: hue-rotate(5deg); }
+}
+
+/* Modal neon border pulse */
+.modal-neon-border {
+  position: relative;
+}
+
+.modal-neon-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--rainbow-gradient);
+  background-size: 400% 100%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: rainbowFlow 3s linear infinite;
+  opacity: 0.7;
+  filter: blur(4px);
+}
+
+.modal-neon-border::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--rainbow-gradient);
+  background-size: 400% 100%;
+  border-radius: inherit;
+  z-index: -2;
+  animation: rainbowFlow 3s linear infinite reverse;
+}
+
+/* Modal 3D tilt effect */
+.modal-3d-tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+}
+
+/* Modal shine sweep effect */
+.modal-shine {
+  overflow: hidden;
+}
+
+.modal-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.modal-shine:hover::before {
+  left: 150%;
+}
+
+/* ── 9.3 Pixelated Project Preview (像素化项目预览) ── */
+
+/* Pixelated image rendering */
+.pixel-preview {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+
+.pixel-preview-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.pixel-preview-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pixel-preview:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1) contrast(1.05);
+}
+
+/* Pixelated thumbnail grid */
+.pixel-grid-preview {
+  display: grid;
+  gap: 4px;
+  background: var(--bg-elevated);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.pixel-grid-cell {
+  background: var(--glass-bg);
+  aspect-ratio: 1;
+  border-radius: 4px;
+  image-rendering: pixelated;
+  transition: all 0.3s var(--ease-out-expo);
+}
+
+.pixel-grid-cell:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px var(--glow-primary);
+  z-index: 1;
+}
+
+/* Pixelated screenshot frame */
+.pixel-screenshot-frame {
+  position: relative;
+  padding: 8px;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-default);
+  border-radius: 12px;
+  image-rendering: pixelated;
+}
+
+.pixel-screenshot-frame::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  height: 24px;
+  background: linear-gradient(90deg,
+    var(--neon-secondary) 0%,
+    var(--neon-accent) 33%,
+    var(--neon-primary) 66%,
+    var(--neon-secondary) 100%
+  );
+  background-size: 300% 100%;
+  border-radius: 8px 8px 0 0;
+  animation: rainbowFlow 4s linear infinite;
+}
+
+.pixel-screenshot-frame::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  inset-top: 32px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+
+.pixel-screenshot-content {
+  margin-top: 28px;
+  border-radius: 4px;
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+
+/* Pixelated scanline effect for previews */
+.pixel-scanline-overlay {
+  position: relative;
+}
+
+.pixel-scanline-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(0, 0, 0, 0.15) 1px,
+    rgba(0, 0, 0, 0.15) 2px
+  );
+  pointer-events: none;
+  z-index: 2;
+  animation: scanlineMove 8s linear infinite;
+}
+
+@keyframes scanlineMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100px; }
+}
+
+/* Pixel grid effect for project cards */
+.pixel-grid-overlay {
+  position: relative;
+}
+
+.pixel-grid-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 8px 8px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Pixelated project card hover */
+.proj-card-pixelated {
+  position: relative;
+  transition: all 0.4s var(--ease-out-expo);
+}
+
+.proj-card-pixelated::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(var(--neon-primary-rgb), 0.03) 3px,
+      rgba(var(--neon-primary-rgb), 0.03) 6px
+    );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.proj-card-pixelated:hover::after {
+  opacity: 1;
+}
+
+.proj-card-pixelated:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--neon-primary);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 60px var(--glow-primary),
+    inset 0 0 30px var(--glow-primary-soft);
+}
+
+/* Pixel corner decorations */
+.pixel-corner-preview {
+  position: relative;
+}
+
+.pixel-corner-preview::before,
+.pixel-corner-preview::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--neon-primary);
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.pixel-corner-preview::before {
+  top: -4px;
+  left: -4px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.pixel-corner-preview::after {
+  bottom: -4px;
+  right: -4px;
+  border-left: none;
+  border-top: none;
+}
+
+.pixel-corner-preview:hover::before,
+.pixel-corner-preview:hover::after {
+  opacity: 1;
+  width: 24px;
+  height: 24px;
+}
+
+/* Project preview modal enhanced */
+.project-preview-modal {
+  position: relative;
+}
+
+.project-preview-modal .pixel-screenshot-frame {
+  margin-bottom: 20px;
+}
+
+/* Project stats with pixel styling */
+.proj-stat-pixel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.proj-stat-pixel:hover {
+  border-color: var(--neon-primary);
+  box-shadow: 0 0 10px var(--glow-primary-soft);
+  transform: translateY(-2px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   END TASK 9
+   ═══════════════════════════════════════════════════════════════ */
+
 /* ── Respect prefers-reduced-motion ── */
 @media (prefers-reduced-motion: reduce) {
   *,

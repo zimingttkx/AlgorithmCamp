@@ -8,29 +8,48 @@
 
       <div v-if="loading" class="proj-loading">FETCHING REPOS...</div>
       <div v-else class="proj-grid">
-        <div v-for="repo in repos" :key="repo.id" class="pixel-card proj-card" @click="openModal(repo)">
-          <div class="proj-card-top">
-            <div class="proj-name">{{ repo.name }}</div>
-            <span class="proj-expand">▶</span>
+        <div
+          v-for="repo in repos"
+          :key="repo.id"
+          class="pixel-card proj-card proj-card-pixelated tunnel-container"
+          @click="openModal(repo)"
+        >
+          <div class="tunnel-effect tunnel-vignette">
+            <div class="tunnel-layers">
+              <div class="tunnel-layer tunnel-layer-back"></div>
+              <div class="tunnel-layer tunnel-layer-mid"></div>
+            </div>
+            <div class="proj-card-top tunnel-border">
+              <div class="proj-name">{{ repo.name }}</div>
+              <span class="proj-expand">▶</span>
+            </div>
+            <p class="proj-desc">{{ repo.description || t('暂无描述', 'No description') }}</p>
+            <div class="proj-meta">
+              <span v-if="repo.language" class="proj-lang">
+                <span class="lang-dot" :style="{background: langColor(repo.language)}"></span>
+                {{ repo.language }}
+              </span>
+              <span class="proj-stat-pixel">⭐ {{ repo.stargazers_count }}</span>
+              <span class="proj-stat-pixel">🍴 {{ repo.forks_count }}</span>
+            </div>
+            <div class="proj-updated">{{ t('更新', 'Updated') }}: {{ formatDate(repo.pushed_at) }}</div>
           </div>
-          <p class="proj-desc">{{ repo.description || t('暂无描述', 'No description') }}</p>
-          <div class="proj-meta">
-            <span v-if="repo.language" class="proj-lang">
-              <span class="lang-dot" :style="{background: langColor(repo.language)}"></span>
-              {{ repo.language }}
-            </span>
-            <span class="proj-stat">⭐ {{ repo.stargazers_count }}</span>
-            <span class="proj-stat">🍴 {{ repo.forks_count }}</span>
-          </div>
-          <div class="proj-updated">{{ t('更新', 'Updated') }}: {{ formatDate(repo.pushed_at) }}</div>
         </div>
       </div>
     </div>
 
     <!-- Project Detail Modal -->
     <Teleport to="body">
-      <div v-if="selectedRepo" class="modal-overlay" @click.self="closeModal">
-        <div class="modal-content pixel-card">
+      <div
+        v-if="selectedRepo"
+        class="modal-overlay modal-overlay-pixelate"
+        :class="{ 'modal-overlay-exit': isClosing }"
+        @click.self="closeModal"
+      >
+        <div
+          class="modal-content pixel-card modal-content-bounce modal-neon-border modal-shine"
+          :class="{ 'modal-content-exit-zoom': isClosing }"
+        >
           <button class="modal-close" @click="closeModal">×</button>
           <div class="modal-header">
             <span v-if="selectedRepo.language" class="modal-lang-dot" :style="{background: langColor(selectedRepo.language)}"></span>
@@ -39,6 +58,24 @@
           </div>
           <h2 class="modal-title pixel-font glow-blue">{{ selectedRepo.name }}</h2>
           <p class="modal-desc">{{ selectedRepo.description || t('暂无项目描述', 'No description available') }}</p>
+
+          <!-- Pixelated Project Preview Section -->
+          <div class="project-preview-modal">
+            <div class="pixel-screenshot-frame">
+              <div class="pixel-preview-container pixel-scanline-overlay">
+                <div class="pixel-grid-overlay">
+                  <div class="pixel-grid-preview">
+                    <div
+                      v-for="i in 9"
+                      :key="i"
+                      class="pixel-grid-cell"
+                      :style="{ background: getGridCellColor(i) }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="modal-section">
             <h3 class="modal-section-title">{{ t('项目信息', 'Project Info') }}</h3>
@@ -78,8 +115,8 @@
           </div>
 
           <div class="modal-actions">
-            <a :href="selectedRepo.html_url" target="_blank" class="pixel-btn">◉ {{ t('查看源码', 'View Source') }}</a>
-            <a v-if="selectedRepo.homepage" :href="selectedRepo.homepage" target="_blank" class="pixel-btn pixel-btn-purple" style="margin-left:10px">◈ {{ t('在线演示', 'Live Demo') }}</a>
+            <a :href="selectedRepo.html_url" target="_blank" class="pixel-btn pixel-btn-primary">◉ {{ t('查看源码', 'View Source') }}</a>
+            <a v-if="selectedRepo.homepage" :href="selectedRepo.homepage" target="_blank" class="pixel-btn pixel-btn-secondary" style="margin-left:10px">◈ {{ t('在线演示', 'Live Demo') }}</a>
           </div>
         </div>
       </div>
@@ -96,6 +133,7 @@ const { t } = useLang()
 const repos = ref([])
 const loading = ref(true)
 const selectedRepo = ref(null)
+const isClosing = ref(false)
 
 const LANG_COLORS = {
   'C++': '#f34b7d', 'Python': '#3572A5', 'JavaScript': '#f1e05a',
@@ -103,17 +141,36 @@ const LANG_COLORS = {
   'Go': '#00ADD8', 'Rust': '#dea584', 'Vue': '#41b883', 'HTML': '#e34c26',
   'Jupyter Notebook': '#DA5B0B', 'Shell': '#89e051', 'CSS': '#563d7c',
 }
+
+const GRID_COLORS = [
+  'linear-gradient(135deg, var(--neon-primary), var(--neon-secondary))',
+  'linear-gradient(135deg, var(--neon-secondary), var(--neon-accent))',
+  'linear-gradient(135deg, var(--neon-accent), var(--neon-primary))',
+  'linear-gradient(135deg, var(--neon-primary), var(--neon-accent))',
+  'linear-gradient(135deg, var(--glow-primary), var(--glow-secondary))',
+  'linear-gradient(135deg, var(--neon-secondary), var(--glow-primary))',
+  'linear-gradient(135deg, var(--neon-accent), var(--glow-secondary))',
+  'linear-gradient(135deg, var(--glow-primary), var(--neon-accent))',
+  'linear-gradient(135deg, var(--neon-primary), var(--glow-accent))',
+]
+
 function langColor(lang) { return LANG_COLORS[lang] || '#8b949e' }
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN') : '—' }
+function getGridCellColor(index) { return GRID_COLORS[index % GRID_COLORS.length] }
 
 function openModal(repo) {
   selectedRepo.value = repo
+  isClosing.value = false
   document.body.style.overflow = 'hidden'
 }
 
 function closeModal() {
-  selectedRepo.value = null
-  document.body.style.overflow = ''
+  isClosing.value = true
+  setTimeout(() => {
+    selectedRepo.value = null
+    isClosing.value = false
+    document.body.style.overflow = ''
+  }, 300)
 }
 
 // Close modal on Escape key
@@ -241,16 +298,14 @@ onMounted(async () => {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  animation: fadeIn 0.3s var(--ease-out-expo);
 }
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 .modal-content {
   position: relative;
   width: 100%;
@@ -263,11 +318,6 @@ onMounted(async () => {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  animation: slideUp 0.4s var(--ease-out-expo);
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(24px) }
-  to { opacity: 1; transform: translateY(0) }
 }
 .modal-close {
   position: absolute;
@@ -370,5 +420,113 @@ onMounted(async () => {
 @media (max-width: 600px) {
   .modal-info-grid { grid-template-columns: 1fr; }
   .proj-grid { grid-template-columns: 1fr; }
+}
+
+/* Enhanced project card with tunnel effect */
+.proj-card.tunnel-container {
+  cursor: pointer;
+}
+
+.proj-card.tunnel-container .tunnel-effect {
+  position: relative;
+}
+
+/* Enhanced modal neon border animation */
+.modal-neon-border {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Modal shine sweep effect */
+.modal-shine {
+  overflow: hidden;
+}
+
+.modal-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.modal-shine:hover::before {
+  left: 150%;
+}
+
+/* Pixel preview styles */
+.project-preview-modal {
+  margin-bottom: 20px;
+}
+
+.pixel-screenshot-frame {
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-default);
+  border-radius: 12px;
+  padding: 12px;
+  position: relative;
+}
+
+.pixel-screenshot-frame::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  height: 20px;
+  background: linear-gradient(90deg,
+    var(--neon-secondary) 0%,
+    var(--neon-accent) 33%,
+    var(--neon-primary) 66%,
+    var(--neon-secondary) 100%
+  );
+  background-size: 300% 100%;
+  border-radius: 8px 8px 0 0;
+  animation: rainbowFlow 4s linear infinite;
+}
+
+.pixel-preview-container {
+  margin-top: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.pixel-grid-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.pixel-grid-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  transition: all 0.3s var(--ease-out-expo);
+  min-height: 40px;
+}
+
+.pixel-grid-cell:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px var(--glow-primary);
+  z-index: 1;
+}
+
+@keyframes rainbowFlow {
+  0% { background-position: 0% center; }
+  100% { background-position: 400% center; }
 }
 </style>

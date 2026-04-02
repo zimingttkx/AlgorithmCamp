@@ -81,7 +81,7 @@
   - 添加完成时的像素化庆祝动画
   - 升级章节导航的视觉效果
 
-- [ ] 9. 项目展示区升级
+- [x] 9. 项目展示区升级
   - 添加悬浮隧道效果
   - 实现高级模态框动效
   - 添加像素化项目预览
@@ -513,4 +513,38 @@
   - `@media (prefers-reduced-motion: reduce)` 完全支持
   - 所有动画使用 `animation: none !important`
   - 3D变换在reduce motion时禁用
+
+### Task 9: 项目展示区升级 (已完成 - 2026-04-02)
+
+- [x] 添加悬浮隧道效果
+  - `.tunnel-container`: 隧道透视容器 (perspective: 1000px)
+  - `.tunnel-effect`: 隧道效果基础类 (scale 0.92 + translateZ -30px + 亮度降低)
+  - `.tunnel-vignette`: 隧道渐暗效果 (径向渐变从透明到黑色)
+  - `.tunnel-border::after`: 隧道边框发光效果
+  - `.tunnel-depth-1/2/3/4`: 隧道深度等级类
+  - `.tunnel-layer-back/mid`: 隧道层级背景效果
+
+- [x] 实现高级模态框动效
+  - `.modal-overlay-pixelate`: 像素化入场动画 (模糊 + 缩放)
+  - `.modal-content-bounce`: 弹跳入场动画 (bounce效果)
+  - `.modal-neon-border`: 霓虹彩虹边框 (伪元素彩虹渐变)
+  - `.modal-shine`: 光泽扫过动画 (::before扫光效果)
+  - 退出动画: `.modal-overlay-exit`, `.modal-content-exit-zoom`
+  - `@keyframes modalPixelateIn/modalBounceIn/modalRevealIn`: 模态框入场关键帧
+  - `@keyframes modalFadeOut/modalZoomOut/modalSlideDown`: 模态框退场关键帧
+
+- [x] 添加像素化项目预览
+  - `.pixel-preview-container`: 像素预览容器
+  - `.pixel-grid-preview`: 3x3像素网格预览
+  - `.pixel-grid-cell`: 网格单元格 (hover时发光缩放)
+  - `.pixel-screenshot-frame`: 像素截图框 (带彩虹标题栏)
+  - `.pixel-scanline-overlay`: 像素扫描线叠加效果
+  - `.proj-card-pixelated`: 像素化项目卡片 (hover时扫描线显现)
+  - `.pixel-corner-preview::before/::after`: 像素角落装饰
+  - `.proj-stat-pixel`: 像素风格统计信息
+
+- [x] 无障碍性增强
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+  - 所有动画使用 `animation: none !important`
+  - 3D变换和隧道效果在reduce motion时禁用
 
