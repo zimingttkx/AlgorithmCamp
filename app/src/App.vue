@@ -144,6 +144,30 @@ function handleVisibility() {
   pageVisible = !document.hidden
 }
 
+// Global scroll-driven animation observer
+let scrollObserver = null
+function initScrollAnimations() {
+  if (prefersReduced) return
+
+  scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        // Once animation plays, no need to observe anymore
+        scrollObserver.unobserve(entry.target)
+      }
+    })
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  })
+
+  // Observe all scroll-animate elements
+  document.querySelectorAll('.scroll-fade-up, .scroll-fade-in, .scroll-scale-up, .scroll-slide-left, .scroll-slide-right, .scroll-rotate-in, .scroll-glow-trigger, .scroll-stagger-container').forEach(el => {
+    scrollObserver.observe(el)
+  })
+}
+
 // Back to top
 function onScroll() {
   showBackTop.value = window.scrollY > 400
@@ -156,12 +180,14 @@ onMounted(() => {
   initTheme()
   initMouseCanvas()
   initAmbientCanvas()
+  initScrollAnimations()
   document.addEventListener('visibilitychange', handleVisibility)
   window.addEventListener('scroll', onScroll, { passive: true })
 })
 onUnmounted(() => {
   if (animId) cancelAnimationFrame(animId)
   if (ambientAnimId) cancelAnimationFrame(ambientAnimId)
+  if (scrollObserver) scrollObserver.disconnect()
   document.removeEventListener('visibilitychange', handleVisibility)
   window.removeEventListener('scroll', onScroll)
 })

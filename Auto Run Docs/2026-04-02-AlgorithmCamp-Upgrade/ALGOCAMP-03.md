@@ -96,7 +96,7 @@
   - 实现时间线动画
   - 添加高级联系方式表单
 
-- [ ] 12. 全局动效优化
+- [x] 12. 全局动效优化
   - 优化页面切换过渡
   - 统一缓动函数 (cubic-bezier)
   - 添加 Loading 状态动画
@@ -641,3 +641,49 @@
   - isSubmitting: 提交状态
   - submitStatus: 提交结果状态
   - handleContactSubmit(): 表单提交处理函数
+
+### Task 12: 全局动效优化 (已完成 - 2026-04-02)
+
+- [x] 统一缓动函数 (cubic-bezier)
+  - CSS变量：`--ease-out-expo`, `--ease-out-back`, `--ease-spring`
+  - 新增：`--ease-in-out-expo`, `--ease-in-out-circ`, `--ease-out-quart`, `--ease-in-out-quart`, `--ease-bounce`, `--ease-smooth`
+  - 新增Duration Tokens：`--duration-instant`(0ms), `--duration-fast`(150ms), `--duration-normal`(300ms), `--duration-slow`(500ms), `--duration-slower`(700ms), `--duration-slowest`(1000ms)
+
+- [x] 优化页面切换过渡
+  - `.page-enter-active, .page-leave-active`: 增强为opacity + transform + filter (blur)
+  - `.page-fade-enter/leave`: 纯渐变过渡
+  - `.page-slide-enter/leave`: 滑动过渡
+  - `.page-zoom-enter/leave`: 缩放过渡
+  - `.page-pixelate-enter/leave`: 像素化模糊过渡
+
+- [x] 添加 Loading 状态动画
+  - `.global-loading-overlay`: 全局加载覆盖层
+  - `.loading-pixel-spinner`: 像素风格加载动画 (3x3网格)
+  - `@keyframes loadingPixelPulse`: 像素脉冲动画
+  - `.loading-text`: 加载文字闪烁效果
+  - `.loading-progress-container/bar`: 加载进度条
+  - `.skeleton`: 骨架屏基础样式
+  - `.skeleton-text/title/avatar/card/btn`: 各类骨架屏组件
+  - `@keyframes skeletonShimmer`: 骨架屏闪烁动画
+
+- [x] 实现滚动驱动的动画
+  - `.scroll-animate-container`: 滚动动画容器
+  - `.scroll-fade-up`: 上滑淡入
+  - `.scroll-fade-in`: 淡入
+  - `.scroll-scale-up`: 缩放淡入
+  - `.scroll-slide-left/right`: 左右滑入
+  - `.scroll-rotate-in`: 旋转淡入
+  - `.scroll-stagger-container`: 交错动画容器
+  - `.scroll-glow-trigger`: 发光触发效果
+  - `.parallax-section/bg/content`: 视差滚动区块
+  - `.router-loading`: 路由切换进度条
+  - `initScrollAnimations()`: 全局滚动动画观察器 (IntersectionObserver)
+
+- [x] 尊重 prefers-reduced-motion
+  - 所有新动画在reduce motion时禁用
+  - 过渡时间设置为0.01ms
+  - scroll-behavior: auto (禁用平滑滚动)
+  - 滚动动画元素直接显示(opacity: 1, transform: none)
+  - 骨架屏静态显示
+  - 路由加载条静态显示
+  - 页面过渡直接显示无动画
