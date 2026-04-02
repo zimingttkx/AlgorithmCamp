@@ -31,9 +31,12 @@
           </div>
         </div>
         <div class="hero-right">
-          <div class="hero-avatar-wrap perspective-container">
+          <div class="hero-avatar-wrap perspective-container" @click="openAvatarZoom">
             <div class="avatar-3d-effect">
-              <img :src="avatar" alt="avatar" class="hero-avatar hover-3d" loading="lazy" @error="avatarFallback" />
+              <img :src="avatar" alt="avatar" class="hero-avatar hover-3d pinch-zoom-image" loading="lazy" @error="avatarFallback"
+                @touchstart="handleAvatarTouchStart"
+                @touchmove="handleAvatarTouchMove"
+                @touchend="handleAvatarTouchEnd" />
               <div class="avatar-ring"></div>
               <div class="avatar-ring ring2"></div>
               <div class="avatar-glow"></div>
@@ -229,6 +232,19 @@
       </div>
     </section>
 
+    <!-- Avatar Zoom Overlay (Pinch-to-zoom) -->
+    <Teleport to="body">
+      <div v-if="avatarZoom" class="pinch-zoom-overlay visible" @click="closeAvatarZoom">
+        <button class="pinch-zoom-close" @click="closeAvatarZoom" aria-label="Close">×</button>
+        <img :src="avatar" alt="avatar" class="pinch-zoom-image"
+          :style="{ transform: `scale(${avatarZoomScale})` }"
+          @touchstart="handleAvatarTouchStart"
+          @touchmove="handleAvatarTouchMove"
+          @touchend="handleAvatarTouchEnd"
+          @error="avatarFallback" />
+      </div>
+    </Teleport>
+
     <!-- Project Modal -->
     <Teleport to="body">
       <div v-if="modalProject" class="modal-overlay" @click.self="closeProjectModal">
@@ -292,6 +308,12 @@ const heroLevel = computed(() => {
 
 const { doneTotal, totalProblems, donePct } = getProgress()
 
+// Avatar zoom state for pinch-to-zoom
+const avatarZoom = ref(false)
+const avatarZoomScale = ref(1)
+const avatarTouchStartDistance = ref(0)
+const avatarTouchStartScale = ref(1)
+
 function chPct(ch) {
   const prog = getProgress(ch.id)
   return prog.donePct
@@ -299,6 +321,48 @@ function chPct(ch) {
 
 function avatarFallback(e) {
   e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="%231a1a30"/><text x="50%" y="55%" font-size="80" text-anchor="middle" fill="%230EA5E9">Z</text></svg>'
+}
+
+// Avatar pinch-to-zoom handlers
+function getTouchDistance(touch1, touch2) {
+  const dx = touch1.clientX - touch2.clientX
+  const dy = touch1.clientY - touch2.clientY
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+function handleAvatarTouchStart(e) {
+  if (e.touches.length === 2) {
+    avatarZoom.value = true
+    avatarTouchStartDistance.value = getTouchDistance(e.touches[0], e.touches[1])
+    avatarTouchStartScale.value = avatarZoomScale.value
+    e.preventDefault()
+  }
+}
+
+function handleAvatarTouchMove(e) {
+  if (!avatarZoom.value || e.touches.length !== 2) return
+  const currentDistance = getTouchDistance(e.touches[0], e.touches[1])
+  const newScale = Math.min(3, Math.max(1, avatarTouchStartScale.value * (currentDistance / avatarTouchStartDistance.value)))
+  avatarZoomScale.value = newScale
+  e.preventDefault()
+}
+
+function handleAvatarTouchEnd(e) {
+  if (e.touches.length < 2) {
+    avatarZoom.value = false
+    avatarZoomScale.value = 1
+  }
+}
+
+function openAvatarZoom() {
+  avatarZoom.value = true
+  document.body.style.overflow = 'hidden'
+}
+
+function closeAvatarZoom() {
+  avatarZoom.value = false
+  avatarZoomScale.value = 1
+  document.body.style.overflow = ''
 }
 
 function openProjectModal(project) {

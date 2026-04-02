@@ -3,8 +3,11 @@
     <!-- Header -->
     <section class="about-hero container">
       <div class="about-hero-inner">
-        <div class="about-avatar-wrap">
-          <img :src="avatar" alt="avatar" class="about-avatar" loading="lazy" @error="avatarFallback" />
+        <div class="about-avatar-wrap" @click="openAvatarZoom">
+          <img :src="avatar" alt="avatar" class="about-avatar pinch-zoom-image" loading="lazy" @error="avatarFallback"
+            @touchstart="handleAvatarTouchStart"
+            @touchmove="handleAvatarTouchMove"
+            @touchend="handleAvatarTouchEnd" />
           <div class="about-avatar-label pixel-font">DEVELOPER PROFILE</div>
         </div>
         <div class="about-info">
@@ -300,6 +303,19 @@
       </div>
     </section>
   </div>
+
+  <!-- Avatar Zoom Overlay (Pinch-to-zoom) -->
+  <Teleport to="body">
+    <div v-if="avatarZoom" class="pinch-zoom-overlay visible" @click="closeAvatarZoom">
+      <button class="pinch-zoom-close" @click="closeAvatarZoom" aria-label="Close">×</button>
+      <img :src="avatar" alt="avatar" class="pinch-zoom-image"
+        :style="{ transform: `scale(${avatarZoomScale})` }"
+        @touchstart="handleAvatarTouchStart"
+        @touchmove="handleAvatarTouchMove"
+        @touchend="handleAvatarTouchEnd"
+        @error="avatarFallback" />
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -309,8 +325,56 @@ const { isZh, t } = useLang()
 
 const avatar = ref('avatar.png')
 
+// Avatar pinch-to-zoom state
+const avatarZoom = ref(false)
+const avatarZoomScale = ref(1)
+const avatarTouchStartDistance = ref(0)
+const avatarTouchStartScale = ref(1)
+
 function avatarFallback(e) {
   e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140"><rect width="140" height="140" fill="%231a1a30"/><text x="50%" y="55%" font-size="40" text-anchor="middle" fill="%230EA5E9">Z</text></svg>'
+}
+
+// Avatar pinch-to-zoom handlers
+function getTouchDistance(touch1, touch2) {
+  const dx = touch1.clientX - touch2.clientX
+  const dy = touch1.clientY - touch2.clientY
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+function handleAvatarTouchStart(e) {
+  if (e.touches.length === 2) {
+    avatarZoom.value = true
+    avatarTouchStartDistance.value = getTouchDistance(e.touches[0], e.touches[1])
+    avatarTouchStartScale.value = avatarZoomScale.value
+    e.preventDefault()
+  }
+}
+
+function handleAvatarTouchMove(e) {
+  if (!avatarZoom.value || e.touches.length !== 2) return
+  const currentDistance = getTouchDistance(e.touches[0], e.touches[1])
+  const newScale = Math.min(3, Math.max(1, avatarTouchStartScale.value * (currentDistance / avatarTouchStartDistance.value)))
+  avatarZoomScale.value = newScale
+  e.preventDefault()
+}
+
+function handleAvatarTouchEnd(e) {
+  if (e.touches.length < 2) {
+    avatarZoom.value = false
+    avatarZoomScale.value = 1
+  }
+}
+
+function openAvatarZoom() {
+  avatarZoom.value = true
+  document.body.style.overflow = 'hidden'
+}
+
+function closeAvatarZoom() {
+  avatarZoom.value = false
+  avatarZoomScale.value = 1
+  document.body.style.overflow = ''
 }
 
 const masteredSkills = [

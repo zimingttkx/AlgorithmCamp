@@ -342,40 +342,54 @@
                   <div
                     v-for="row in sec.rows"
                     :key="row.probId"
-                    class="prob-row prob-row-3d-lift"
-                    :class="{done: isChecked(currentChapter.id, row.probId)}"
+                    class="prob-row prob-row-3d-lift swipe-action-container"
+                    :class="{ done: isChecked(currentChapter.id, row.probId) }"
                     @click="handleProblemClick(currentChapter.id, row.probId, row)"
+                    @contextmenu.prevent="showLongPressMenu(currentChapter.id, row.probId, row, $event)"
+                    @touchstart="(e) => handleTouchStart(e, row.probId)"
+                    @touchmove="(e) => handleTouchMove(e, row.probId)"
+                    @touchend="(e) => handleTouchEnd(e, currentChapter.id, row.probId, row)"
                   >
-                    <div class="problem-checkbox" :class="{checked: isChecked(currentChapter.id, row.probId)}">
-                      <div v-if="isChecked(currentChapter.id, row.probId)" class="check-icon">
-                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                          <path d="M1 5L4.5 8.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </div>
+                    <!-- Swipe action hints -->
+                    <div class="swipe-action-left" @click.stop="handleRowSwipeLeft(currentChapter.id, row.probId, row)">
+                      <div class="swipe-action-icon">✓</div>
                     </div>
-                    <span class="prob-num font-mono">{{ row.num }}</span>
-                    <span class="prob-title">
-                      <a v-if="row.url" :href="row.url" target="_blank" rel="noopener" @click.stop>{{ row.title }}</a>
-                      <span v-else>{{ row.title }}</span>
-                      <span v-if="row.isMember" class="lock-icon">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
+                    <div class="swipe-action-right" @click.stop="handleRowSwipeRight(currentChapter.id, row.probId, row)">
+                      <div class="swipe-action-icon">↩</div>
+                    </div>
+
+                    <div class="swipe-action-content" :style="swipeStyle(row.probId)">
+                      <div class="problem-checkbox" :class="{checked: isChecked(currentChapter.id, row.probId)}">
+                        <div v-if="isChecked(currentChapter.id, row.probId)" class="check-icon">
+                          <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                            <path d="M1 5L4.5 8.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <span class="prob-num font-mono">{{ row.num }}</span>
+                      <span class="prob-title">
+                        <a v-if="row.url" :href="row.url" target="_blank" rel="noopener" @click.stop>{{ row.title }}</a>
+                        <span v-else>{{ row.title }}</span>
+                        <span v-if="row.isMember" class="lock-icon">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                          </svg>
+                        </span>
                       </span>
-                    </span>
-                    <span class="prob-rating" :class="ratingCls(row.rating)">{{ row.rating }}</span>
-                    <button
-                      class="prob-detail-btn"
-                      :title="isZh ? '题目详情' : 'Problem Details'"
-                      @click.stop="navigateToProblemDetail(currentChapter.id, row.probId)"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="16" x2="12" y2="12"/>
-                        <line x1="12" y1="8" x2="12.01" y2="8"/>
-                      </svg>
-                    </button>
+                      <span class="prob-rating" :class="ratingCls(row.rating)">{{ row.rating }}</span>
+                      <button
+                        class="prob-detail-btn"
+                        :title="isZh ? '题目详情' : 'Problem Details'"
+                        @click.stop="navigateToProblemDetail(currentChapter.id, row.probId)"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="12" y1="16" x2="12" y2="12"/>
+                          <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -385,6 +399,29 @@
       </div>
     </div>
 
+    <!-- Long Press Menu -->
+    <Teleport to="body">
+      <div
+        v-if="longPressMenu"
+        class="long-press-menu glass-card"
+        :style="{ left: longPressMenu.x + 'px', top: longPressMenu.y + 'px' }"
+        @click.stop
+      >
+        <div class="long-press-menu-item" @click="handleLongPressAction('toggle', longPressMenu)">
+          <span class="menu-icon">{{ isChecked(longPressMenu.chId, longPressMenu.probId) ? '○' : '✓' }}</span>
+          <span>{{ isChecked(longPressMenu.chId, longPressMenu.probId) ? (isZh ? '取消完成' : 'Unmark') : (isZh ? '标记完成' : 'Mark Done') }}</span>
+        </div>
+        <div class="long-press-menu-item" @click="handleLongPressAction('detail', longPressMenu)">
+          <span class="menu-icon">ℹ</span>
+          <span>{{ isZh ? '查看详情' : 'View Details' }}</span>
+        </div>
+        <div v-if="longPressMenu.row?.url" class="long-press-menu-item" @click="handleLongPressAction('openUrl', longPressMenu)">
+          <span class="menu-icon">↗</span>
+          <span>{{ isZh ? '打开链接' : 'Open Link' }}</span>
+        </div>
+      </div>
+      <div v-if="longPressMenu" class="long-press-overlay" @click="hideLongPressMenu"></div>
+    </Teleport>
   </div>
 </template>
 
@@ -399,6 +436,7 @@ import { useRecommendations } from '../composables/useRecommendations.js'
 import { useReviewReminder } from '../composables/useReviewReminder.js'
 import { useLang } from '../composables/i18n.js'
 import { usePracticeGoal } from '../composables/usePracticeGoal.js'
+import { useSwipe, useLongPress } from '../composables/useTouchInteraction.js'
 import SearchFilter from '../components/SearchFilter.vue'
 import { useSearchFilter } from '../composables/useSearchFilter.js'
 
@@ -444,6 +482,68 @@ const totals = ref({})
 const bubbleRefs = reactive({})
 const tiltData = reactive({})
 const openSections = reactive({})
+
+// Touch interaction state
+const longPressMenu = ref(null) // { chId, probId, row, x, y }
+const swipeState = reactive({}) // Track swipe per row
+const touchStartState = reactive({}) // { probId: { startX, startY, startTime } }
+
+// Touch event handlers for swipe
+function handleTouchStart(e, probId) {
+  if (e.touches.length !== 1) return
+  touchStartState[probId] = {
+    startX: e.touches[0].clientX,
+    startY: e.touches[0].clientY,
+    startTime: Date.now()
+  }
+}
+
+function handleTouchMove(e, probId) {
+  if (!touchStartState[probId] || e.touches.length !== 1) return
+
+  const deltaX = e.touches[0].clientX - touchStartState[probId].startX
+  const deltaY = e.touches[0].clientY - touchStartState[probId].startY
+
+  // Only track horizontal swipes
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    // Clamp the swipe distance
+    const clampedX = Math.max(-80, Math.min(80, deltaX))
+    swipeState[probId] = clampedX
+  }
+}
+
+function handleTouchEnd(e, chId, probId, row) {
+  if (!touchStartState[probId]) return
+
+  const deltaX = e.changedTouches[0].clientX - touchStartState[probId].startX
+  const deltaY = e.changedTouches[0].clientY - touchStartState[probId].startY
+  const duration = Date.now() - touchStartState[probId].startTime
+
+  // Reset touch state
+  delete touchStartState[probId]
+
+  // Check if this was a swipe (threshold: 50px, max duration: 500ms)
+  if (duration < 500 && Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+    if (deltaX < 0) {
+      // Swipe left - mark complete
+      handleRowSwipeLeft(chId, probId, row)
+    } else {
+      // Swipe right - unmark
+      handleRowSwipeRight(chId, probId, row)
+    }
+  }
+
+  // Reset swipe state
+  delete swipeState[probId]
+}
+
+function swipeStyle(probId) {
+  const offset = swipeState[probId] || 0
+  return {
+    transform: `translateX(${offset}px)`,
+    transition: offset === 0 ? 'transform 0.3s var(--ease-out-expo)' : 'none'
+  }
+}
 
 // LeetCode sync state
 const leetcodeInput = ref('')
@@ -750,6 +850,52 @@ function navigateToProblemDetail(chId, probId) {
 
 function onFilterChange() {
   // Filters are reactive, computed properties will update automatically
+}
+
+// Long press menu handlers
+function showLongPressMenu(chId, probId, row, event) {
+  longPressMenu.value = { chId, probId, row, x: event.clientX, y: event.clientY }
+}
+
+function hideLongPressMenu() {
+  longPressMenu.value = null
+}
+
+function handleLongPressAction(action, item) {
+  const { chId, probId, row } = item
+  switch (action) {
+    case 'toggle':
+      handleProblemClick(chId, probId, row)
+      break
+    case 'detail':
+      navigateToProblemDetail(chId, probId)
+      break
+    case 'openUrl':
+      if (row.url) {
+        window.open(row.url, '_blank', 'noopener')
+      }
+      break
+  }
+  hideLongPressMenu()
+}
+
+// Swipe action handlers for problem rows
+function handleRowSwipeLeft(chId, probId, row) {
+  // Swipe left to mark complete
+  if (!isChecked(chId, probId)) {
+    toggleCheck(chId, probId)
+    const problemKey = `${chId}::${probId}`
+    updateReview(problemKey, 4)
+    recordPractice(problemKey)
+    checkChapterCompletion(chId)
+  }
+}
+
+function handleRowSwipeRight(chId, probId, row) {
+  // Swipe right to unmark
+  if (isChecked(chId, probId)) {
+    toggleCheck(chId, probId)
+  }
 }
 
 function handleProblemClick(chId, probId, row) {
@@ -2589,6 +2735,54 @@ onMounted(() => { syncOnLoad() })
 
   .chapter-progress-fill-rainbow::after {
     animation-duration: 3s;
+  }
+
+  /* Touch interaction styles */
+  .long-press-menu {
+    position: fixed;
+    z-index: 10000;
+    min-width: 160px;
+    padding: 8px 0;
+    transform: translate(-50%, -50%);
+  }
+
+  .long-press-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+  }
+
+  .long-press-menu-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .long-press-menu-item:hover {
+    background: rgba(0, 240, 255, 0.1);
+  }
+
+  .menu-icon {
+    font-size: 1rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  .prob-row {
+    padding: 12px 8px;
+  }
+
+  .prob-detail-btn {
+    display: none;
+  }
+
+  .swipe-action-left,
+  .swipe-action-right {
+    width: 50px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
