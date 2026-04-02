@@ -91,7 +91,7 @@
   - 实现阅读进度条
   - 添加页面切换的像素过渡效果
 
-- [ ] 11. 关于页面升级
+- [x] 11. 关于页面升级
   - 添加技能树的动态展示
   - 实现时间线动画
   - 添加高级联系方式表单
@@ -584,3 +584,60 @@
   - `.page-rainbow-border-enter/leave`: 彩虹边框裁剪过渡
   - `.page-view`: 适用于Vue路由视图的will-change优化
   - 无障碍性增强：所有动画在reduce motion时禁用
+
+### Task 11: 关于页面升级 (已完成 - 2026-04-02)
+
+- [x] 添加技能树的动态展示
+  - `.skill-tree-container`: 技能树容器 (overflow-x: auto)
+  - `.skill-tree`: 技能树主容器 (flex横向滚动布局)
+  - `.skill-branch`: 技能分支 (带--branch-delay动画延迟)
+  - `.skill-branch-line`: 技能分支连接线 (渐变色)
+  - `.skill-branch-node`: 技能节点 (玻璃态+悬停发光)
+  - `.skill-node-icon`: 技能图标 (filter: drop-shadow发光)
+  - `.skill-subnodes`: 子技能容器
+  - `.skill-subnode`: 子技能项 (带--sub-delay动画延迟)
+  - `.skill-subnode-dot`: 子技能指示点 (带pulse动画)
+  - `.skill-subnode-bar`: 技能等级进度条
+  - `.skill-subnode-fill`: 技能填充动画 (--fill-width百分比)
+  - `@keyframes skillBranchIn`: 分支入场动画 (translateY + scale)
+  - `@keyframes skillSubnodeIn`: 子节点入场动画 (translateX)
+  - `@keyframes skillDotPulse`: 技能点脉动动画
+  - `@keyframes skillFillIn`: 技能填充动画
+  - skillTreeData: 技能树数据结构 (5个技能分支，每分支3个子技能)
+
+- [x] 实现时间线动画
+  - `.timeline-container`: 时间线容器
+  - `.timeline-line`: 时间线主轴 (渐变色)
+  - `.timeline-item`: 时间线项目 (左右交替布局)
+  - `.timeline-item-right`: 右对齐项目变体
+  - `.timeline-dot`: 时间点指示器 (带glow动画)
+  - `.timeline-card`: 时间线卡片 (玻璃态)
+  - `.timeline-date`: 日期样式
+  - `.timeline-title`: 标题样式
+  - `.timeline-desc`: 描述样式
+  - `.timeline-tags`: 标签容器
+  - `.pixel-tag-sm`: 小型像素标签
+  - `@keyframes timelineItemIn`: 左侧项目入场动画
+  - `@keyframes timelineItemInRight`: 右侧项目入场动画
+  - `@keyframes timelineDotGlow`: 时间点发光动画
+  - timelineEvents: 时间线数据 (4个事件)
+
+- [x] 添加高级联系方式表单
+  - `.contact-form-container`: 联系表单容器 (grid布局)
+  - `.contact-form`: 表单主体 (flex纵向布局)
+  - `.form-row`: 表单行 (grid双列)
+  - `.form-group`: 表单组
+  - `.form-label`: 标签样式 (JetBrains Mono)
+  - `.form-input`, `.form-textarea`: 输入框样式
+  - `.form-footer`: 表单底部 (按钮+状态)
+  - `.pixel-btn-submit`: 提交按钮 (渐变+发光)
+  - `.btn-submitting`: 提交中状态变体
+  - `.submitting-text`: 提交中文字动画
+  - `.form-status`: 状态消息
+  - `.status-success`, `.status-error`: 成功/错误状态样式
+  - `.contact-info`: 联系信息侧边栏
+  - `.contact-info-item`: 联系信息项
+  - contactForm: 表单数据 (name, email, subject, message)
+  - isSubmitting: 提交状态
+  - submitStatus: 提交结果状态
+  - handleContactSubmit(): 表单提交处理函数

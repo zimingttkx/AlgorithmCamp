@@ -27,9 +27,36 @@
       </div>
     </section>
 
-    <!-- Mastered Tech Stack -->
+    <!-- Skill Tree -->
     <section class="section container reveal">
-      <div class="section-title">{{ t('技术栈', 'TECH STACK') }}</div>
+      <div class="section-title">{{ t('技能树', 'SKILL TREE') }}</div>
+      <div class="skill-tree-container">
+        <div class="skill-tree" ref="skillTreeRef">
+          <div v-for="(group, gIndex) in skillTreeData" :key="group.name" class="skill-branch" :style="{ '--branch-delay': gIndex * 0.15 + 's' }">
+            <div class="skill-branch-line"></div>
+            <div class="skill-branch-node" :style="{ '--node-color': group.color }">
+              <div class="skill-node-icon">{{ group.icon }}</div>
+              <div class="skill-node-label">{{ isZh ? group.name : group.nameEn }}</div>
+            </div>
+            <div class="skill-subnodes">
+              <div v-for="(skill, sIndex) in group.skills" :key="skill.name" class="skill-subnode" :style="{ '--sub-delay': (gIndex * 0.15 + sIndex * 0.08) + 's', '--sub-color': group.color }">
+                <div class="skill-subnode-dot"></div>
+                <div class="skill-subnode-content">
+                  <div class="skill-subnode-name">{{ skill.name }}</div>
+                  <div class="skill-subnode-bar">
+                    <div class="skill-subnode-fill" :style="{ '--fill-width': skill.level + '%', '--fill-color': group.color }"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Legacy Skills Grid -->
+    <section class="section container reveal">
+      <div class="section-title">{{ t('技术详情', 'TECH DETAILS') }}</div>
       <div class="skills-grid">
         <div v-for="group in masteredSkills" :key="group.name" class="skill-group pixel-card">
           <div class="skill-group-title" :style="{color:group.color,textShadow:'0 0 6px '+group.color}">
@@ -203,6 +230,75 @@
         </div>
       </div>
     </section>
+
+    <!-- Timeline -->
+    <section class="section container reveal">
+      <div class="section-title">{{ t('成长时间线', 'JOURNEY TIMELINE') }}</div>
+      <div class="timeline-container">
+        <div class="timeline-line"></div>
+        <div v-for="(event, index) in timelineEvents" :key="index" class="timeline-item" :class="{ 'timeline-item-right': index % 2 === 1 }" :style="{ '--item-delay': index * 0.2 + 's' }">
+          <div class="timeline-dot" :style="{ '--dot-color': event.color }"></div>
+          <div class="timeline-card pixel-card">
+            <div class="timeline-date" :style="{ color: event.color }">{{ event.date }}</div>
+            <div class="timeline-title">{{ isZh ? event.titleZh : event.title }}</div>
+            <div class="timeline-desc">{{ isZh ? event.descZh : event.desc }}</div>
+            <div class="timeline-tags">
+              <span v-for="tag in event.tags" :key="tag" class="pixel-tag-sm">{{ tag }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="section container reveal">
+      <div class="section-title">{{ t('联系我', 'CONTACT') }}</div>
+      <div class="contact-form-container pixel-card">
+        <form class="contact-form" @submit.prevent="handleContactSubmit">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="contact-name">{{ t('姓名', 'Name') }}</label>
+              <input type="text" id="contact-name" v-model="contactForm.name" class="form-input" :placeholder="t('你的名字', 'Your name')" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contact-email">{{ t('邮箱', 'Email') }}</label>
+              <input type="email" id="contact-email" v-model="contactForm.email" class="form-input" :placeholder="t('your@email.com', 'your@email.com')" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contact-subject">{{ t('主题', 'Subject') }}</label>
+            <input type="text" id="contact-subject" v-model="contactForm.subject" class="form-input" :placeholder="t('邮件主题', 'Message subject')" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contact-message">{{ t('消息', 'Message') }}</label>
+            <textarea id="contact-message" v-model="contactForm.message" class="form-textarea" :placeholder="t('输入你的消息...', 'Enter your message...')" rows="5" required></textarea>
+          </div>
+          <div class="form-footer">
+            <button type="submit" class="pixel-btn-submit" :class="{ 'btn-submitting': isSubmitting }">
+              <span v-if="!isSubmitting">{{ t('发送消息', 'SEND MESSAGE') }}</span>
+              <span v-else class="submitting-text">{{ t('发送中...', 'SENDING...') }}</span>
+            </button>
+            <div v-if="submitStatus" class="form-status" :class="{ 'status-success': submitStatus === 'success', 'status-error': submitStatus === 'error' }">
+              {{ submitStatus === 'success' ? (isZh ? '消息已发送！' : 'Message sent!') : (isZh ? '发送失败，请重试' : 'Failed to send. Please try again.') }}
+            </div>
+          </div>
+        </form>
+        <div class="contact-info">
+          <div class="contact-info-item">
+            <span class="contact-info-icon">◈</span>
+            <span class="contact-info-text">zimingttkx@github</span>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-icon">⚔</span>
+            <span class="contact-info-text">leetcode.cn/u/zimingttkx</span>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-icon">◆</span>
+            <span class="contact-info-text">{{ t('通常在24小时内回复', 'Usually replies within 24 hours') }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -248,6 +344,102 @@ const masteredSkills = [
       '多 Agent 协作系统与工具链集成',
     ]},
 ]
+
+// Skill Tree Data with levels
+const skillTreeData = [
+  { name: 'C++ / 系统编程', nameEn: 'C++ / Systems', icon: '◈', color: '#0EA5E9',
+    skills: [
+      { name: 'STL / Templates', level: 95 },
+      { name: 'Memory Management', level: 90 },
+      { name: 'Concurrency', level: 85 },
+    ]},
+  { name: '算法与数据结构', nameEn: 'Algorithms', icon: '⚔', color: '#00ffcc',
+    skills: [
+      { name: 'DP / Graph', level: 95 },
+      { name: 'Data Structures', level: 92 },
+      { name: 'Problem Solving', level: 88 },
+    ]},
+  { name: '机器学习', nameEn: 'ML / DL', icon: '◉', color: '#d040ff',
+    skills: [
+      { name: 'PyTorch', level: 85 },
+      { name: 'Neural Networks', level: 80 },
+      { name: 'ML Security', level: 88 },
+    ]},
+  { name: 'Python / 工程化', nameEn: 'Python', icon: '◆', color: '#f0c030',
+    skills: [
+      { name: 'Data Processing', level: 85 },
+      { name: 'Automation', level: 80 },
+      { name: 'DevOps', level: 75 },
+    ]},
+  { name: 'AI Agent', nameEn: 'AI Agent', icon: '⬡', color: '#ff2eb0',
+    skills: [
+      { name: 'LangChain', level: 82 },
+      { name: 'RAG / Tools', level: 80 },
+      { name: 'Multi-Agent', level: 75 },
+    ]},
+]
+
+// Timeline Events
+const timelineEvents = [
+  {
+    date: '2024',
+    title: 'Network Security Project',
+    titleZh: '网络安全项目启动',
+    desc: 'Launched ML/DL-based network security detection system',
+    descZh: '启动基于机器学习/深度学习的网络安全检测系统',
+    color: '#d040ff',
+    tags: ['Python', 'PyTorch', 'Security'],
+  },
+  {
+    date: '2024',
+    title: 'C++ From Scratch',
+    titleZh: 'C++ 从零实现',
+    desc: 'Started implementing STL components from scratch',
+    descZh: '开始从零实现 STL 标准库组件',
+    color: '#0EA5E9',
+    tags: ['C++', 'STL', 'Templates'],
+  },
+  {
+    date: '2023',
+    title: 'Algorithm Competition',
+    titleZh: '算法竞赛入门',
+    desc: 'Began competitive programming journey',
+    descZh: '开始算法竞赛之路',
+    color: '#00ffcc',
+    tags: ['LeetCode', 'Codeforces', 'Algorithms'],
+  },
+  {
+    date: '2022',
+    title: 'University Studies',
+    titleZh: '大学入学',
+    desc: 'Started undergraduate studies in mathematics',
+    descZh: '开始数学相关专业本科学习',
+    color: '#f0c030',
+    tags: ['Math', 'CS Foundation'],
+  },
+]
+
+// Contact Form
+const contactForm = ref({
+  name: '',
+  email: '',
+  subject: '',
+  message: '',
+})
+const isSubmitting = ref(false)
+const submitStatus = ref(null)
+
+function handleContactSubmit() {
+  isSubmitting.value = true
+  submitStatus.value = null
+  // Simulate form submission
+  setTimeout(() => {
+    isSubmitting.value = false
+    submitStatus.value = 'success'
+    contactForm.value = { name: '', email: '', subject: '', message: '' }
+    setTimeout(() => { submitStatus.value = null }, 3000)
+  }, 1500)
+}
 
 onMounted(() => {
   const obs = new IntersectionObserver((entries) => {
@@ -470,6 +662,376 @@ onMounted(() => {
   line-height: 1.7;
 }
 
+/* Skill Tree */
+.skill-tree-container {
+  padding: 20px 0;
+  overflow-x: auto;
+}
+.skill-tree {
+  display: flex;
+  gap: 40px;
+  padding: 20px;
+  min-width: max-content;
+}
+.skill-branch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: skillBranchIn 0.6s ease-out var(--branch-delay, 0s) both;
+}
+@keyframes skillBranchIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.skill-branch-line {
+  width: 2px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--node-color, var(--neon-cyan)), transparent);
+  margin-bottom: 8px;
+}
+.skill-branch-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.skill-branch-node::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  background: var(--node-color, var(--neon-cyan));
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+.skill-branch-node:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(var(--node-color, 0, 240, 255), 0.3);
+}
+.skill-branch-node:hover::before {
+  opacity: 0.1;
+}
+.skill-node-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 8px var(--node-color, var(--neon-cyan)));
+}
+.skill-node-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  white-space: nowrap;
+}
+.skill-subnodes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  padding-left: 24px;
+}
+.skill-subnode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: skillSubnodeIn 0.5s ease-out var(--sub-delay, 0s) both;
+}
+@keyframes skillSubnodeIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.skill-subnode-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sub-color, var(--neon-cyan));
+  box-shadow: 0 0 8px var(--sub-color, var(--neon-cyan));
+  flex-shrink: 0;
+  animation: skillDotPulse 2s ease-in-out infinite;
+}
+@keyframes skillDotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+}
+.skill-subnode-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+.skill-subnode-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.skill-subnode-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.skill-subnode-fill {
+  height: 100%;
+  width: var(--fill-width, 0%);
+  background: linear-gradient(90deg, var(--fill-color, var(--neon-cyan)), color-mix(in srgb, var(--fill-color, var(--neon-cyan)) 70%, white));
+  border-radius: 3px;
+  box-shadow: 0 0 8px var(--fill-color, var(--neon-cyan));
+  animation: skillFillIn 1s ease-out var(--sub-delay, 0s) both;
+}
+@keyframes skillFillIn {
+  from { width: 0; }
+  to { width: var(--fill-width, 0%); }
+}
+
+/* Timeline */
+.timeline-container {
+  position: relative;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.timeline-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--neon-cyan) 10%, var(--neon-purple) 50%, var(--neon-pink) 90%, transparent);
+  transform: translateX(-50%);
+}
+.timeline-item {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: calc(50% + 30px);
+  animation: timelineItemIn 0.6s ease-out var(--item-delay, 0s) both;
+}
+@keyframes timelineItemIn {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.timeline-item.timeline-item-right {
+  justify-content: flex-end;
+  padding-left: 0;
+  padding-right: calc(50% + 30px);
+  animation-name: timelineItemInRight;
+}
+@keyframes timelineItemInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.timeline-dot {
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--dot-color, var(--neon-cyan));
+  box-shadow: 0 0 16px var(--dot-color, var(--neon-cyan)), 0 0 32px var(--dot-color, var(--neon-cyan));
+  transform: translateX(-50%);
+  z-index: 2;
+  animation: timelineDotGlow 2s ease-in-out infinite;
+}
+@keyframes timelineDotGlow {
+  0%, 100% { box-shadow: 0 0 16px var(--dot-color), 0 0 32px var(--dot-color); }
+  50% { box-shadow: 0 0 24px var(--dot-color), 0 0 48px var(--dot-color); }
+}
+.timeline-card {
+  padding: 20px 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  max-width: 400px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.timeline-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+.timeline-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+.timeline-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.timeline-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.timeline-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pixel-tag-sm {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 4px;
+  color: var(--neon-cyan);
+}
+
+/* Contact Form */
+.contact-form-container {
+  padding: 32px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+}
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--neon-cyan);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.form-input,
+.form-textarea {
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+}
+.form-input:focus,
+.form-textarea:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.2);
+}
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--text-dim);
+}
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+.form-footer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.pixel-btn-submit {
+  padding: 14px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--bg-primary);
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3);
+}
+.pixel-btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(0, 240, 255, 0.4);
+}
+.pixel-btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+.pixel-btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.btn-submitting {
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+}
+.submitting-text {
+  animation: submitPulse 1s ease-in-out infinite;
+}
+@keyframes submitPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.form-status {
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+.status-success {
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+.status-error {
+  color: var(--neon-pink);
+  background: rgba(244, 114, 182, 0.1);
+  border: 1px solid rgba(244, 114, 182, 0.3);
+}
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.contact-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.contact-info-icon {
+  font-size: 1rem;
+  color: var(--neon-cyan);
+}
+.contact-info-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
 @media (max-width: 768px) {
   .about-hero-inner {
     flex-direction: column;
@@ -481,5 +1043,51 @@ onMounted(() => {
   .about-stats { justify-content: center; }
   .about-links { justify-content: center; }
   .skills-grid { grid-template-columns: 1fr; }
+  .skill-tree {
+    flex-direction: column;
+    gap: 30px;
+    align-items: flex-start;
+  }
+  .skill-branch {
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+  }
+  .skill-branch-line {
+    width: 40px;
+    height: 2px;
+    margin-bottom: 0;
+    margin-right: 8px;
+    background: linear-gradient(to right, transparent, var(--node-color, var(--neon-cyan)));
+  }
+  .skill-subnodes {
+    flex-direction: column;
+    margin-top: 0;
+    padding-left: 16px;
+  }
+  .timeline-container {
+    padding: 20px 10px;
+  }
+  .timeline-line {
+    left: 20px;
+  }
+  .timeline-item,
+  .timeline-item.timeline-item-right {
+    padding-left: 50px;
+    padding-right: 0;
+    justify-content: flex-start;
+  }
+  .timeline-dot {
+    left: 20px;
+  }
+  .timeline-card {
+    max-width: 100%;
+  }
+  .contact-form-container {
+    grid-template-columns: 1fr;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
