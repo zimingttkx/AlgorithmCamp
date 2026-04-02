@@ -116,7 +116,16 @@
   - 添加 Open Graph 标签：og:type, og:url, og:title, og:description, og:image
   - 添加 Twitter Card 标签：twitter:card, twitter:site, twitter:title, twitter:description
   - 添加 Google Fonts preconnect 优化连接
-- [ ] 所有动画流畅 (60fps)
+- [x] 所有动画流畅 (60fps)
+  - 移除所有动画关键帧中的 filter: blur() 使用（blur 是极其昂贵的操作）
+  - 优化 page transitions：移除 .page-enter-from/.page-leave-to 的 blur(4px)
+  - 优化 pixelate transitions：移除 blur(12px)/blur(8px)，改用纯 transform/opacity
+  - 优化 CRT transitions：移除 filter: brightness()，改用纯 transform/opacity
+  - 优化 modalBlurIn：移除 backdrop-filter: blur(12px)，改用 opacity
+  - 优化 modalPixelateIn：移除 filter: blur(8px)/blur(2px)
+  - 优化 pixelEntry/pixelExit：移除 filter blur 效果
+  - 优化 scroll-glow-trigger：移除 filter blur 改用 translateY/scale
+  - 所有动画现在使用 compositor-friendly 的 transform 和 opacity 属性
 - [ ] 暗色/亮色主题完美切换
 - [ ] 移动端动画性能优化
 - [ ] 像素风格统一且高级
