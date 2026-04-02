@@ -29,6 +29,15 @@ const COOKIE_OPTIONS = {
   path: '/'
 }
 
+// OAuth state cookie options (short-lived, for CSRF protection)
+const OAUTH_STATE_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 10 * 60 * 1000 // 10 minutes
+}
+
 // Helper to generate tokens
 function generateTokens(userId, username, clientId) {
   const accessToken = jwt.sign(
@@ -365,32 +374,92 @@ router.get('/github', (req, res) => {
   const scope = 'read:user'
 
   if (!clientId) {
+    console.error('[Auth] GitHub OAuth not configured: missing GITHUB_CLIENT_ID')
     return res.status(500).json({ error: 'GitHub OAuth not configured' })
   }
+
+  // Generate state parameter for CSRF protection
+  const state = crypto.randomBytes(32).toString('hex')
+
+  // Store state in cookie for validation on callback
+  res.cookie('oauth_state', state, OAUTH_STATE_COOKIE_OPTIONS)
+
+  // Store state in memory for validation (alternative: store in DB for stateless)
+  // Note: For stateless validation, we sign the state with a secret
+  const signedState = crypto
+    .createHmac('sha256', process.env.JWT_SECRET || 'default-secret')
+    .update(state + req.ip + (req.headers['user-agent'] || ''))
+    .digest('hex')
+
+  res.cookie('oauth_state_sig', signedState, OAUTH_STATE_COOKIE_OPTIONS)
 
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
     scope,
+    state,
   })
 
+  console.log(`[Auth] GitHub OAuth initiated from ${req.ip}, redirecting to GitHub`)
   res.redirect(`https://github.com/login/oauth/authorize?${params}`)
 })
 
 // GET /api/auth/github/callback - GitHub OAuth callback
 router.get('/github/callback', async (req, res) => {
-  const { code, error } = req.query
+  const { code, error, state } = req.query
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
 
+  // Log callback received
+  console.log(`[Auth] GitHub OAuth callback received from ${req.ip}`, {
+    hasCode: !!code,
+    hasError: !!error,
+    hasState: !!state,
+    userAgent: req.headers['user-agent']?.substring(0, 50)
+  })
+
+  // Handle user denial or error from GitHub
   if (error) {
-    console.error('[Auth] GitHub OAuth error:', error)
-    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/#/login?error=github_denied`)
+    console.error('[Auth] GitHub OAuth error from provider:', error)
+    return res.redirect(`${frontendUrl}/#/login?error=github_denied&reason=${encodeURIComponent(error)}`)
   }
 
   if (!code) {
-    return res.status(400).json({ error: 'missing code' })
+    console.error('[Auth] GitHub OAuth callback missing code')
+    return res.redirect(`${frontendUrl}/#/login?error=missing_code`)
+  }
+
+  // Validate state parameter for CSRF protection
+  const storedState = req.cookies?.oauth_state
+  const storedStateSig = req.cookies?.oauth_state_sig
+
+  // Clear state cookies immediately (one-time use)
+  res.clearCookie('oauth_state', OAUTH_STATE_COOKIE_OPTIONS)
+  res.clearCookie('oauth_state_sig', OAUTH_STATE_COOKIE_OPTIONS)
+
+  if (!state || !storedState || state !== storedState) {
+    console.error('[Auth] GitHub OAuth CSRF validation failed: state mismatch', {
+      receivedState: state?.substring(0, 8),
+      storedState: storedState?.substring(0, 8),
+      match: state === storedState
+    })
+    return res.redirect(`${frontendUrl}/#/login?error=csrf_failed`)
+  }
+
+  // Verify signed state to prevent tampering
+  const expectedSig = crypto
+    .createHmac('sha256', process.env.JWT_SECRET || 'default-secret')
+    .update(storedState + req.ip + (req.headers['user-agent'] || ''))
+    .digest('hex')
+
+  if (!storedStateSig || storedStateSig !== expectedSig) {
+    console.error('[Auth] GitHub OAuth CSRF validation failed: signature mismatch')
+    return res.redirect(`${frontendUrl}/#/login?error=csrf_failed`)
   }
 
   try {
+    // Log token exchange attempt
+    console.log('[Auth] Exchanging code for GitHub access token')
+
     // Exchange code for access token
     const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
@@ -407,10 +476,12 @@ router.get('/github/callback', async (req, res) => {
 
     const tokenData = await tokenRes.json()
     if (tokenData.error) {
+      console.error('[Auth] GitHub token exchange error:', tokenData.error_description || tokenData.error)
       throw new Error(tokenData.error_description || tokenData.error)
     }
 
     const accessToken = tokenData.access_token
+    console.log('[Auth] Successfully obtained GitHub access token')
 
     // Get GitHub user info
     const userRes = await fetch('https://api.github.com/user', {
@@ -421,6 +492,13 @@ router.get('/github/callback', async (req, res) => {
     })
 
     const githubUser = await userRes.json()
+
+    if (!githubUser.id) {
+      console.error('[Auth] GitHub user info missing ID')
+      throw new Error('Failed to retrieve GitHub user information')
+    }
+
+    console.log(`[Auth] GitHub user identified: ${githubUser.login} (ID: ${githubUser.id})`)
 
     // Find or create user by github_id
     let user = await db.get('SELECT * FROM users WHERE github_id = $1', [githubUser.id])
@@ -435,6 +513,7 @@ router.get('/github/callback', async (req, res) => {
           'UPDATE users SET github_id = $1, avatar_url = $2 WHERE id = $3',
           [githubUser.id, githubUser.avatar_url, user.id]
         )
+        console.log(`[Auth] Linked existing user ${user.username} to GitHub ID ${githubUser.id}`)
       } else {
         // Create new user
         const clientId = 'dev-' + crypto.randomBytes(4).toString('hex')
@@ -459,6 +538,7 @@ router.get('/github/callback', async (req, res) => {
         )
 
         user = await db.get('SELECT * FROM users WHERE id = $1', [userId])
+        console.log(`[Auth] Created new user ${user.username} via GitHub OAuth`)
       }
     } else {
       // Update avatar if changed
@@ -495,11 +575,12 @@ router.get('/github/callback', async (req, res) => {
     res.cookie('accessToken', newAccessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 })
     res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 })
 
+    console.log(`[Auth] GitHub OAuth login successful for user ${user.username}`)
     // Redirect to frontend
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/#/practice?login=success`)
+    res.redirect(`${frontendUrl}/#/practice?login=success`)
   } catch (e) {
-    console.error('[Auth] GitHub callback error:', e)
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/#/login?error=oauth_failed`)
+    console.error('[Auth] GitHub OAuth callback error:', e.message, e.stack)
+    res.redirect(`${frontendUrl}/#/login?error=oauth_failed&reason=${encodeURIComponent(e.message)}`)
   }
 })
 
