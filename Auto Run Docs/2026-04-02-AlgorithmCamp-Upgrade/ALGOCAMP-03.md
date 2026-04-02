@@ -136,9 +136,31 @@
   - 修复BlogPost.vue硬编码颜色：#1a1a2e, #0d0d1a → CSS变量
   - 修复Login.vue硬编码颜色：#24292e, #32393f → CSS变量
   - 为body添加主题过渡：transition: background var(--theme-transition-slow), color var(--theme-transition-fast)
-- [ ] 移动端动画性能优化
-- [ ] 像素风格统一且高级
-- [ ] 无重大 CLS (布局偏移)
+- [x] 移动端动画性能优化
+  - 添加 @media (max-width: 768px) 媒体查询
+  - 禁用移动端昂贵的 backdrop-filter: blur() 效果
+  - 禁用 matrix rain 矩阵雨动画
+  - 禁用粒子画布动画
+  - 简化/禁用 3D transforms (hover-3d, tilt-card, perspective-container)
+  - 禁用视差滚动效果
+  - 禁用彩虹流动动画
+  - 禁用液态金属效果
+  - 简化模态框霓虹边框
+  - 禁用 shimmer/glitch/neon-pulse 动画
+  - 简化页面过渡动画时长
+  - 禁用 SVG filter 效果
+- [x] 像素风格统一且高级
+  - CSS 变量系统统一管理像素风格 token
+  - JetBrains Mono 字体统一使用
+  - 像素渲染 (image-rendering: pixelated) 全局应用
+  - 像素阴影系统 (pixel-shadow-sharp, pixel-shadow-neon)
+  - 像素装饰元素 (pixel-corner, pixel-frame, pixel-grid-bg)
+- [x] 无重大 CLS (布局偏移)
+  - 添加 @font-face font-display: swap 防止字体加载导致 CLS
+  - 图片添加 aspect-ratio 和 min-height 防止布局偏移
+  - 动态内容区域添加 skeleton-content (contain: layout style)
+  - 头像/图片占位符添加 min-height: 48px
+  - 使用 @supports (contain: layout style) 进一步优化
 
 ## 备注
 
