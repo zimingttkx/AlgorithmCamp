@@ -37,12 +37,18 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        // Cache cleanup - remove old caches automatically
+        cleanupOutdatedCaches: true,
+        // Skip waiting to activate new service worker immediately
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
+          // Google Fonts stylesheets - StaleWhileRevalidate for timely updates
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'google-fonts-cache',
+              cacheName: 'google-fonts-stylesheets',
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
@@ -52,13 +58,14 @@ export default defineConfig({
               }
             }
           },
+          // Google Fonts webfonts - CacheFirst with long expiration
           {
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'gstatic-fonts-cache',
+              cacheName: 'google-fonts-webfonts',
               expiration: {
-                maxEntries: 10,
+                maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
               },
               cacheableResponse: {
@@ -66,6 +73,7 @@ export default defineConfig({
               }
             }
           },
+          // GitHub images - CacheFirst with moderate expiration
           {
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/.*/i,
             handler: 'CacheFirst',
@@ -74,6 +82,53 @@ export default defineConfig({
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          // GitHub API responses - NetworkFirst with fallback
+          {
+            urlPattern: /^https:\/\/api\.github\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'github-api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              },
+              networkTimeoutSeconds: 10,
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          // LeetCode API - NetworkFirst with short cache
+          {
+            urlPattern: /^https:\/\/leetcode\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'leetcode-api-cache',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 // 1 hour
+              },
+              networkTimeoutSeconds: 10,
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          // Local stats.json - StaleWhileRevalidate for near-real-time updates
+          {
+            urlPattern: /\/stats\.json$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'stats-cache',
+              expiration: {
+                maxEntries: 5,
+                maxAgeSeconds: 60 * 5 // 5 minutes
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -127,6 +182,16 @@ export default defineConfig({
           }
         }
       }
+    }
+  },
+  // HTTP cache control headers for production
+  preview: {
+    headers: {
+      // Strong cache for static assets with content hashing
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      // Allow cross-origin requests for fonts and CDNs
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp'
     }
   }
 })
