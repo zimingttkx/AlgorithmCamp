@@ -10,7 +10,7 @@
   - 定义统一的间距、圆角、阴影规范
   - 建立组件库设计 token
 
-- [ ] 2. 高级霓虹色彩系统
+- [x] 2. 高级霓虹色彩系统
   - 主色：`#00f0ff` (青色霓虹)
   - 辅色：`#ff00aa` (品红霓虹)
   - 点缀色：`#f0ff00` (黄绿霓虹)
@@ -140,3 +140,58 @@
 - [x] 无障碍性增强
   - `@media (prefers-reduced-motion: reduce)` 支持
   - 所有动画都有对应的reduce motion处理
+
+### Task 2: 高级霓虹色彩系统 (已完成 - 2026-04-02)
+- [x] 主色系统 `#00f0ff` (青色霓虹)
+  - `--neon-primary`: #00f0ff
+  - `--neon-primary-rgb`: 0, 240, 255
+  - `--glow-primary`: rgba(0, 240, 255, 0.5)
+  - `--glow-primary-soft`: rgba(0, 240, 255, 0.25)
+  - `--shadow-neon-primary`: 0 0 20px glow + 0 0 40px soft
+
+- [x] 辅色系统 `#ff00aa` (品红霓虹)
+  - `--neon-secondary`: #ff00aa
+  - `--neon-secondary-rgb`: 255, 0, 170
+  - `--glow-secondary`: rgba(255, 0, 170, 0.5)
+  - `--glow-secondary-soft`: rgba(255, 0, 170, 0.25)
+  - `--shadow-neon-secondary`: 0 0 20px glow + 0 0 40px soft
+
+- [x] 点缀色系统 `#f0ff00` (黄绿霓虹)
+  - `--neon-accent`: #f0ff00
+  - `--neon-accent-rgb`: 240, 255, 0
+  - `--glow-accent`: rgba(240, 255, 0, 0.5)
+  - `--glow-accent-soft`: rgba(240, 255, 0, 0.25)
+  - `--shadow-neon-accent`: 0 0 20px glow + 0 0 40px soft
+
+- [x] 彩虹渐变系统
+  - `--rainbow-gradient`: linear-gradient(90deg, primary→secondary→accent→primary)
+  - `--rainbow-gradient-45`: 45度角彩虹渐变
+  - `.rainbow-text`: 彩虹流动文字效果
+  - `.rainbow-border`: 彩虹边框动画
+  - `.pixel-progress-rainbow`: 彩虹进度条
+
+- [x] 主题过渡优化
+  - `--theme-transition`: 0.4s (标准过渡)
+  - `--theme-transition-fast`: 0.2s (快速过渡)
+  - `--theme-transition-slow`: 0.6s (慢速过渡)
+  - 所有颜色相关属性应用过渡动画
+  - scrollbar支持主题过渡
+
+- [x] 新增CSS类
+  - `.glow-neon-primary/secondary/accent`: 霓虹发光文字
+  - `.neon-border-primary/secondary/accent`: 霓虹边框
+  - `.pixel-btn-primary/secondary/accent`: 霓虹按钮
+  - `.pixel-btn-rainbow`: 彩虹动画按钮
+
+- [x] 动画Keyframes
+  - `rainbowFlow`: 彩虹流动动画
+  - `rainbowFlow45`: 45度彩虹流动
+  - `rainbowBorder`: 彩虹边框变色
+  - `rainbowText`: 彩虹文字变色
+  - `rainbowGlow`: 彩虹光晕脉动
+  - `neonPulseSecondary/Accent`: 次要/点缀色脉冲
+
+- [x] 无障碍性增强
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+  - 彩虹动画禁用，替换为静态颜色
+
