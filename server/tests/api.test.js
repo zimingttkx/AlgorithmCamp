@@ -292,6 +292,20 @@ async function testProgress() {
   res = await apiRequest('POST', '/api/progress/sync', { items: 'not-an-array' }, auth)
   console.assert(res.status === 400, `Expected 400, got ${res.status}`)
   console.log('  ✓ Sync validation passed')
+
+  // Test 15: LeetCode import without username
+  console.log('Test: LeetCode import without username...')
+  res = await apiRequest('GET', '/api/progress/import', null, auth)
+  console.assert(res.status === 400, `Expected 400, got ${res.status}`)
+  console.assert(res.data.error.includes('username'), 'Should require username')
+  console.log('  ✓ Import without username rejected')
+
+  // Test 16: LeetCode import with invalid username format
+  console.log('Test: LeetCode import with invalid username format...')
+  res = await apiRequest('GET', '/api/progress/import?username=<script>', null, auth)
+  console.assert(res.status === 400, `Expected 400, got ${res.status}`)
+  console.assert(res.data.error.includes('invalid'), 'Should reject invalid format')
+  console.log('  ✓ Import with invalid username format rejected')
 }
 
 // ============ STATS TESTS ============

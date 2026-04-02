@@ -4,10 +4,142 @@
  */
 
 const express = require('express')
+const fetch = require('node-fetch')
+const path = require('path')
+const fs = require('fs')
+
 const db = require('../db')
 const { authMiddleware } = require('../middleware/auth')
 
 const router = express.Router()
+
+// Load slug_map for LeetCode problem mapping
+let slugMap = null
+function getSlugMap() {
+  if (!slugMap) {
+    try {
+      const slugMapPath = path.join(__dirname, '../../slug_map.json')
+      slugMap = JSON.parse(fs.readFileSync(slugMapPath, 'utf-8'))
+    } catch (e) {
+      console.error('[Progress] Failed to load slug_map.json:', e.message)
+      slugMap = {}
+    }
+  }
+  return slugMap
+}
+
+// Reverse slug_map: titleSlug -> problemId
+let reverseSlugMap = null
+function getReverseSlugMap() {
+  if (!reverseSlugMap) {
+    const sm = getSlugMap()
+    reverseSlugMap = {}
+    for (const [key, value] of Object.entries(sm)) {
+      reverseSlugMap[value] = key
+    }
+  }
+  return reverseSlugMap
+}
+
+// LeetCode API rate limiting
+const LEETCODE_RATE_LIMIT_DELAY = 1000 // 1 second between requests
+let lastLeetCodeRequest = 0
+
+async function rateLimitedFetch(url, options) {
+  const now = Date.now()
+  const elapsed = now - lastLeetCodeRequest
+  if (elapsed < LEETCODE_RATE_LIMIT_DELAY) {
+    await new Promise(resolve => setTimeout(resolve, LEETCODE_RATE_LIMIT_DELAY - elapsed))
+  }
+  lastLeetCodeRequest = Date.now()
+  return fetch(url, options)
+}
+
+// LeetCode GraphQL queries
+const LEETCODE_SUBMISSION_QUERY = `
+query userAcSolutionList($username: String!, $limit: Int!, $lastKey: String) {
+  acSubmissionList(username: $username, limit: $limit, lastKey: $lastKey) {
+    lastKey
+    submissions {
+      submitTimestamp
+      id
+      problem {
+        title
+        titleSlug
+        questionId
+      }
+    }
+  }
+}
+`
+
+// Fetch all LeetCode submissions for a user with pagination
+async function fetchLeetCodeSubmissions(username, limit = 100) {
+  const allSubmissions = []
+  let lastKey = null
+  const maxPages = 100 // Safety limit to prevent infinite loops
+  let page = 0
+
+  while (page < maxPages) {
+    const variables = { username, limit, lastKey }
+    const response = await rateLimitedFetch('https://leetcode.com/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; AlgorithmCamp/1.0)'
+      },
+      body: JSON.stringify({
+        query: LEETCODE_SUBMISSION_QUERY,
+        variables
+      })
+    })
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        // Rate limited - wait and retry
+        console.log('[Progress] LeetCode rate limited, waiting 5 seconds...')
+        await new Promise(resolve => setTimeout(resolve, 5000))
+        continue
+      }
+      throw new Error(`LeetCode API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (data.errors) {
+      throw new Error(`LeetCode GraphQL error: ${data.errors[0]?.message || 'Unknown error'}`)
+    }
+
+    const { lastKey: newLastKey, submissions } = data.data?.acSubmissionList || {}
+
+    if (!submissions || submissions.length === 0) {
+      break
+    }
+
+    // Deduplicate by problem titleSlug (keep most recent)
+    for (const sub of submissions) {
+      const existing = allSubmissions.find(s => s.problem.titleSlug === sub.problem.titleSlug)
+      if (!existing || sub.submitTimestamp > existing.submitTimestamp) {
+        if (existing) {
+          allSubmissions.splice(allSubmissions.indexOf(existing), 1)
+        }
+        allSubmissions.push(sub)
+      }
+    }
+
+    if (!newLastKey) {
+      break
+    }
+
+    lastKey = newLastKey
+    page++
+
+    // Small delay between pages to be respectful
+    await new Promise(resolve => setTimeout(resolve, 200))
+  }
+
+  return allSubmissions
+}
 
 router.use(authMiddleware)
 
@@ -357,6 +489,157 @@ router.get('/stats', async (req, res) => {
   } catch (e) {
     console.error('[Progress] Stats error:', e)
     res.status(500).json({ error: 'failed to get stats' })
+  }
+})
+
+// GET /api/progress/import - Import LeetCode progress
+router.get('/import', async (req, res) => {
+  const { username } = req.query
+
+  if (!username || typeof username !== 'string') {
+    return res.status(400).json({ error: 'LeetCode username is required' })
+  }
+
+  // Validate username format (basic XSS prevention)
+  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+    return res.status(400).json({ error: 'invalid LeetCode username format' })
+  }
+
+  try {
+    console.log(`[Progress] Starting LeetCode import for user: ${username}`)
+
+    // Fetch submissions from LeetCode
+    const submissions = await fetchLeetCodeSubmissions(username, 100)
+
+    if (!submissions || submissions.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No submissions found or user not found',
+        imported: 0,
+        skipped: 0,
+        notFound: []
+      })
+    }
+
+    // Get the reverse slug map for mapping titleSlug to problemId
+    const reverseMap = getReverseSlugMap()
+
+    // Get all chapters to build problem-to-chapter mapping
+    const chapters = await db.all('SELECT id, title FROM chapters')
+    const chapterMap = {}
+    for (const ch of chapters) {
+      chapterMap[ch.id] = ch.title
+    }
+
+    // Map LeetCode submissions to our progress format
+    // Each submission has: problem.titleSlug, problem.questionId
+    const progressToImport = []
+
+    for (const sub of submissions) {
+      const { titleSlug, questionId } = sub.problem
+
+      // Try to find the problem in our slug_map
+      // The slug_map maps questionId (string) to titleSlug
+      // But we need to map titleSlug back to questionId
+      let problemId = reverseMap[titleSlug]
+
+      if (!problemId) {
+        // Try using questionId directly
+        problemId = questionId
+      }
+
+      if (!problemId) {
+        continue
+      }
+
+      // For now, we mark all LeetCode submissions as "completed" in chapter-01
+      // The actual chapter mapping would require a more detailed mapping table
+      // This is a simplified version - in production, you'd have a proper
+      // problem-to-chapter mapping database
+      progressToImport.push({
+        chapterId: 'chapter-01', // Default chapter - actual mapping requires additional data
+        problemId: String(problemId),
+        checked: true,
+        titleSlug,
+        submitTimestamp: sub.submitTimestamp
+      })
+    }
+
+    // Bulk insert progress
+    const settings = await db.get('SELECT client_id FROM user_settings WHERE user_id = $1', [req.userId])
+    const clientId = settings?.client_id || req.clientId || 'leetcode-import'
+
+    const client = await db.getClient()
+    let imported = 0
+    let skipped = 0
+
+    try {
+      await client.query('BEGIN')
+
+      for (const item of progressToImport) {
+        // Check if already exists and is checked
+        const existing = await client.query(
+          'SELECT checked, checked_at FROM progress WHERE user_id = $1 AND chapter_id = $2 AND problem_id = $3',
+          [req.userId, item.chapterId, item.problemId]
+        )
+
+        if (existing.rows.length > 0) {
+          if (!existing.rows[0].checked) {
+            // Update to checked
+            await client.query(
+              'UPDATE progress SET checked = TRUE, checked_at = to_timestamp($1) WHERE user_id = $2 AND chapter_id = $3 AND problem_id = $4',
+              [item.submitTimestamp / 1000, req.userId, item.chapterId, item.problemId]
+            )
+            imported++
+          } else {
+            skipped++
+          }
+        } else {
+          // Insert new
+          await client.query(
+            'INSERT INTO progress (user_id, chapter_id, problem_id, checked, checked_at) VALUES ($1, $2, $3, TRUE, to_timestamp($4))',
+            [req.userId, item.chapterId, item.problemId, item.submitTimestamp / 1000]
+          )
+          imported++
+        }
+
+        // Record in history
+        await client.query(
+          'INSERT INTO progress_history (user_id, chapter_id, problem_id, checked, client_id) VALUES ($1, $2, $3, TRUE, $4)',
+          [req.userId, item.chapterId, item.problemId, clientId]
+        )
+      }
+
+      await client.query('COMMIT')
+
+      console.log(`[Progress] LeetCode import completed for ${username}: ${imported} imported, ${skipped} skipped`)
+
+      res.json({
+        success: true,
+        message: `Imported ${imported} problems from LeetCode`,
+        imported,
+        skipped,
+        notFound: submissions.length - progressToImport.length,
+        totalLeetCodeSolved: submissions.length
+      })
+    } catch (e) {
+      await client.query('ROLLBACK')
+      throw e
+    } finally {
+      client.release()
+    }
+  } catch (e) {
+    console.error('[Progress] LeetCode import error:', e.message)
+
+    if (e.message.includes('LeetCode API error: 404') || e.message.includes('user not found')) {
+      return res.status(404).json({ error: 'LeetCode user not found' })
+    }
+
+    if (e.message.includes('rate limited')) {
+      return res.status(429).json({ error: 'LeetCode API rate limited, please try again later' })
+    }
+
+    res.status(500).json({ error: 'failed to import from LeetCode: ' + e.message })
   }
 })
 
