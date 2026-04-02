@@ -430,12 +430,12 @@ onMounted(() => {
   text-align: center;
   border: 2px solid;
   transition: all 0.2s;
-  background: rgba(15,23,42,0.6) !important;
+  background: var(--sp-card-bg) !important;
 }
 .sp-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(14,165,233,0.3);
-  background: rgba(15,23,42,0.8) !important;
+  background: var(--sp-card-bg-hover) !important;
 }
 .sp-card-num {
   font-size: 0.75rem;
@@ -473,7 +473,7 @@ onMounted(() => {
   overflow-y: auto;
   padding: 20px 24px;
   backdrop-filter: blur(20px);
-  background: rgba(10,14,26,0.92) !important;
+  background: var(--prob-panel-bg) !important;
   border: 1px solid rgba(14,165,233,0.25) !important;
   border-radius: 10px !important;
 }
@@ -541,7 +541,7 @@ onMounted(() => {
 .pp-slide-enter-from { transform: translateX(-50%) translateY(30px); opacity: 0; }
 .pp-slide-leave-to   { transform: translateX(-50%) translateY(30px); opacity: 0; }
 
-.worldmap-fallback { padding: 40px 0 60px; background: #0a0e1a; }
+.worldmap-fallback { padding: 40px 0 60px; background: var(--map-bg); }
 .map-header { padding-bottom: 20px; }
 .map-subtitle { color: var(--text-dim, #94A3B8); font-size: 0.9rem; }
 .fallback-grid {
@@ -555,7 +555,7 @@ onMounted(() => {
   text-align: center;
   border: 2px solid;
   transition: transform 0.2s, box-shadow 0.2s;
-  background: rgba(10,14,26,0.7) !important;
+  background: var(--fallback-cell-bg) !important;
 }
 .fallback-cell:hover { transform: translateY(-3px); box-shadow: 0 0 16px rgba(14,165,233,0.2); }
 .fallback-cell.locked { cursor: not-allowed; opacity: 0.5; }

@@ -119,8 +119,8 @@ onUnmounted(() => {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 9999;
-  background: rgba(15, 23, 42, 0.75);
-  border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+  background: var(--navbar-bg);
+  border-bottom: 1px solid var(--navbar-border);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3),
               inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(20px) saturate(180%);
@@ -131,8 +131,8 @@ onUnmounted(() => {
               box-shadow 0.3s;
 }
 .navbar.scrolled {
-  background: rgba(15, 23, 42, 0.9);
-  border-bottom-color: rgba(0, 243, 255, 0.2);
+  background: var(--navbar-bg-scrolled);
+  border-bottom-color: var(--navbar-border-scrolled);
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4),
               inset 0 1px 0 rgba(255, 255, 255, 0.08),
               0 0 30px rgba(0, 243, 255, 0.05);
@@ -462,10 +462,10 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 2px;
   padding: 0 24px;
-  background: rgba(15, 23, 42, 0.95);
+  background: var(--navbar-mobile-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(0, 243, 255, 0.1);
+  border-top: 1px solid var(--navbar-border);
   transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s;
 }
 .nav-mobile-menu.open {

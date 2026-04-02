@@ -260,7 +260,7 @@ watch(() => route.params.id, id => loadPost(id))
 
 .post-content :deep(code) {
   font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
-  background: #1a1a2e;
+  background: var(--post-code-bg);
   padding: 2px 6px;
   border: 1px solid var(--border-pixel);
   font-size: 0.9em;
@@ -274,7 +274,7 @@ watch(() => route.params.id, id => loadPost(id))
 }
 
 .post-content :deep(pre) {
-  background: #0d0d1a;
+  background: var(--post-pre-bg);
   border: 2px solid var(--border-pixel);
   padding: 16px;
   overflow-x: auto;

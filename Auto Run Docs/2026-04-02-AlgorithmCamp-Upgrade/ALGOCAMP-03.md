@@ -126,7 +126,16 @@
   - 优化 pixelEntry/pixelExit：移除 filter blur 效果
   - 优化 scroll-glow-trigger：移除 filter blur 改用 translateY/scale
   - 所有动画现在使用 compositor-friendly 的 transform 和 opacity 属性
-- [ ] 暗色/亮色主题完美切换
+- [x] 暗色/亮色主题完美切换
+  - 添加CSS变量：--navbar-bg, --navbar-bg-scrolled, --navbar-mobile-bg, --navbar-border, --navbar-border-scrolled
+  - 添加CSS变量：--map-bg, --map-stroke, --map-locked, --map-locked-stroke
+  - 添加CSS变量：--sp-card-bg, --sp-card-bg-hover, --prob-panel-bg, --fallback-cell-bg
+  - 添加CSS变量：--post-code-bg, --post-pre-bg, --login-btn-bg, --login-btn-hover
+  - 修复NavBar.vue硬编码颜色：rgba(15,23,42,...) → CSS变量
+  - 修复PracticeMap3D.vue硬编码颜色：rgba(15,23,42,...) 和 #0a0e1a → CSS变量
+  - 修复BlogPost.vue硬编码颜色：#1a1a2e, #0d0d1a → CSS变量
+  - 修复Login.vue硬编码颜色：#24292e, #32393f → CSS变量
+  - 为body添加主题过渡：transition: background var(--theme-transition-slow), color var(--theme-transition-fast)
 - [ ] 移动端动画性能优化
 - [ ] 像素风格统一且高级
 - [ ] 无重大 CLS (布局偏移)

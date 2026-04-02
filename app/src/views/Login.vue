@@ -444,13 +444,13 @@ async function handleRegister() {
 
 /* GitHub Button */
 .btn-github {
-  background: #24292e;
+  background: var(--login-btn-bg);
   color: white;
   border: 1px solid rgba(255,255,255,0.1);
 }
 
 .btn-github:hover {
-  background: #32393f;
+  background: var(--login-btn-hover);
   border-color: rgba(255,255,255,0.2);
 }
 
