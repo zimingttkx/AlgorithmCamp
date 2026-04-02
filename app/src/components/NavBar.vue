@@ -65,12 +65,14 @@ const scrollProgress = ref(0)
 const navItems = computed(() => isZh.value ? [
   { path: '/',         label: '首页' },
   { path: '/practice', label: '刷题' },
+  { path: '/progress', label: '进度' },
   { path: '/recommend', label: '推荐' },
   { path: '/blog',     label: '分享' },
   { path: '/about',    label: '关于' },
 ] : [
   { path: '/',         label: 'HOME' },
   { path: '/practice', label: 'PRACTICE' },
+  { path: '/progress', label: 'PROGRESS' },
   { path: '/recommend', label: 'RECOMMEND' },
   { path: '/blog',     label: 'SHARE' },
   { path: '/about',    label: 'ABOUT' },
