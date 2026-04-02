@@ -461,6 +461,7 @@ const { reviews: reviewData, isDueForReview, getMasteryLevel, getMasteryLabel } 
 // Search filter state
 const {
   searchQuery,
+  debouncedSearchQuery,
   difficultyFilter,
   statusFilter,
   chapterFilter,
@@ -471,6 +472,8 @@ const {
 
 const filteredSections = computed(() => {
   if (!currentChapter.value || !sections.value) return []
+  // Access debouncedSearchQuery to establish reactivity dependency
+  const _ = debouncedSearchQuery.value
   return filterChapterProblems(
     currentChapter.value.id,
     sections.value,

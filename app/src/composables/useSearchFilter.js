@@ -3,7 +3,7 @@
  * Provides search and filter functionality for problems
  */
 
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { CHAPTERS } from './data.js'
 
 const DIFFICULTY_LEVELS = {
@@ -20,12 +20,49 @@ const STATUS_FILTERS = {
   REVIEW: 'review'              // 复习中
 }
 
+// Debounce utility
+function debounce(fn, delay) {
+  let timer = null
+  return function (...args) {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => fn.apply(this, args), delay)
+  }
+}
+
 export function useSearchFilter() {
   // Search and filter state
   const searchQuery = ref('')
+  const debouncedSearchQuery = ref('')
   const difficultyFilter = ref(DIFFICULTY_LEVELS.NONE)
   const statusFilter = ref(STATUS_FILTERS.ALL)
   const chapterFilter = ref(null) // null means all chapters
+
+  // Debounce the search query (150ms delay for < 100ms response)
+  let debounceTimer = null
+  watch(searchQuery, (newVal) => {
+    if (debounceTimer) clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => {
+      debouncedSearchQuery.value = newVal
+    }, 150)
+  })
+
+  // Cache for filtered results
+  let cachedMdCache = null
+  let cachedProgress = null
+  let cachedReviews = null
+  let cachedResult = null
+  let cacheKey = ''
+
+  /**
+   * Generate cache key from current filter state
+   */
+  function getCacheKey(query, diff, status, chapter, mdCache, progress, reviews) {
+    // Use JSON.stringify with selected fields for a quick cache key
+    const progressKeys = progress ? Object.keys(progress).sort().join(',') : ''
+    const reviewKeys = reviews ? Object.keys(reviews).sort().join(',') : ''
+    const mdCacheKeys = mdCache ? Object.keys(mdCache).sort().join(',') : ''
+    return `${query}|${diff}|${status}|${chapter}|${progressKeys}|${reviewKeys}|${mdCacheKeys}`
+  }
 
   /**
    * Get difficulty level from rating string
@@ -104,18 +141,32 @@ export function useSearchFilter() {
    * @returns {array} - Filtered problems with chapter info
    */
   function filterProblems(mdCache, progress, reviews) {
-    const results = []
-    const query = searchQuery.value.trim().toLowerCase()
+    const query = debouncedSearchQuery.value.trim().toLowerCase()
     const diffFilter = difficultyFilter.value
     const statFilter = statusFilter.value
     const chFilter = chapterFilter.value
 
-    for (const chapter of CHAPTERS) {
-      const sections = mdCache[chapter.id]
-      if (!sections) continue
+    // Check cache validity
+    const newCacheKey = getCacheKey(query, diffFilter, statFilter, chFilter, mdCache, progress, reviews)
+    if (cacheKey === newCacheKey && cachedResult !== null) {
+      return cachedResult
+    }
+    cacheKey = newCacheKey
 
+    const results = []
+
+    // Early return if no filters active - return empty array (caller should handle this)
+    if (!query && diffFilter === DIFFICULTY_LEVELS.NONE && statFilter === STATUS_FILTERS.ALL && !chFilter) {
+      cachedResult = results
+      return results
+    }
+
+    for (const chapter of CHAPTERS) {
       // Skip if chapter filter is set and doesn't match
       if (!matchesChapter(chapter.id, chFilter)) continue
+
+      const sections = mdCache[chapter.id]
+      if (!sections) continue
 
       for (const section of sections) {
         for (const problem of section.rows) {
@@ -139,6 +190,7 @@ export function useSearchFilter() {
       }
     }
 
+    cachedResult = results
     return results
   }
 
@@ -153,7 +205,7 @@ export function useSearchFilter() {
   function filterChapterProblems(chapterId, sections, progress, reviews) {
     if (!sections) return []
 
-    const query = searchQuery.value.trim().toLowerCase()
+    const query = debouncedSearchQuery.value.trim().toLowerCase()
     const diffFilter = difficultyFilter.value
     const statFilter = statusFilter.value
 
@@ -221,6 +273,7 @@ export function useSearchFilter() {
   return {
     // State
     searchQuery,
+    debouncedSearchQuery,
     difficultyFilter,
     statusFilter,
     chapterFilter,

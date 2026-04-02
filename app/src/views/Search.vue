@@ -99,8 +99,10 @@ const { reviews: reviewData, isDueForReview } = useReviewReminder()
 // Search filter
 const {
   searchQuery,
+  debouncedSearchQuery,
   difficultyFilter,
   statusFilter,
+  chapterFilter,
   filterProblems,
   hasActiveFilters,
   resetFilters
@@ -169,7 +171,10 @@ function parseMdTables(md) {
 }
 
 // Filtered problems across all chapters
+// Use debouncedSearchQuery for proper reactivity after debounce delay
 const filteredProblems = computed(() => {
+  // Access debouncedSearchQuery to establish reactivity dependency
+  const _ = debouncedSearchQuery.value
   return filterProblems(mdCache.value, progress.value, reviewData.value)
 })
 
