@@ -2,7 +2,27 @@
    MINECRAFT PIXEL ART - Algorithm Camp
    ======================================== */
 
+/* JetBrains Mono - Premium Pixel Font */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 :root {
+  /* Pixel Font Stack */
+  --pixel-font: 'JetBrains Mono', 'Courier New', Courier, monospace;
+  --pixel-font-weight: 700;
+  --pixel-font-size-base: 16px;
+
+  /* Pixel Rendering */
+  --pixel-sharp: 1px solid;
+  --pixel-blur: 0px;
+
+  /* Pixel Decorative Elements */
+  --pixel-corner-size: 8px;
+  --pixel-pattern-color: rgba(0, 240, 255, 0.05);
+  --pixel-grid-size: 4px;
+
+  /* Mosaic Transition */
+  --mosaic-grid: 12;
+  --mosaic-duration: 0.6s;
   --mc-grass: #5a8a2a;
   --mc-grass-top: #7cc427;
   --mc-dirt: #8b6340;
@@ -33,13 +53,16 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--pixel-font);
   background: var(--mc-bg);
   color: var(--mc-text);
   display: flex;
   min-height: 100vh;
   image-rendering: pixelated;
   overflow-x: hidden;
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
 }
 
 /* ENTRY SCREEN */
@@ -93,15 +116,399 @@ body {
 
 /* MC BUTTON */
 .mc-btn {
-  font-family:'Courier New',monospace; font-size:1rem; font-weight:bold;
-  letter-spacing:2px; padding:10px 32px;
-  background:var(--mc-stone); color:var(--mc-text); border:none;
-  border-top:3px solid var(--mc-stone-light); border-left:3px solid var(--mc-stone-light);
-  border-bottom:3px solid #333; border-right:3px solid #333;
-  cursor:pointer; text-transform:uppercase; transition:filter .1s;
+  font-family: var(--pixel-font);
+  font-size: 1rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding: 10px 32px;
+  background: var(--mc-stone);
+  color: var(--mc-text);
+  border: none;
+  border-top: 3px solid var(--mc-stone-light);
+  border-left: 3px solid var(--mc-stone-light);
+  border-bottom: 3px solid #333;
+  border-right: 3px solid #333;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: filter .1s;
 }
-.mc-btn:hover { filter:brightness(1.2); }
-.mc-btn:active { border-top-color:#333; border-left-color:#333; border-bottom-color:var(--mc-stone-light); border-right-color:var(--mc-stone-light); filter:brightness(.9); }
+.mc-btn:hover { filter: brightness(1.2); }
+.mc-btn:active { border-top-color:#333; border-left-color:#333; border-bottom-color:var(--mc-stone-light); border-right-color:var(--mc-stone-light); filter: brightness(.9); }
+
+/* ── Pixel Decorative Elements ── */
+.pixel-corner {
+  position: relative;
+}
+.pixel-corner::before,
+.pixel-corner::after {
+  content: '';
+  position: absolute;
+  width: var(--pixel-corner-size);
+  height: var(--pixel-corner-size);
+  background: var(--mc-grass-top);
+  box-shadow:
+    calc(var(--pixel-corner-size) * -1) 0 0 var(--mc-grass-top),
+    0 calc(var(--pixel-corner-size) * -1) 0 var(--mc-grass-top),
+    calc(var(--pixel-corner-size) * -1) calc(var(--pixel-corner-size) * -1) 0 var(--mc-grass-top);
+}
+.pixel-corner::before { top: 0; left: 0; }
+.pixel-corner::after { top: 0; right: 0; }
+
+/* Pixel Grid Pattern Background */
+.pixel-grid-bg {
+  background-image:
+    linear-gradient(to right, var(--pixel-pattern-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pixel-pattern-color) 1px, transparent 1px);
+  background-size: var(--pixel-grid-size) var(--pixel-grid-size);
+}
+
+/* Pixel Border Frame */
+.pixel-frame {
+  border: 4px solid #000;
+  border-top-color: #555;
+  border-left-color: #555;
+  position: relative;
+}
+.pixel-frame::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+/* Sharp Pixel Shadow (no blur - true pixel style) */
+.pixel-shadow-sharp {
+  box-shadow:
+    4px 4px 0 #000,
+    8px 8px 0 rgba(0, 0, 0, 0.5);
+}
+.pixel-shadow-neon {
+  box-shadow:
+    0 0 10px var(--neon-primary),
+    0 0 20px var(--neon-primary),
+    4px 4px 0 #000;
+}
+
+/* ── Pixel Mosaic Transition ── */
+@keyframes mosaicIn {
+  0% {
+    clip-path: inset(0 0 100% 0);
+    filter: blur(8px) brightness(1.5);
+  }
+  50% {
+    clip-path: inset(0 0 50% 0);
+    filter: blur(4px) brightness(1.2);
+  }
+  100% {
+    clip-path: inset(0 0 0% 0);
+    filter: blur(0) brightness(1);
+  }
+}
+
+@keyframes mosaicOut {
+  0% {
+    clip-path: inset(0 0 0% 0);
+    filter: blur(0) brightness(1);
+  }
+  50% {
+    clip-path: inset(0 0 50% 0);
+    filter: blur(4px) brightness(1.2);
+  }
+  100% {
+    clip-path: inset(0 0 100% 0);
+    filter: blur(8px) brightness(1.5);
+  }
+}
+
+@keyframes pixelateIn {
+  0% {
+    transform: scale(1.5);
+    filter: blur(12px) grayscale(1);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    filter: blur(4px) grayscale(0.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    filter: blur(0) grayscale(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pixelGlitch {
+  0%, 100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+  20% {
+    clip-path: inset(20% 0 60% 0);
+    transform: translate(-4px, 0);
+  }
+  40% {
+    clip-path: inset(40% 0 30% 0);
+    transform: translate(4px, 0);
+  }
+  60% {
+    clip-path: inset(60% 0 10% 0);
+    transform: translate(-2px, 0);
+  }
+  80% {
+    clip-path: inset(10% 0 70% 0);
+    transform: translate(2px, 0);
+  }
+}
+
+.mosaic-transition {
+  animation: pixelateIn var(--mosaic-duration) steps(8) forwards;
+}
+
+.pixel-glitch-effect {
+  animation: pixelGlitch 0.3s steps(2) forwards;
+}
+
+/* Pixel Block Decoration */
+.pixel-block {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: var(--mc-grass-top);
+  border: 2px solid #000;
+  border-bottom-color: #3a6a10;
+  border-right-color: #3a6a10;
+  box-shadow:
+    12px 0 0 var(--mc-dirt),
+    0 12px 0 var(--mc-dirt),
+    12px 12px 0 var(--mc-stone);
+}
+
+/* Pixel Avatar Frame */
+.pixel-avatar-frame {
+  position: relative;
+  padding: 8px;
+  background: var(--mc-coal);
+  border: 4px solid #000;
+  border-top-color: #444;
+  border-left-color: #444;
+}
+.pixel-avatar-frame::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  height: 30%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+}
+
+/* Scanline Pixel Effect */
+.pixel-scanlines {
+  position: relative;
+  overflow: hidden;
+}
+.pixel-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+}
+
+/* ── Respect prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .mosaic-transition,
+  .pixel-glitch-effect,
+  .pixel-block {
+    animation: none !important;
+  }
+}
+
+/* ── Pixel Upgrade: Task 3 Enhancements ── */
+
+/* Pixel font size scale */
+.pixel-text-xs { font-size: 0.65rem; }
+.pixel-text-sm { font-size: 0.75rem; }
+.pixel-text-base { font-size: 0.875rem; }
+.pixel-text-lg { font-size: 1rem; }
+.pixel-text-xl { font-size: 1.25rem; }
+.pixel-text-2xl { font-size: 1.5rem; }
+.pixel-text-3xl { font-size: 2rem; }
+
+/* Pixel decorative corners for cards */
+.pixel-card-corners {
+  position: relative;
+}
+.pixel-card-corners::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 8px;
+  height: 8px;
+  background: var(--mc-grass-top);
+  box-shadow:
+    calc(100% + 2px - 8px) 0 0 var(--mc-grass-top),
+    0 calc(100% + 2px - 8px) 0 var(--mc-grass-top),
+    calc(100% + 2px - 8px) calc(100% + 2px - 8px) 0 var(--mc-grass-top);
+}
+
+/* Pixel separator lines */
+.pixel-separator {
+  height: 4px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--mc-cobble) 10%,
+    var(--mc-stone-light) 50%,
+    var(--mc-cobble) 90%,
+    transparent 100%
+  );
+  border-top: 2px solid #333;
+  border-bottom: 2px solid #111;
+}
+
+/* Pixel animated blocks */
+@keyframes pixelBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(-5deg); }
+  75% { transform: translateY(-4px) rotate(5deg); }
+}
+.pixel-bounce {
+  animation: pixelBounce 0.6s ease-in-out infinite;
+}
+
+/* Pixel entry animation */
+@keyframes pixelEntry {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+    filter: blur(4px);
+  }
+  50% {
+    opacity: 0.5;
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+.pixel-enter {
+  animation: pixelEntry 0.4s var(--ease-out-expo) forwards;
+}
+
+/* Pixel loading indicator */
+.pixel-loader {
+  display: inline-flex;
+  gap: 4px;
+}
+.pixel-loader span {
+  width: 8px;
+  height: 8px;
+  background: var(--mc-grass-top);
+  border: 2px solid #000;
+  animation: pixelLoaderBounce 0.6s ease-in-out infinite;
+}
+.pixel-loader span:nth-child(2) { animation-delay: 0.1s; }
+.pixel-loader span:nth-child(3) { animation-delay: 0.2s; }
+@keyframes pixelLoaderBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Pixel health/hearts */
+@keyframes pixelHeartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.pixel-heart {
+  color: var(--mc-red);
+  text-shadow: 2px 2px 0 #000;
+  animation: pixelHeartbeat 0.8s ease-in-out infinite;
+}
+
+/* Pixel diamond decoration */
+.pixel-diamond {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-bottom: 12px solid var(--mc-diamond);
+  position: relative;
+  filter: drop-shadow(2px 2px 0 #000);
+}
+.pixel-diamond::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-top: 12px solid var(--mc-diamond);
+}
+
+/* CRT Screen Effect for pixel aesthetic */
+.crt-effect {
+  position: relative;
+  overflow: hidden;
+}
+.crt-effect::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.1) 2px,
+      rgba(0, 0, 0, 0.1) 4px
+    ),
+    radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Pixel noise/grain texture */
+@keyframes pixelNoise {
+  0%, 100% { background-position: 0 0; }
+  10% { background-position: -5% -10%; }
+  20% { background-position: -15% 5%; }
+  30% { background-position: 7% -25%; }
+  40% { background-position: 20% 25%; }
+  50% { background-position: -25% 10%; }
+  60% { background-position: 15% 5%; }
+  70% { background-position: 0% 15%; }
+  80% { background-position: 25% 35%; }
+  90% { background-position: -10% 10%; }
+}
+.pixel-noise {
+  position: relative;
+}
+.pixel-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  animation: pixelNoise 0.5s steps(10) infinite;
+}
 
 /* APP LAYOUT */
 #app { display:flex; width:100%; min-height:100vh; }
@@ -199,7 +606,7 @@ body {
 }
 .prob-check input[type=checkbox]:hover { border-color:var(--mc-grass-top); }
 .prob-check input[type=checkbox]:checked { background:var(--mc-grass-top); border-color:var(--mc-grass); }
-.prob-check input[type=checkbox]:checked::after { content:'\2714'; position:absolute; top:-4px; left:0; font-size:11px; color:#000; font-weight:bold; font-family:monospace; }
+.prob-check input[type=checkbox]:checked::after { content:'\2714'; position:absolute; top:-4px; left:0; font-size:11px; color:#000; font-weight:bold; font-family: var(--pixel-font); }
 
 .prob-num { color:var(--mc-gold); font-weight:bold; font-size:.75rem; text-shadow:1px 1px 0 #000; width:60px; }
 .prob-title a { color:var(--mc-text); text-decoration:none; transition:color .1s; }
@@ -207,7 +614,15 @@ body {
 .member-tag { font-size:.65rem; background:var(--mc-coal); color:var(--mc-gold); border:1px solid var(--mc-gold); padding:1px 5px; margin-left:6px; letter-spacing:1px; }
 
 /* RATING TAG */
-.rating-tag { display:inline-block; padding:2px 8px; font-size:.72rem; font-weight:bold; font-family:'Courier New',monospace; border:2px solid; letter-spacing:1px; }
+.rating-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: .72rem;
+  font-weight: bold;
+  font-family: var(--pixel-font);
+  border: 2px solid;
+  letter-spacing: 1px;
+}
 .rating-tag.r-low { background:rgba(85,255,85,.15); color:var(--mc-green); border-color:var(--mc-green); }
 .rating-tag.r-med { background:rgba(255,255,85,.12); color:var(--mc-yellow); border-color:var(--mc-yellow); }
 .rating-tag.r-high { background:rgba(255,85,85,.15); color:var(--mc-red); border-color:var(--mc-red); }
@@ -352,6 +767,8 @@ body { display: block; }
   border: 4px solid #000; border-top-color: #555; border-left-color: #555;
   display: block;
   image-rendering: pixelated;
+  /* Sharp pixel shadow for depth */
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
 }
 .profile-info { flex: 1; min-width: 200px; }
 .profile-name { font-size: 1.4rem; font-weight: bold; color: var(--mc-grass-top); text-shadow: 2px 2px 0 #000; margin-bottom: 4px; }

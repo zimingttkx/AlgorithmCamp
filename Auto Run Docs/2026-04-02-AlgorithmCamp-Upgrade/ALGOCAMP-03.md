@@ -17,7 +17,7 @@
   - 优化暗色/亮色主题过渡
   - 添加彩虹渐变动画效果
 
-- [ ] 3. 像素风格升级
+- [x] 3. 像素风格升级
   - 升级像素字体到 JetBrains Mono + 自定义像素字形
   - 添加更多像素装饰元素
   - 实现真正的像素级渲染效果（非简单模糊）
@@ -194,4 +194,44 @@
 - [x] 无障碍性增强
   - `@media (prefers-reduced-motion: reduce)` 完全支持
   - 彩虹动画禁用，替换为静态颜色
+
+### Task 3: 像素风格升级 (已完成 - 2026-04-02)
+- [x] 升级像素字体到 JetBrains Mono
+  - 添加 Google Fonts JetBrains Mono 导入
+  - 创建 CSS 变量 `--pixel-font` 作为统一字体栈
+  - 更新 body、button、rating-tag 等元素使用新字体
+  - 优化字体渲染：`text-rendering: optimizeSpeed`, `-webkit-font-smoothing: none`
+
+- [x] 添加更多像素装饰元素
+  - `.pixel-corner`: 像素角落装饰（带box-shadow的4像素效果）
+  - `.pixel-grid-bg`: 像素网格背景图案
+  - `.pixel-frame`: 像素边框框架
+  - `.pixel-block`: Minecraft风格像素方块装饰
+  - `.pixel-avatar-frame`: 像素头像边框
+  - `.pixel-scanlines`: 扫描线像素效果
+  - `.pixel-separator`: 像素分隔线
+  - `.pixel-loader`: 像素加载动画
+  - `.pixel-heart`: 像素心形装饰
+  - `.pixel-diamond`: 像素钻石装饰
+  - `.crt-effect`: CRT屏幕效果
+  - `.pixel-noise`: 像素噪点纹理
+
+- [x] 实现真正的像素级渲染效果
+  - `image-rendering: pixelated` 已在多处应用
+  - 添加 `box-shadow` 锐利像素阴影（无模糊）
+  - `.pixel-shadow-sharp`: 4px+8px双层锐利阴影
+  - `.pixel-shadow-neon`: 霓虹发光+像素阴影组合
+  - 禁用抗锯齿以保持像素清晰度
+
+- [x] 添加像素马赛克过渡效果
+  - `@keyframes pixelateIn`: 分辨率递减入场动画
+  - `@keyframes mosaicIn/mosaicOut`: 马赛克式过渡
+  - `@keyframes pixelGlitch`: 像素故障效果
+  - `@keyframes pixelEntry`: 像素入场动画
+  - `.mosaic-transition`: 马赛克过渡类
+  - `.pixel-glitch-effect`: 故障效果类
+
+- [x] 无障碍性增强
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+  - 所有动画都有对应的reduce motion处理
 
