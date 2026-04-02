@@ -63,7 +63,7 @@
   - 实现金属质感边框
   - 添加内发光效果
 
-- [ ] 6. 导航栏重构
+- [x] 6. 导航栏重构
   - 添加像素化Logo动画
   - 实现高级悬停效果
   - 添加滚动进度指示器
@@ -377,4 +377,51 @@
 - [x] 无障碍性增强
   - `@media (prefers-reduced-motion: reduce)` 完全支持
   - 所有动画和backdrop-filter在reduce motion时禁用
+
+### Task 6: 导航栏重构 (已完成 - 2026-04-02)
+- [x] 添加像素化Logo动画
+  - `.logo-wrapper`: Logo容器，带有translateX变换动画
+  - `.animate-pixel-flicker`: 括号像素闪烁动画 (3s周期，92%-97%时间随机闪烁)
+  - `.animate-pixel-in`: Logo文字像素入场动画 (pixelIn keyframe)
+  - `.logo-pixels`: 像素点装饰容器，带有脉冲发光效果
+  - `.pixel-dot`: 像素点，带有blink和pulse动画
+  - Logo悬停时触发 `.pixelGlitchText` 故障效果
+  - 悬停时logo文字增强发光阴影 + 轻微位移
+
+- [x] 实现高级悬停效果
+  - `.nav-link`: 导航链接基础样式重写
+    - 新增 `.nav-link-text` 包裹文字 (z-index: 2)
+    - 新增 `.nav-link-underline` 动画下划线 (2px高度，彩虹渐变)
+    - 新增 `.nav-link-glow` 径向渐变背景光晕
+  - 悬停效果：
+    - `translateY(-3px)` 上浮
+    - 边框颜色变为主色青
+    - 背景添加半透明主色
+    - 阴影增强：多层box-shadow + inset高光
+    - 文字放大1.05倍 + 发光阴影
+    - 下划线宽度从0扩展到80%
+    - 光晕背景显现
+  - 激活状态：`router-link-exact-active` + `.active` 类
+    - 渐变下划线 (primary到accent)
+    - 文字永久发光
+
+- [x] 添加滚动进度指示器
+  - `.scroll-progress`: 固定在导航栏顶部的进度条
+  - 宽度随页面滚动实时更新 (0-100%)
+  - 彩虹渐变背景 + 流动动画
+  - 发光box-shadow (primary + secondary)
+  - 高度3px，z-index: 10
+
+- [x] 实现毛玻璃导航栏
+  - 增强的glass效果：
+    - `backdrop-filter: blur(20px) saturate(180%)`
+    - 背景从 `rgba(15, 23, 42, 0.75)` 到 `rgba(15, 23, 42, 0.9)` (滚动时)
+    - 边框从 `rgba(0, 243, 255, 0.1)` 到 `rgba(0, 243, 255, 0.2)` (滚动时)
+    - 多层box-shadow + inset高光
+  - `.navbar.scrolled`: 滚动状态下的样式变体
+
+- [x] 无障碍性增强
+  - `@media (prefers-reduced-motion: reduce)` 完全支持
+  - 所有动画和transition在reduce motion时禁用
+  - 悬停transform效果在reduce motion时禁用
 
