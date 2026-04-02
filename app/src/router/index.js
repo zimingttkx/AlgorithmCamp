@@ -6,6 +6,7 @@ import BlogPost from '../views/BlogPost.vue'
 import Projects from '../views/Projects.vue'
 import Practice from '../views/Practice.vue'
 import Progress from '../views/Progress.vue'
+import Stats from '../views/Stats.vue'
 import Login from '../views/Login.vue'
 import Recommendation from '../views/Recommendation.vue'
 import NotFound from '../views/NotFound.vue'
@@ -18,6 +19,7 @@ const routes = [
   { path: '/projects', component: Projects },
   { path: '/practice', component: Practice },
   { path: '/progress', component: Progress },
+  { path: '/stats', component: Stats },
   { path: '/recommend', component: Recommendation },
   { path: '/login', component: Login },
   { path: '/:pathMatch(.*)+', component: NotFound },
