@@ -479,12 +479,95 @@ router.get('/stats', async (req, res) => {
       ORDER BY p.chapter_id
     `, [req.userId])
 
+    // Heatmap: Daily activity for the last 365 days
+    const oneYearAgo = new Date()
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+
+    const heatmapData = await db.all(`
+      SELECT
+        DATE(changed_at) as date,
+        COUNT(*) as count
+      FROM progress_history
+      WHERE user_id = $1
+        AND checked = TRUE
+        AND changed_at >= $2
+      GROUP BY DATE(changed_at)
+      ORDER BY date
+    `, [req.userId, oneYearAgo])
+
+    // Build a map for quick lookup and fill in missing days with 0
+    const heatmapMap = new Map()
+    for (const row of heatmapData) {
+      heatmapMap.set(row.date.toISOString().split('T')[0], row.count)
+    }
+
+    // Generate full 365-day heatmap with all days present
+    const heatmap = []
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    for (let i = 364; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      const dateStr = d.toISOString().split('T')[0]
+      heatmap.push({
+        date: dateStr,
+        count: heatmapMap.get(dateStr) || 0
+      })
+    }
+
+    // Trend: Weekly aggregates for the last 12 weeks
+    const twelveWeeksAgo = new Date()
+    twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84) // 12 weeks = 84 days
+
+    const weeklyTrend = await db.all(`
+      SELECT
+        DATE_TRUNC('week', changed_at) as week_start,
+        COUNT(*) as count,
+        COUNT(DISTINCT DATE(changed_at)) as active_days
+      FROM progress_history
+      WHERE user_id = $1
+        AND checked = TRUE
+        AND changed_at >= $2
+      GROUP BY DATE_TRUNC('week', changed_at)
+      ORDER BY week_start
+    `, [req.userId, twelveWeeksAgo])
+
+    // Trend: Monthly aggregates for the last 12 months
+    const twelveMonthsAgo = new Date()
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
+
+    const monthlyTrend = await db.all(`
+      SELECT
+        DATE_TRUNC('month', changed_at) as month_start,
+        COUNT(*) as count,
+        COUNT(DISTINCT DATE(changed_at)) as active_days
+      FROM progress_history
+      WHERE user_id = $1
+        AND checked = TRUE
+        AND changed_at >= $2
+      GROUP BY DATE_TRUNC('month', changed_at)
+      ORDER BY month_start
+    `, [req.userId, twelveMonthsAgo])
+
     res.json({
       totalChapters,
       totalProblems,
       completed,
       completionRate: totalProblems > 0 ? Math.round((completed / totalProblems) * 100) : 0,
-      byChapter
+      byChapter,
+      heatmap,
+      trend: {
+        weekly: weeklyTrend.map(w => ({
+          weekStart: w.week_start.toISOString(),
+          count: w.count,
+          activeDays: parseInt(w.active_days)
+        })),
+        monthly: monthlyTrend.map(m => ({
+          monthStart: m.month_start.toISOString(),
+          count: m.count,
+          activeDays: parseInt(m.active_days)
+        }))
+      }
     })
   } catch (e) {
     console.error('[Progress] Stats error:', e)

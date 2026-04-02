@@ -245,6 +245,44 @@ async function testProgress() {
   console.assert(typeof res.data.completed === 'number', 'Should have completed count')
   console.log('  ✓ Stats passed')
 
+  // Test 10a: Progress stats includes heatmap data
+  console.log('Test: Progress stats includes heatmap data...')
+  res = await apiRequest('GET', '/api/progress/stats', null, auth)
+  console.assert(res.status === 200, `Expected 200, got ${res.status}`)
+  console.assert(Array.isArray(res.data.heatmap), 'Should have heatmap array')
+  console.assert(res.data.heatmap.length === 365, 'Heatmap should have 365 days')
+  console.assert(res.data.heatmap[0].date !== undefined, 'Heatmap entry should have date')
+  console.assert(res.data.heatmap[0].count !== undefined, 'Heatmap entry should have count')
+  console.log('  ✓ Heatmap data passed')
+
+  // Test 10b: Progress stats includes trend data
+  console.log('Test: Progress stats includes trend data...')
+  res = await apiRequest('GET', '/api/progress/stats', null, auth)
+  console.assert(res.status === 200, `Expected 200, got ${res.status}`)
+  console.assert(res.data.trend !== undefined, 'Should have trend object')
+  console.assert(Array.isArray(res.data.trend.weekly), 'Should have weekly trend array')
+  console.assert(Array.isArray(res.data.trend.monthly), 'Should have monthly trend array')
+  console.log('  ✓ Trend data passed')
+
+  // Test 10c: Verify trend entries have correct structure
+  if (res.data.trend.weekly.length > 0) {
+    console.log('Test: Verify weekly trend entry structure...')
+    const weeklyEntry = res.data.trend.weekly[0]
+    console.assert(weeklyEntry.weekStart !== undefined, 'Weekly entry should have weekStart')
+    console.assert(weeklyEntry.count !== undefined, 'Weekly entry should have count')
+    console.assert(weeklyEntry.activeDays !== undefined, 'Weekly entry should have activeDays')
+    console.log('  ✓ Weekly trend structure passed')
+  }
+
+  if (res.data.trend.monthly.length > 0) {
+    console.log('Test: Verify monthly trend entry structure...')
+    const monthlyEntry = res.data.trend.monthly[0]
+    console.assert(monthlyEntry.monthStart !== undefined, 'Monthly entry should have monthStart')
+    console.assert(monthlyEntry.count !== undefined, 'Monthly entry should have count')
+    console.assert(monthlyEntry.activeDays !== undefined, 'Monthly entry should have activeDays')
+    console.log('  ✓ Monthly trend structure passed')
+  }
+
   // Test 11: Sync progress - new items
   console.log('Test: Sync progress - new items...')
   const oldTime = new Date(Date.now() - 60000).toISOString() // 1 minute ago

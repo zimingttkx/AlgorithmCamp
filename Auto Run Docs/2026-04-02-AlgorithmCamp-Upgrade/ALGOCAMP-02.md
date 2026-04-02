@@ -68,22 +68,53 @@
   - 输入验证：检查用户名格式防止 XSS 攻击
   - 测试用例已添加至 `tests/api.test.js`
 
-- [ ] 5. 完善用户设置
+- [x] 5. 完善用户设置
   - 主题偏好 (dark/light)
   - 语言偏好 (zh/en)
   - 刷题目标设置
   - 通知设置
 
-- [ ] 6. 添加 LeetCode API 路由
+  **完成说明:**
+  - 数据库 user_settings 表新增字段:
+    - `practice_goal_daily` (INTEGER, 默认 3) - 每日刷题目标
+    - `practice_goal_weekly` (INTEGER, 默认 15) - 每周刷题目标
+    - `notification_email` (BOOLEAN, 默认 true) - 邮件通知开关
+    - `notification_progress` (BOOLEAN, 默认 true) - 进度里程碑通知开关
+    - `notification_github` (BOOLEAN, 默认 false) - GitHub 统计通知开关
+  - `PUT /api/auth/settings` 端点支持更新所有新设置字段
+  - `GET /api/auth/me` 端点返回完整的新设置字段
+  - 新增数据库迁移脚本 `server/scripts/migrate-user-settings.js`
+  - 已提交: `MAESTRO: Add practice goal and notification settings to user settings` (9bc71f6)
+
+- [x] 6. 添加 LeetCode API 路由
   - `GET /api/leetcode/:username` 获取用户 LeetCode 统计
   - `GET /api/leetcode/:username/solved` 获取已解题列表
   - 缓存机制（1小时刷新）
 
-- [ ] 7. 完善用户数据面板 API
-  - 总解题数统计
-  - 各类目完成度
-  - 刷题日历热力图数据
-  - 刷题趋势图数据
+  **完成说明:**
+  - 新增 `routes/leetcode.js` 路由文件
+  - `GET /api/leetcode/:username` 返回用户统计：总解题数、简单/中等/困难分类、排名、头像等
+  - `GET /api/leetcode/:username/solved` 返回已解题列表，支持 `?difficulty=Easy|Medium|Hard` 过滤
+  - 实现 SimpleCache 类，支持 1 小时 TTL 缓存
+  - 包含速率限制（每分钟最多 10 次请求）防止滥用
+  - 使用 LeetCode GraphQL API 获取数据
+  - 缓存统计端点: `GET /api/leetcode/cache/stats`
+  - 缓存清除端点: `DELETE /api/leetcode/:username/cache`
+
+- [x] 7. 完善用户数据面板 API
+  - 总解题数统计 ✅ (已存在于 /api/progress/stats)
+  - 各类目完成度 ✅ (byChapter 数据)
+  - 刷题日历热力图数据 ✅ (新增 heatmap 数组，包含 365 天每日解题数)
+  - 刷题趋势图数据 ✅ (新增 trend.weekly 和 trend.monthly 聚合数据)
+
+  **完成说明:**
+  - 增强 `GET /api/progress/stats` 端点，新增以下字段:
+    - `heatmap`: 365 天每日解题热力图数据，每项包含 `date` 和 `count`
+    - `trend.weekly`: 最近 12 周的周聚合数据，包含 `weekStart`、`count`、`activeDays`
+    - `trend.monthly`: 最近 12 个月的月聚合数据，包含 `monthStart`、`count`、`activeDays`
+  - 热力图补全所有日期（无活动日期 count 为 0），便于前端渲染 GitHub 风格的日历热力图
+  - 周/月趋势数据支持前端绘制刷题趋势图表
+  - 测试用例已添加至 `tests/api.test.js`
 
 ## 验收标准
 
