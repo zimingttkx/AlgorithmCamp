@@ -72,11 +72,18 @@
     - 添加键盘帮助弹窗（? 键触发）
     - 支持安全区域 (safe-area-inset) 适配
 
-- [ ] 8. PWA 支持
-  - Service Worker 配置
-  - Web App Manifest
-  - 离线访问支持
-  - 桌面快捷方式
+- [x] 8. PWA 支持
+  - Service Worker 配置 ✓
+  - Web App Manifest ✓
+  - 离线访问支持 ✓
+  - 桌面快捷方式 ✓
+  - **实现内容**:
+    - 安装 `vite-plugin-pwa` 并配置 VitePWA 插件
+    - 配置 Web App Manifest（名称、主题色、显示模式、图标等）
+    - 配置 Service Worker 自动更新策略
+    - 配置 workbox 运行时缓存（Google Fonts、Gstatic、GitHub 图片）
+    - 添加 PWA 相关 meta 标签（theme-color、apple-mobile-web-app-capable 等）
+  - **注意**: 构建时存在 StatsPanel.vue 组件的预存问题（rolldown 解析错误），需单独修复
 
 - [ ] 9. 移动端无障碍
   - 触摸目标尺寸 ≥ 44px
