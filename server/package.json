@@ -7,7 +7,12 @@
     "dev": "nodemon index.js",
     "init": "node db/init.js",
     "fetch-stats": "node scripts/fetch-github-stats.js",
-    "migrate": "node scripts/migrate-to-postgres.js"
+    "migrate": "node scripts/migrate-to-postgres.js",
+    "test": "node tests/api.test.js",
+    "test:api": "node tests/api.test.js",
+    "test:oauth": "node tests/oauth.test.js",
+    "test:db": "node tests/db-operations.test.js",
+    "test:all": "node tests/api.test.js && node tests/oauth.test.js && node tests/db-operations.test.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -22,6 +27,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "nock": "^14.0.11",
     "nodemon": "^3.1.0"
   }
 }
