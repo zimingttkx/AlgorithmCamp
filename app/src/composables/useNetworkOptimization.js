@@ -7,10 +7,10 @@
  * - Request batching for multiple API calls
  * - Loading state optimization
  */
-import { ref, shallowRef, onUnmounted } from 'vue'
+import { ref, onUnmounted, getCurrentInstance } from 'vue'
 
 // Singleton state for request tracking
-const activeRequests = shallowRef(new Map())
+const activeRequests = ref(new Map())
 const requestQueue = ref([])
 const batchTimers = {}
 
@@ -42,7 +42,9 @@ export async function fetchWithAbort(url, options = {}, signal = null) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }))
-      throw new Error(errorData.error || `HTTP ${response.status}`)
+      const error = new Error(errorData.error || `HTTP ${response.status}`)
+      error.status = response.status
+      throw error
     }
 
     return await response.json()
@@ -69,8 +71,8 @@ export async function fetchWithRetry(url, options = {}, retryConfig = {}) {
     } catch (error) {
       lastError = error
 
-      // Don't retry on abort (cancellation) or client errors
-      if (error.name === 'AbortError' || (error.message && error.message.includes('HTTP 4'))) {
+      // Don't retry on abort (cancellation) or client errors (4xx)
+      if (error.name === 'AbortError' || (error.status >= 400 && error.status < 500)) {
         throw error
       }
 
@@ -132,7 +134,7 @@ export function useNetworkOptimization() {
    * @returns {Object} { execute, cancel, isLoading, error, data }
    */
   function useCancellableRequest(fetchFn) {
-    const controller = shallowRef(new AbortController())
+    const controller = ref(new AbortController())
     const isLoading = ref(false)
     const error = ref(null)
     const data = ref(null)
@@ -167,7 +169,10 @@ export function useNetworkOptimization() {
       }
     }
 
-    onUnmounted(cancel)
+    // Only register cleanup if in component context
+    if (getCurrentInstance()) {
+      onUnmounted(cancel)
+    }
 
     return {
       execute,
@@ -202,6 +207,7 @@ export function useNetworkOptimization() {
         try {
           const result = await fetchFn(...args)
           data.value = result
+          isLoading.value = false
           return result
         } catch (err) {
           retryCount.value = i + 1
@@ -209,12 +215,14 @@ export function useNetworkOptimization() {
           // Don't retry on abort or client errors (4xx)
           if (err.name === 'AbortError') {
             error.value = 'Request cancelled'
+            isLoading.value = false
             throw err
           }
 
           const errMsg = err.message || ''
           if (errMsg.match(/HTTP [45]\d\d/) || errMsg.includes('cancel')) {
             error.value = errMsg
+            isLoading.value = false
             throw err
           }
 
@@ -225,6 +233,7 @@ export function useNetworkOptimization() {
             await sleep(waitTime)
           } else {
             error.value = err.message || 'Request failed after retries'
+            isLoading.value = false
             throw err
           }
         }
@@ -256,7 +265,7 @@ export function useNetworkOptimization() {
    * @returns {Object} { trackRequest, cancelAll, isLoading, loadingCount, errors }
    */
   function useRequestTracker() {
-    const requests = shallowRef(new Map())
+    const requests = ref(new Map())
     const isLoading = ref(false)
     const loadingCount = ref(0)
     const errors = ref([])

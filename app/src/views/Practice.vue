@@ -64,51 +64,24 @@
           <div class="title-row">
             <h1 class="map-title font-display">刷题闯关地图</h1>
             <div class="auth-area">
-              <button v-if="!isLoggedIn" class="login-btn" @click="handleLogin">
+              <button v-if="!isLoggedIn()" class="login-btn" @click="handleLogin">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
                 </svg>
                 登录
               </button>
-              <div v-else class="logged-in-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="20 6 9 17 4 12"/>
+              <button v-else class="logout-btn" @click="handleLogout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
                 </svg>
-                已登录
-              </div>
+                登出
+              </button>
               <span class="sync-indicator" :class="syncStatus" :title="syncStatusTitle">
                 <span v-if="syncStatus === 'syncing'" class="sync-spin">↻</span>
                 <span v-else-if="syncStatus === 'success'">☁ ✓</span>
                 <span v-else-if="syncStatus === 'error'">☁ ✗</span>
-                <span v-else-if="isLoggedIn">☁</span>
+                <span v-else-if="isLoggedIn()">☁</span>
               </span>
-            </div>
-            <!-- LeetCode Sync -->
-            <div class="leetcode-sync-area">
-              <div v-if="!leetcodeUsername" class="leetcode-bind">
-                <input
-                  v-model="leetcodeInput"
-                  type="text"
-                  placeholder="LeetCode用户名"
-                  class="leetcode-input"
-                  @keyup.enter="handleLeetCodeBind"
-                />
-                <button class="leetcode-btn" @click="handleLeetCodeBind" :disabled="!leetcodeInput.trim()">
-                  ⚔ 绑定
-                </button>
-              </div>
-              <div v-else class="leetcode-bound">
-                <span class="leetcode-icon">⚔</span>
-                <span class="leetcode-name">{{ leetcodeUsername }}</span>
-                <button class="leetcode-sync-btn" :class="leetcodeSyncStatus" @click="handleLeetCodeSync" :title="leetcodeSyncStatusTitle">
-                  <span v-if="leetcodeSyncStatus === 'syncing'" class="sync-spin">↻</span>
-                  <span v-else-if="leetcodeSyncStatus === 'synced'">✓</span>
-                  <span v-else-if="leetcodeSyncStatus === 'error'">✗</span>
-                  <span v-else-if="leetcodeSyncStatus === 'pending'">●</span>
-                  <span v-else>↻</span>
-                </button>
-                <button class="leetcode-unbind-btn" @click="handleLeetCodeUnbind" title="解除绑定">×</button>
-              </div>
             </div>
           </div>
           <p class="map-subtitle">点击章节卡片进入刷题 · 共 12 个专题</p>
@@ -256,7 +229,7 @@
             <div class="nav-info">
               <span class="nav-title">{{ ch.short }}</span>
               <span class="nav-progress font-mono" :style="{color: ch.light}">
-                {{ countDone(ch.id) }}/{{ totals[ch.id] || 0 }}
+                {{ countDone(ch.id) }}/{{ totals[ch.id] || ch.count || 0 }}
               </span>
             </div>
             <div class="nav-bar-enhanced">
@@ -431,7 +404,6 @@ import { useRouter } from 'vue-router'
 import { CHAPTERS } from '../composables/data.js'
 import { useAuth } from '../composables/auth.js'
 import { useProgressSync } from '../composables/progressSync.js'
-import { useLeetCodeSync } from '../composables/leetCodeSync.js'
 import { useRecommendations } from '../composables/useRecommendations.js'
 import { useReviewReminder } from '../composables/useReviewReminder.js'
 import { useLang } from '../composables/i18n.js'
@@ -444,19 +416,8 @@ const router = useRouter()
 const { isZh } = useLang()
 const { recordPractice } = usePracticeGoal()
 
-const { isLoggedIn, loginWithGithub } = useAuth()
+const { isLoggedIn, login, logout } = useAuth()
 const { syncStatus, syncError, loadFromServer, saveProgress: serverSaveProgress } = useProgressSync()
-const {
-  leetcodeUsername,
-  syncStatus: leetcodeSyncStatus,
-  syncError: leetcodeSyncError,
-  bindUsername,
-  unbindUsername,
-  syncLeetCodeToProgress,
-  syncStatusTitle: leetcodeSyncStatusTitle,
-  leetcodeSolvedCount,
-  localMatchedCount,
-} = useLeetCodeSync()
 
 const PROGRESS_KEY = 'mc-algo-progress'
 const TOTALS_KEY  = '_chapterTotals'
@@ -545,9 +506,6 @@ function swipeStyle(probId) {
   }
 }
 
-// LeetCode sync state
-const leetcodeInput = ref('')
-
 // Recommendation state
 const { getCombinedRecommendations, getLearningStats, updateReview } = useRecommendations()
 const showRecommendations = ref(false)
@@ -596,7 +554,7 @@ const filteredRecommendations = computed(() => {
 })
 
 const syncStatusTitle = computed(() => {
-  if (!isLoggedIn.value) return '未登录'
+  if (!isLoggedIn()) return '未登录'
   switch (syncStatus.value) {
     case 'idle': return '已同步'
     case 'syncing': return '同步中...'
@@ -613,7 +571,7 @@ function loadStorage() {
 
 function saveProgress() {
   localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress.value))
-  if (isLoggedIn.value) {
+  if (isLoggedIn()) {
     serverSaveProgress(progress.value)
   }
 }
@@ -639,19 +597,19 @@ function countDone(chId) {
 }
 
 const globalDone = computed(() => CHAPTERS.reduce((s, ch) => s + countDone(ch.id), 0))
-const globalTotal = computed(() => Object.values(totals.value).reduce((a,b) => a+b, 0))
+const globalTotal = computed(() => CHAPTERS.reduce((s, ch) => s + (totals.value[ch.id] || ch.count || 0), 0))
 const globalPct = computed(() => globalTotal.value > 0 ? Math.round(globalDone.value / globalTotal.value * 100) : 0)
 const level = computed(() => Math.max(1, Math.floor(globalDone.value / 20) + 1))
 
 function chPct(ch) {
-  const t = totals.value[ch.id] || 0
+  const t = totals.value[ch.id] || ch.count || 0
   if (!t) return 0
   return Math.round(countDone(ch.id) / t * 100)
 }
 
 const chapterTotal = computed(() => {
   if (!currentChapter.value) return 0
-  return totals.value[currentChapter.value.id] || 0
+  return totals.value[currentChapter.value.id] || currentChapter.value.count || 0
 })
 
 const BUBBLE_POSITIONS = [
@@ -772,7 +730,7 @@ function updateTotals(ch) {
 
 async function syncOnLoad() {
   loadStorage()
-  if (!isLoggedIn.value) return
+  if (!isLoggedIn()) return
   const serverProgress = await loadFromServer()
   if (serverProgress) {
     loadStorage()
@@ -780,39 +738,15 @@ async function syncOnLoad() {
 }
 
 function handleLogin() {
-  loginWithGithub()
+  router.push('/login')
 }
 
-// LeetCode sync handlers
-function handleLeetCodeBind() {
-  const username = leetcodeInput.value.trim()
-  if (!username) return
-  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-    alert('用户名格式不正确，只能包含字母、数字、下划线和连字符')
-    return
-  }
-  bindUsername(username)
-  leetcodeInput.value = ''
-}
-
-function handleLeetCodeUnbind() {
-  unbindUsername()
-}
-
-async function handleLeetCodeSync() {
-  if (!leetcodeUsername.value) return
-  // Pre-load all chapters before sync if not already loaded
-  await Promise.all(CHAPTERS.map(ch => {
-    if (!mdCache[ch.id]) {
-      return fetch(ch.file).then(r => r.text()).then(md => {
-        mdCache[ch.id] = parseMdTables(md)
-      })
-    }
-    return Promise.resolve()
-  }))
-  await syncLeetCodeToProgress(mdCache)
-  // Reload progress to reflect changes
-  loadStorage()
+function handleLogout() {
+  console.log('[Practice] handleLogout called')
+  logout()
+  console.log('[Practice] logout() returned')
+  // 强制刷新页面以更新UI
+  window.location.reload()
 }
 
 // Recommendation handlers
@@ -1049,17 +983,25 @@ onMounted(() => { syncOnLoad() })
   box-shadow: 0 8px 24px rgba(34, 211, 238, 0.4);
 }
 
-.logged-in-badge {
+.logout-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  padding: 8px 16px;
-  background: rgba(52, 211, 153, 0.1);
-  border: 1px solid rgba(52, 211, 153, 0.3);
-  border-radius: 8px;
-  color: var(--neon-green);
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  background: rgba(255, 71, 87, 0.15);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  border-radius: 10px;
+  color: #ff6b6b;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out-expo);
+}
+.logout-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 71, 87, 0.25);
+  box-shadow: 0 8px 24px rgba(255, 71, 87, 0.3);
 }
 
 .sync-indicator {
@@ -1073,135 +1015,6 @@ onMounted(() => { syncOnLoad() })
 
 .sync-spin { display: inline-block; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* LeetCode Sync Styles */
-.leetcode-sync-area {
-  display: flex;
-  align-items: center;
-  margin-left: 12px;
-  padding-left: 12px;
-  border-left: 1px solid var(--glass-border);
-}
-
-.leetcode-bind {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.leetcode-input {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 6px;
-  padding: 6px 10px;
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  width: 140px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.leetcode-input:focus {
-  border-color: var(--neon-primary);
-  box-shadow: 0 0 8px var(--glow-primary-soft);
-}
-
-.leetcode-input::placeholder {
-  color: var(--text-dim);
-}
-
-.leetcode-btn {
-  background: var(--neon-primary);
-  color: #000;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.leetcode-btn:hover:not(:disabled) {
-  box-shadow: 0 0 12px var(--glow-primary);
-  transform: translateY(-1px);
-}
-
-.leetcode-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.leetcode-bound {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.leetcode-icon {
-  font-size: 1rem;
-}
-
-.leetcode-name {
-  font-size: 0.85rem;
-  color: var(--neon-cyan);
-  font-family: 'JetBrains Mono', monospace;
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.leetcode-sync-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 6px;
-  padding: 6px 10px;
-  color: var(--text-dim);
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 32px;
-  text-align: center;
-}
-
-.leetcode-sync-btn:hover {
-  border-color: var(--neon-cyan);
-  color: var(--neon-cyan);
-}
-
-.leetcode-sync-btn.syncing {
-  color: var(--neon-blue);
-  border-color: var(--neon-blue);
-}
-
-.leetcode-sync-btn.synced {
-  color: var(--neon-cyan);
-  border-color: var(--neon-cyan);
-}
-
-.leetcode-sync-btn.error {
-  color: var(--neon-pink);
-  border-color: var(--neon-pink);
-}
-
-.leetcode-sync-btn.pending {
-  color: var(--mc-gold);
-  border-color: var(--mc-gold);
-}
-
-.leetcode-unbind-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-dim);
-  cursor: pointer;
-  padding: 4px 8px;
-  font-size: 1rem;
-  transition: color 0.2s;
-}
-
-.leetcode-unbind-btn:hover {
-  color: var(--neon-pink);
-}
 
 .map-subtitle {
   color: var(--text-secondary);

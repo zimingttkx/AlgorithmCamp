@@ -1,52 +1,37 @@
+/**
+ * Chapters Routes (MongoDB Version)
+ */
+
 const express = require('express')
-const db = require('../db')
+const db = require('../db/mongodb')
 
 const router = express.Router()
 
-// GET /api/chapters - Get all chapters (public)
+// GET /api/chapters - Get all chapters
 router.get('/', async (req, res) => {
   try {
-    const chapters = await db.all('SELECT * FROM chapters ORDER BY id')
+    const chapters = await db.getAllChapters()
     res.json({ chapters })
   } catch (e) {
-    console.error('[Chapters] Get all error:', e)
+    console.error('[Chapters] Error:', e)
     res.status(500).json({ error: 'failed to get chapters' })
   }
 })
 
-// GET /api/chapters/:id - Get single chapter
-router.get('/:id', async (req, res) => {
-  try {
-    const chapter = await db.get('SELECT * FROM chapters WHERE id = $1', [req.params.id])
-    if (!chapter) {
-      return res.status(404).json({ error: 'chapter not found' })
-    }
-    res.json({ chapter })
-  } catch (e) {
-    console.error('[Chapters] Get one error:', e)
-    res.status(500).json({ error: 'failed to get chapter' })
-  }
-})
+// POST /api/chapters - Save chapters
+router.post('/', async (req, res) => {
+  const { chapters } = req.body
 
-// PUT /api/chapters/:id/total - Update total problem count
-router.put('/:id/total', async (req, res) => {
-  const { totalProblems } = req.body
-  if (typeof totalProblems !== 'number' || totalProblems < 0) {
-    return res.status(400).json({ error: 'valid totalProblems number required' })
+  if (!chapters || !Array.isArray(chapters)) {
+    return res.status(400).json({ error: 'chapters array required' })
   }
 
   try {
-    const existing = await db.get('SELECT id FROM chapters WHERE id = $1', [req.params.id])
-    if (!existing) {
-      return res.status(404).json({ error: 'chapter not found' })
-    }
-
-    await db.run('UPDATE chapters SET total_problems = $1 WHERE id = $2', [totalProblems, req.params.id])
-    const chapter = await db.get('SELECT * FROM chapters WHERE id = $1', [req.params.id])
-    res.json({ success: true, chapter })
+    await db.saveChapters(chapters)
+    res.json({ success: true, count: chapters.length })
   } catch (e) {
-    console.error('[Chapters] Update error:', e)
-    res.status(500).json({ error: 'failed to update chapter' })
+    console.error('[Chapters] Save error:', e)
+    res.status(500).json({ error: 'failed to save chapters' })
   }
 })
 

@@ -28,6 +28,9 @@
         </router-link>
       </div>
       <div class="nav-actions">
+        <button v-if="isLoggedIn()" class="logout-btn" @click="handleLogout" title="退出登录">
+          <span class="btn-text">登出</span>
+        </button>
         <button class="lang-btn" @click="toggleLang" :title="isZh ? 'Switch to English' : '切换中文'">
           <span class="btn-text">{{ isZh ? 'EN' : '中' }}</span>
         </button>
@@ -62,6 +65,9 @@
         </router-link>
       </div>
       <div class="sidebar-actions">
+        <button v-if="isLoggedIn()" class="sidebar-btn sidebar-logout" @click="handleLogout">
+          <span class="btn-icon">🚪 {{ isZh ? '退出登录' : 'Logout' }}</span>
+        </button>
         <button class="sidebar-btn" @click="toggleLang(); menuOpen=false">
           <span class="btn-icon">{{ isZh ? '🌐 EN' : '🌐 中' }}</span>
         </button>
@@ -89,10 +95,12 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { useTheme } from '../composables/theme.js'
 import { useReviewReminder } from '../composables/useReviewReminder.js'
+import { useAuth } from '../composables/auth.js'
 
 const { isZh, toggle: toggleLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
 const { dueReviewCount } = useReviewReminder()
+const { user, logout, isLoggedIn } = useAuth()
 const menuOpen = ref(false)
 const navHidden = ref(false)
 const isScrolled = ref(false)
@@ -195,6 +203,13 @@ function onScroll() {
 // Close sidebar on route change
 function onRouteChange() {
   menuOpen.value = false
+}
+
+// Handle logout
+async function handleLogout() {
+  await logout()
+  menuOpen.value = false
+  window.location.reload()
 }
 
 onMounted(() => {
@@ -525,6 +540,23 @@ onUnmounted(() => {
   transform: translateY(0) scale(0.98);
 }
 
+.logout-btn {
+  font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  background: rgba(255, 71, 87, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 71, 87, 0.25);
+  border-color: rgba(255, 71, 87, 0.5);
+}
+
 .lang-btn {
   font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;
   font-size: 0.85rem;
@@ -737,6 +769,11 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.sidebar-logout {
+  background: rgba(255, 71, 87, 0.15) !important;
+  color: #ff6b6b !important;
+  border: 1px solid rgba(255, 71, 87, 0.3) !important;
 }
 .sidebar-btn {
   font-family: 'Ubuntu Mono', Consolas, Monaco, monospace;

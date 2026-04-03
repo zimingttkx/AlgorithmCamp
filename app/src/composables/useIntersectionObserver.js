@@ -2,7 +2,7 @@
  * useIntersectionObserver - Intersection Observer composable for performance optimization
  * Enables lazy loading, animation pausing for off-screen elements, and scroll-driven effects
  */
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, getCurrentInstance } from 'vue'
 
 /**
  * Create an Intersection Observer for a target element
@@ -275,7 +275,10 @@ export function useLazyLoad(options = {}) {
     }
   }
 
-  onUnmounted(disconnect)
+  // Only register cleanup if in component context
+  if (getCurrentInstance()) {
+    onUnmounted(disconnect)
+  }
 
   return {
     isLoaded,
@@ -356,7 +359,10 @@ export function useInfiniteScroll(options = {}) {
     isInView.value = false
   }
 
-  onUnmounted(disconnect)
+  // Only register cleanup if in component context
+  if (getCurrentInstance()) {
+    onUnmounted(disconnect)
+  }
 
   return {
     isLoading,

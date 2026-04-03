@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { CHAPTERS } from '../composables/data.js'
 import { useProblemMetadata } from '../composables/useProblemMetadata.js'
@@ -530,9 +530,9 @@ function drawBarChart() {
 // Draw all charts
 function drawCharts() {
   nextTick(() => {
-    drawTrendChart()
-    drawPieChart()
-    drawBarChart()
+    try { drawTrendChart() } catch (e) { console.error('[StatsPanel] drawTrendChart failed:', e) }
+    try { drawPieChart() } catch (e) { console.error('[StatsPanel] drawPieChart failed:', e) }
+    try { drawBarChart() } catch (e) { console.error('[StatsPanel] drawBarChart failed:', e) }
   })
 }
 
@@ -542,9 +542,20 @@ watch([timeRange, progress, durationsData, metadataCache], () => {
 }, { deep: true })
 
 onMounted(async () => {
-  // Load problem metadata first for accurate difficulty data
-  await loadAllMetadata()
-  drawCharts()
+  try {
+    await loadAllMetadata()
+  } catch (e) {
+    console.error('[StatsPanel] loadAllMetadata failed:', e)
+  }
+  try {
+    drawCharts()
+  } catch (e) {
+    console.error('[StatsPanel] drawCharts failed:', e)
+  }
   window.addEventListener('resize', drawCharts)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', drawCharts)
 })
 </script>

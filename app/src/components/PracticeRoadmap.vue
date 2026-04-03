@@ -232,7 +232,7 @@ const totals = computed(() => {
 const chapterData = computed(() => {
   return CHAPTERS.map((ch, i) => {
     const chapterProgress = progress.value[ch.id] || {}
-    const total = totals.value[ch.id] || Object.keys(chapterProgress).length || 1
+    const total = totals.value[ch.id] || ch.count || Object.keys(chapterProgress).length || 1
     const done = Object.values(chapterProgress).filter(v => {
       if (typeof v === 'object' && v !== null) return !!v.checked
       return !!v
@@ -243,7 +243,7 @@ const chapterData = computed(() => {
     let unlocked = i === 0
     if (i > 0) {
       const prevProgress = progress.value[CHAPTERS[i - 1].id] || {}
-      const prevTotal = totals.value[CHAPTERS[i - 1].id] || Object.keys(prevProgress).length || 1
+      const prevTotal = totals.value[CHAPTERS[i - 1].id] || CHAPTERS[i - 1].count || Object.keys(prevProgress).length || 1
       const prevDone = Object.values(prevProgress).filter(v => {
         if (typeof v === 'object' && v !== null) return !!v.checked
         return !!v
@@ -401,11 +401,11 @@ onUnmounted(() => {
 
 .chapter-node {
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: filter 0.2s ease;
 }
 
 .chapter-node:hover {
-  transform: scale(1.1);
+  filter: drop-shadow(0 0 15px currentColor) brightness(1.2);
 }
 
 .chapter-node.locked {
@@ -414,7 +414,7 @@ onUnmounted(() => {
 }
 
 .chapter-node.locked:hover {
-  transform: none;
+  filter: none;
 }
 
 .node-outer {

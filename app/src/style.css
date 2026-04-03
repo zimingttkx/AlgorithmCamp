@@ -832,39 +832,19 @@ body::after {
   background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,var(--scanline-opacity, 0.02)) 2px,rgba(0,0,0,var(--scanline-opacity, 0.02)) 4px);
 }
 
-/* ── Page transitions (Enhanced) ── */
-.page-enter-active, .page-leave-active {
-  transition: opacity var(--duration-slow) var(--ease-out-expo),
-              transform var(--duration-slow) var(--ease-out-expo),
-              filter var(--duration-slow) var(--ease-out-expo);
+/* ── Page transitions ── */
+/* CSS-only fade-in: no Vue <transition> needed, never blocks rendering */
+#main-content > * {
+  animation: pageFadeIn 0.2s ease-out both;
 }
-.page-enter-from { opacity: 0; transform: translateY(16px) scale(0.98); filter: blur(4px); }
-.page-leave-to   { opacity: 0; transform: translateY(-12px) scale(1.02); filter: blur(4px); }
-
-/* Page transition variants */
-.page-fade-enter-active, .page-fade-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-smooth);
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.page-fade-enter-from, .page-fade-leave-to { opacity: 0; }
 
-.page-slide-enter-active { transition: all var(--duration-slow) var(--ease-out-expo); }
-.page-slide-leave-active { transition: all var(--duration-normal) var(--ease-in-out-quart); }
-.page-slide-enter-from { opacity: 0; transform: translateX(-30px); }
-.page-slide-leave-to   { opacity: 0; transform: translateX(30px); }
-
-.page-zoom-enter-active { transition: all var(--duration-slow) var(--ease-spring); }
-.page-zoom-leave-active { transition: all var(--duration-fast) var(--ease-in-out-quart); }
-.page-zoom-enter-from { opacity: 0; transform: scale(0.92); }
-.page-zoom-leave-to   { opacity: 0; transform: scale(1.08); }
-
-.page-pixelate-enter-active {
-  transition: all var(--duration-slow) var(--ease-out-expo);
+@media (prefers-reduced-motion: reduce) {
+  #main-content > * { animation: none; }
 }
-.page-pixelate-leave-active {
-  transition: all var(--duration-normal) var(--ease-in-out-quart);
-}
-.page-pixelate-enter-from { opacity: 0; transform: scale(1.1); filter: blur(12px); }
-.page-pixelate-leave-to   { opacity: 0; transform: scale(0.9); filter: blur(8px); }
 
 .pixel-tag {
   font-family: 'JetBrains Mono', monospace;

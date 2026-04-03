@@ -23,7 +23,8 @@ const STORAGE_KEYS = {
   STREAK: 'mc-algo-streak',
   LEETCODE_USERNAME: 'mc-algo-leetcode-username',
   LEETCODE_SYNC: 'mc-algo-leetcode-sync',
-  REVIEW_REMINDER: 'mc-algo-review-reminder',
+  REVIEWS: 'mc-algo-reviews',
+  REVIEW_REMINDER: 'mc-algo-reviews',
   PROBLEM_NOTES: 'mc-algo-problem-notes',
   PROBLEM_FAVORITES: 'mc-algo-problem-favorites',
   BLOG_POSTS: 'mc-algo-blog-posts'

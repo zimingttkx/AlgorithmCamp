@@ -47,6 +47,7 @@ const emit = defineEmits(['scroll', 'visible-items-change'])
 const containerRef = ref(null)
 const scrollTop = ref(0)
 const currentContainerHeight = ref(props.containerHeight)
+let resizeObserver = null
 
 // Calculate visible range
 const visibleRange = computed(() => {
@@ -121,12 +122,19 @@ onMounted(() => {
     updateContainerHeight()
 
     if (typeof ResizeObserver !== 'undefined' && containerRef.value) {
-      const resizeObserver = new ResizeObserver(() => {
+      resizeObserver = new ResizeObserver(() => {
         updateContainerHeight()
       })
       resizeObserver.observe(containerRef.value)
     }
   })
+})
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
 })
 
 defineExpose({

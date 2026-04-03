@@ -80,27 +80,41 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { CHAPTERS } from '../composables/data.js'
 import { getProgress } from '../composables/progress.js'
+import { useAuth } from '../composables/auth.js'
+import { useProgressSync } from '../composables/progressSync.js'
 
 const { isZh } = useLang()
+const { isLoggedIn } = useAuth()
+const { loadFromServer, getLocalProgress } = useProgressSync()
+
 const isRotating = ref(false)
 const { doneTotal, totalProblems, donePct } = getProgress()
+const serverProgress = ref(null)
+
+// 优先使用服务器数据，未登录则使用本地数据
+const progress = computed(() => {
+  if (isLoggedIn() && serverProgress.value) {
+    return serverProgress.value
+  }
+  return getLocalProgress()
+})
 
 // Calculate chapter progress
 const chapterProgress = computed(() => {
-  const progress = JSON.parse(localStorage.getItem('mc-algo-progress') || '{}')
+  const prog = progress.value
   const totals = JSON.parse(localStorage.getItem('_chapterTotals') || '{}')
 
   return CHAPTERS.map(ch => {
-    const chapterProblems = progress[ch.id] || {}
+    const chapterProblems = prog[ch.id] || {}
     const done = Object.values(chapterProblems).filter(v => {
       if (typeof v === 'object' && v !== null) return !!v.checked
       return !!v
     }).length
-    const total = totals[ch.id] || Object.keys(chapterProblems).length || 1
+    const total = totals[ch.id] || ch.count || Object.keys(chapterProblems).length || 1
     const pct = Math.round((done / total) * 100)
 
     return {
@@ -156,10 +170,30 @@ const chapterDots = computed(() => {
   return dots
 })
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载服务器数据（如果已登录）
+  if (isLoggedIn()) {
+    const data = await loadFromServer()
+    if (data) {
+      serverProgress.value = data
+    }
+  }
+  
   setTimeout(() => {
     isRotating.value = true
   }, 500)
+})
+
+// 监听登录状态变化
+watch(() => isLoggedIn(), async (loggedIn) => {
+  if (loggedIn) {
+    const data = await loadFromServer()
+    if (data) {
+      serverProgress.value = data
+    }
+  } else {
+    serverProgress.value = null
+  }
 })
 </script>
 

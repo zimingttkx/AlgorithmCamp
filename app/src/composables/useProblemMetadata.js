@@ -52,10 +52,15 @@ async function loadAllMetadata() {
   loadError.value = null
 
   try {
+    // Determine base path for fetching chapter files
+    const basePath = import.meta.env.BASE_URL || '/'
+
     const results = await Promise.all(
       CHAPTERS.map(async (ch) => {
         try {
-          const response = await fetch(ch.file)
+          // Construct absolute path for the chapter file
+          const filePath = ch.file.startsWith('/') ? ch.file : `${basePath}${ch.file}`
+          const response = await fetch(filePath)
           if (!response.ok) return { chapterId: ch.id, sections: [] }
           const md = await response.text()
           return { chapterId: ch.id, sections: parseMdTables(md) }

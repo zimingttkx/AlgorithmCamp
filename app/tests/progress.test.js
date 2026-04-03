@@ -112,7 +112,9 @@ describe('progress.js - getProgress() Global', () => {
 
     const result = getProgress()
     expect(result.doneTotal.value).toBe(3)
-    expect(result.totalProblems.value).toBe(20)
+    // chapter-01 and chapter-02 use localStorage totals (10+10=20)
+    // chapters 3-12 fall back to ch.count (59+70+121+174+687+612+318+505+424+95=3065)
+    expect(result.totalProblems.value).toBe(3085)
   })
 
   it('should handle empty storage gracefully', () => {
@@ -464,8 +466,11 @@ describe('progress.js - Chapter-level Operations', () => {
     const global = getProgress()
 
     expect(global.doneTotal.value).toBe(3)
-    expect(global.totalProblems.value).toBe(20)
-    expect(global.donePct.value).toBe(15)
+    // chapter-01 and chapter-02 use localStorage totals (10+10=20)
+    // chapters 3-12 fall back to ch.count (59+70+121+174+687+612+318+505+424+95=3065)
+    // total = 10 + 10 + 3065 = 3085
+    expect(global.totalProblems.value).toBe(3085)
+    expect(global.donePct.value).toBe(0) // 3/3085 rounds to 0%
   })
 
   it('should handle partial chapter completion', () => {

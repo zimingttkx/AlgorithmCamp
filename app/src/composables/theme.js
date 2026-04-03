@@ -1,6 +1,9 @@
-import { ref, watch } from 'vue'
+import { ref, watch, getCurrentInstance } from 'vue'
 
 const isDark = ref(true)
+
+// Watch cleanup flag
+let watchCleanup = null
 
 export function useTheme() {
   function toggle() {
@@ -12,6 +15,12 @@ export function useTheme() {
     if (saved === 'light') { isDark.value = false }
     document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
   }
-  watch(isDark, v => localStorage.setItem('theme', v ? 'dark' : 'light'))
+  
+  // Only create watch once, in component context
+  if (!watchCleanup && getCurrentInstance()) {
+    const stop = watch(isDark, v => localStorage.setItem('theme', v ? 'dark' : 'light'))
+    watchCleanup = stop
+  }
+  
   return { isDark, toggle, init }
 }

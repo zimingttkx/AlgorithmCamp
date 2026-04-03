@@ -232,29 +232,37 @@ export function usePracticeGoal() {
     const today = getTodayStr()
     const yesterday = getDateStrDaysAgo(1)
 
-    // Check if already practiced today (streak already updated)
+    // If already practiced today, streak already updated
     if (streak.value.lastPracticeDate === today) {
       return
     }
 
     // Check if practiced yesterday or today
-    if (history.value[today]?.count > 0 || history.value[yesterday]?.count > 0) {
-      // If last practice was yesterday, increment streak
-      if (streak.value.lastPracticeDate === yesterday) {
-        streak.value.currentStreak++
-      } else if (streak.value.lastPracticeDate !== today) {
-        // Streak broken, start new streak
-        streak.value.currentStreak = 1
-      }
+    const practicedToday = history.value[today]?.count > 0
+    const practicedYesterday = history.value[yesterday]?.count > 0
 
-      // Update longest streak if needed
-      if (streak.value.currentStreak > streak.value.longestStreak) {
-        streak.value.longestStreak = streak.value.currentStreak
-      }
-
-      streak.value.lastPracticeDate = today
-      saveStreak(streak.value)
+    if (!practicedToday && !practicedYesterday) {
+      // No practice yesterday or today, don't change streak
+      return
     }
+
+    // If last practice was yesterday and practiced today, increment streak
+    if (streak.value.lastPracticeDate === yesterday && practicedToday) {
+      streak.value.currentStreak++
+    } else if (streak.value.lastPracticeDate !== today) {
+      // Either first practice ever, or streak was broken (gap > 1 day)
+      // Start new streak
+      streak.value.currentStreak = 1
+    }
+    // If last practice was today but we returned early, do nothing
+
+    // Update longest streak if needed
+    if (streak.value.currentStreak > streak.value.longestStreak) {
+      streak.value.longestStreak = streak.value.currentStreak
+    }
+
+    streak.value.lastPracticeDate = today
+    saveStreak(streak.value)
   }
 
   /**

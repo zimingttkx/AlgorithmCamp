@@ -7,10 +7,8 @@
     <canvas ref="ambientCanvas" id="ambient-canvas"></canvas>
     <NavBar />
     <main id="main-content">
-    <router-view v-slot="{ Component }">
-      <transition name="page" mode="out-in">
-        <component :is="Component" />
-      </transition>
+    <router-view v-slot="{ Component, route }">
+      <component :is="Component" :key="route.path" />
     </router-view>
     </main>
     <!-- ARIA Live Region for Screen Reader Announcements -->
@@ -71,11 +69,15 @@ import { initA11y, useA11y } from './composables/useA11y.js'
 import { initKeyboardShortcuts, useKeyboardShortcuts, getAllShortcuts } from './composables/useKeyboardShortcuts.js'
 import { useAnimationPerformance } from './composables/useAnimationPerformance.js'
 import { useCoreWebVitals } from './composables/useCoreWebVitals.js'
+import { useSync } from './composables/sync.js'
 
 const router = useRouter()
-const { isDark, toggle: toggleTheme } = useTheme()
+const { isDark, toggle: toggleTheme, init: initTheme } = useTheme()
 const { toggle: toggleLang } = useLang()
 const { isMobile, isTablet, isSplitScreen, splitScreenType, viewportWidth } = useResponsive()
+
+// 初始化同步系统
+const { syncing, lastSync } = useSync()
 
 // Core Web Vitals monitoring
 const { getMetrics, getScore, THRESHOLDS } = useCoreWebVitals({ debug: true })
@@ -403,6 +405,12 @@ onUnmounted(() => {
     rgba(0,0,0,var(--scanline-opacity, 0.04)) 2px,
     rgba(0,0,0,var(--scanline-opacity, 0.04)) 4px
   );
+}
+
+/* Main content must be above canvases and scanlines */
+main {
+  position: relative;
+  z-index: 10;
 }
 
 /* Theme transitions - only applied to interactive elements */

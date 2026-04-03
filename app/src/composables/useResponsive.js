@@ -3,7 +3,7 @@
  * Provides breakpoint-aware responsive state management
  */
 
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 
 // Breakpoint values
 const BREAKPOINTS = {
@@ -36,18 +36,21 @@ export function useResponsive() {
     viewportHeight.value = window.innerHeight
   }
 
-  onMounted(() => {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', handleResize, { passive: true })
-      handleResize()
-    }
-  })
+  // Only register lifecycle hooks if in component context
+  if (getCurrentInstance()) {
+    onMounted(() => {
+      if (typeof window !== 'undefined') {
+        window.addEventListener('resize', handleResize, { passive: true })
+        handleResize()
+      }
+    })
 
-  onUnmounted(() => {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('resize', handleResize)
-    }
-  })
+    onUnmounted(() => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize)
+      }
+    })
+  }
 
   return {
     viewportWidth,

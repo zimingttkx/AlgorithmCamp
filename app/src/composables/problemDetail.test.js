@@ -16,7 +16,19 @@ Object.defineProperty(global, 'localStorage', { value: localStorageMock })
 
 // Mock document
 global.document = {
-  querySelector: vi.fn()
+  createElement: vi.fn(() => ({
+    style: {},
+    appendChild: vi.fn(),
+    removeChild: vi.fn(),
+    setAttribute: vi.fn(),
+    getAttribute: vi.fn(),
+    contains: vi.fn(() => false)
+  })),
+  querySelector: vi.fn(),
+  body: {
+    appendChild: vi.fn(),
+    removeChild: vi.fn()
+  }
 }
 
 describe('useProblemDetail', () => {

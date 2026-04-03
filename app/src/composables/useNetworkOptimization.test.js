@@ -49,16 +49,28 @@ describe('useNetworkOptimization', () => {
 
     it('should handle abort signal', async () => {
       const controller = new AbortController()
+      let rejectFn = null
 
       global.fetch = vi.fn().mockImplementation((url, options) => {
-        options.signal.addEventListener('abort', () => {})
-        return new Promise(() => {}) // Never resolves
+        return new Promise((resolve, reject) => {
+          rejectFn = reject
+          if (options.signal) {
+            options.signal.addEventListener('abort', () => {
+              const err = new Error('The user aborted the request.')
+              err.name = 'AbortError'
+              reject(err)
+            })
+          }
+          // Never resolves (simulating long request)
+        })
       })
 
       const promise = fetchWithAbort('https://api.example.com/data', {}, controller.signal)
 
+      // Trigger abort immediately via the external controller
       controller.abort()
 
+      // The promise should reject with AbortError
       await expect(promise).rejects.toThrow()
     })
   })

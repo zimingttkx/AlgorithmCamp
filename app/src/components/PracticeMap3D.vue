@@ -18,7 +18,7 @@
           </div>
           <div class="fb-title" :style="{ opacity: isLevelUnlocked(i) ? 1 : 0.4 }">{{ ch.short }}</div>
           <div class="fb-done" :style="{color: isLevelUnlocked(i) ? ch.light : '#555'}">
-            {{ countDone(ch.id) }} / {{ totals[ch.id] || '?' }}
+            {{ countDone(ch.id) }} / {{ totals[ch.id] || ch.count || '?' }}
           </div>
           <div class="fb-bar"><div class="fb-bar-inner" :style="{width: pct(ch)+'%', background: isLevelUnlocked(i) ? ch.light : '#334'}"></div></div>
         </div>
@@ -35,7 +35,7 @@
     <!-- Level hover tooltip -->
     <div v-if="hoverChapter && focusState === 'overview' && !isMobile" class="worldmap-tooltip pixel-card">
       <div class="tt-name" :style="{color: hoverChapter.light}">{{ hoverChapter.title }}</div>
-      <div class="tt-stat">{{ countDone(hoverChapter.id) }} / {{ totals[hoverChapter.id] || '?' }} {{ isZh ? '题' : 'solved' }} · {{ pct(hoverChapter) }}%</div>
+      <div class="tt-stat">{{ countDone(hoverChapter.id) }} / {{ totals[hoverChapter.id] || hoverChapter.count || '?' }} {{ isZh ? '题' : 'solved' }} · {{ pct(hoverChapter) }}%</div>
     </div>
 
     <!-- Section panel -->
@@ -112,7 +112,7 @@ function countDone(id) {
   return Object.values(props.progress[id]).filter(Boolean).length
 }
 function pct(ch) {
-  const t = props.totals[ch.id] || 0
+  const t = props.totals[ch.id] || ch.count || 0
   return t ? Math.round(countDone(ch.id) / t * 100) : 0
 }
 function isChecked(chId, probId) {
@@ -127,7 +127,7 @@ function isLevelUnlocked(i) {
 
 const conqueredCount = computed(() =>
   props.chapters.filter(ch => {
-    const t = props.totals[ch.id] || 0
+    const t = props.totals[ch.id] || ch.count || 0
     return t > 0 && countDone(ch.id) >= t
   }).length
 )
@@ -196,8 +196,21 @@ let ctx = null
 let levels = []
 let hoveredIdx = -1
 const mouse = { x: -999, y: -999 }
+let canvasEl = null
+let onResizeHandler = null
+let onMouseMoveHandler = null
+let onMouseLeaveHandler = null
+let onClickHandler = null
 
-onUnmounted(() => { if (animId) cancelAnimationFrame(animId) })
+onUnmounted(() => {
+  if (animId) cancelAnimationFrame(animId)
+  if (canvasEl) {
+    canvasEl.removeEventListener('mousemove', onMouseMoveHandler)
+    canvasEl.removeEventListener('mouseleave', onMouseLeaveHandler)
+    canvasEl.removeEventListener('click', onClickHandler)
+  }
+  if (onResizeHandler) window.removeEventListener('resize', onResizeHandler)
+})
 
 onMounted(() => {
   isMobile.value = window.innerWidth < 768
@@ -209,6 +222,7 @@ onMounted(() => {
   el.width = w
   el.height = h
   ctx = el.getContext('2d')
+  canvasEl = el
 
   // Level positions (serpentine path)
   const cols = 4, rows = 3
@@ -224,14 +238,14 @@ onMounted(() => {
     levels.push({ x, y, chapter: props.chapters[i], index: i })
   }
 
-  // Mouse events
-  el.addEventListener('mousemove', (e) => {
+  // Mouse events — use named functions so they can be removed on unmount
+  onMouseMoveHandler = (e) => {
     const rect = el.getBoundingClientRect()
     mouse.x = e.clientX - rect.left
     mouse.y = e.clientY - rect.top
-  })
-  el.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999 })
-  el.addEventListener('click', () => {
+  }
+  onMouseLeaveHandler = () => { mouse.x = -999; mouse.y = -999 }
+  onClickHandler = () => {
     if (focusState.value === 'overview' && hoveredIdx >= 0) {
       const ch = props.chapters[hoveredIdx]
       if (!isLevelUnlocked(hoveredIdx)) return
@@ -239,7 +253,10 @@ onMounted(() => {
       focusState.value = 'focused'
       loadSections(ch)
     }
-  })
+  }
+  el.addEventListener('mousemove', onMouseMoveHandler)
+  el.addEventListener('mouseleave', onMouseLeaveHandler)
+  el.addEventListener('click', onClickHandler)
 
   // Animation loop
   function animate() {
@@ -281,7 +298,7 @@ onMounted(() => {
       const ch = lv.chapter
       const unlocked = isLevelUnlocked(i)
       const done = countDone(ch.id)
-      const total = props.totals[ch.id] || 0
+      const total = props.totals[ch.id] || ch.count || 0
       const completed = total > 0 && done >= total
       const isHovered = hoveredIdx === i
 

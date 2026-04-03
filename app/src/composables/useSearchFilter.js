@@ -29,27 +29,25 @@ function debounce(fn, delay) {
   }
 }
 
+// Singleton state - shared across all callers of useSearchFilter()
+const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
+const difficultyFilter = ref(DIFFICULTY_LEVELS.NONE)
+const statusFilter = ref(STATUS_FILTERS.ALL)
+const chapterFilter = ref(null) // null means all chapters
+
+// Debounce the search query (150ms delay for < 100ms response)
+let debounceTimer = null
+watch(searchQuery, (newVal) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    debouncedSearchQuery.value = newVal
+  }, 150)
+})
+
 export function useSearchFilter() {
-  // Search and filter state
-  const searchQuery = ref('')
-  const debouncedSearchQuery = ref('')
-  const difficultyFilter = ref(DIFFICULTY_LEVELS.NONE)
-  const statusFilter = ref(STATUS_FILTERS.ALL)
-  const chapterFilter = ref(null) // null means all chapters
-
-  // Debounce the search query (150ms delay for < 100ms response)
-  let debounceTimer = null
-  watch(searchQuery, (newVal) => {
-    if (debounceTimer) clearTimeout(debounceTimer)
-    debounceTimer = setTimeout(() => {
-      debouncedSearchQuery.value = newVal
-    }, 150)
-  })
-
-  // Cache for filtered results
-  let cachedMdCache = null
-  let cachedProgress = null
-  let cachedReviews = null
+  // Cache for filtered results (module-level singleton)
+  // Note: cache is per-instance because filterProblems receives mdCache/progress as params
   let cachedResult = null
   let cacheKey = ''
 
@@ -119,7 +117,7 @@ export function useSearchFilter() {
       case STATUS_FILTERS.DONE:
         return isChecked && !hasReview
       case STATUS_FILTERS.REVIEW:
-        return hasReview
+        return !!hasReview
       default:
         return true
     }
@@ -141,7 +139,7 @@ export function useSearchFilter() {
    * @returns {array} - Filtered problems with chapter info
    */
   function filterProblems(mdCache, progress, reviews) {
-    const query = debouncedSearchQuery.value.trim().toLowerCase()
+    const query = searchQuery.value.trim().toLowerCase()
     const diffFilter = difficultyFilter.value
     const statFilter = statusFilter.value
     const chFilter = chapterFilter.value
@@ -155,8 +153,24 @@ export function useSearchFilter() {
 
     const results = []
 
-    // Early return if no filters active - return empty array (caller should handle this)
+    // If no filters are active, return all problems
     if (!query && diffFilter === DIFFICULTY_LEVELS.NONE && statFilter === STATUS_FILTERS.ALL && !chFilter) {
+      // Return all problems without filtering
+      for (const chapter of CHAPTERS) {
+        const sections = mdCache[chapter.id]
+        if (!sections) continue
+        for (const section of sections) {
+          for (const problem of section.rows) {
+            results.push({
+              ...problem,
+              chapterId: chapter.id,
+              chapterTitle: chapter.title,
+              sectionH2: section.h2,
+              sectionH3: section.h3
+            })
+          }
+        }
+      }
       cachedResult = results
       return results
     }
@@ -205,7 +219,7 @@ export function useSearchFilter() {
   function filterChapterProblems(chapterId, sections, progress, reviews) {
     if (!sections) return []
 
-    const query = debouncedSearchQuery.value.trim().toLowerCase()
+    const query = searchQuery.value.trim().toLowerCase()
     const diffFilter = difficultyFilter.value
     const statFilter = statusFilter.value
 

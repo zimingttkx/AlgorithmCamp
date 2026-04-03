@@ -36,23 +36,28 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { CHAPTERS } from '../composables/data.js'
+import { useAuth } from '../composables/auth.js'
+import { useProgressSync } from '../composables/progressSync.js'
 
 const { isZh } = useLang()
+const { isLoggedIn } = useAuth()
+const { loadFromServer, getLocalProgress } = useProgressSync()
+
 const canvas = ref(null)
 const canvasSize = 280
+const serverProgress = ref(null)
 
 // Animation visibility control
 const isVisible = ref(true)
 let visibilityObserver = null
 let animFrame = null
 
-// Load progress data
+// 优先使用服务器数据，未登录则使用本地数据
 const progress = computed(() => {
-  try {
-    return JSON.parse(localStorage.getItem('mc-algo-progress') || '{}')
-  } catch {
-    return {}
+  if (isLoggedIn() && serverProgress.value) {
+    return serverProgress.value
   }
+  return getLocalProgress()
 })
 
 const totals = computed(() => {
@@ -67,7 +72,7 @@ const totals = computed(() => {
 const abilityData = computed(() => {
   return CHAPTERS.map(ch => {
     const chapterProgress = progress.value[ch.id] || {}
-    const total = totals.value[ch.id] || Object.keys(chapterProgress).length || 1
+    const total = totals.value[ch.id] || ch.count || Object.keys(chapterProgress).length || 1
     const done = Object.values(chapterProgress).filter(v => {
       if (typeof v === 'object' && v !== null) return !!v.checked
       return !!v
@@ -257,7 +262,15 @@ function initVisibilityObserver() {
   visibilityObserver.observe(canvas.value)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载服务器数据（如果已登录）
+  if (isLoggedIn()) {
+    const data = await loadFromServer()
+    if (data) {
+      serverProgress.value = data
+    }
+  }
+  
   initVisibilityObserver()
   startAnimation()
 })
@@ -266,6 +279,18 @@ onUnmounted(() => {
   stopAnimation()
   if (visibilityObserver) {
     visibilityObserver.disconnect()
+  }
+})
+
+// 监听登录状态变化
+watch(() => isLoggedIn(), async (loggedIn) => {
+  if (loggedIn) {
+    const data = await loadFromServer()
+    if (data) {
+      serverProgress.value = data
+    }
+  } else {
+    serverProgress.value = null
   }
 })
 

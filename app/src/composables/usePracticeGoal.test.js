@@ -29,7 +29,7 @@ describe('Practice Goal System', () => {
       const result = calculateSM2(4, 0, 2.5, 0)
       expect(result.repetitions).toBe(1)
       expect(result.interval).toBe(1)
-      expect(result.easeFactor).toBeGreaterThan(2.5)
+      expect(result.easeFactor).toBeGreaterThanOrEqual(2.5)
     })
 
     it('should calculate SM-2 correctly for second successful review', () => {

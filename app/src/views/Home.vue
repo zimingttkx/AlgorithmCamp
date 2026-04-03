@@ -14,8 +14,8 @@
           <h1 class="hero-name pixel-font glow-blue">zimingttkx</h1>
           <div class="hero-title glow-cyan">{{ t('ComputerScience · Math', 'ComputerScience · Math') }}</div>
           <p class="hero-desc">{{ t(
-            '热爱技术、热爱竞技编程，探索 AI 与安全的交叉地带。405⭐ ML教程、153⭐ 网络安全检测系统、48⭐ C++20 从零实现。',
-            'Passionate about competitive programming and AI security. 405⭐ ML Tutorial, 153⭐ Network Security System, 48⭐ C++20 from-scratch.'
+            'C++ Python Algorithm 高性能 CUDA HPC ODE PDE 数值计算 Optimized Algebra ML DL RL',
+            'C++ Python Algorithm High Performance CUDA HPC ODE PDE Numerical Computing Optimized Algebra ML DL RL'
           ) }}</p>
           <div class="hero-level">
             <span style="font-size:.85rem;color:var(--mc-gold)">LV.{{ heroLevel.level }}</span>
@@ -33,7 +33,7 @@
         <div class="hero-right">
           <div class="hero-avatar-wrap perspective-container" @click="openAvatarZoom">
             <div class="avatar-3d-effect">
-              <img :src="avatar" alt="Profile avatar of zimingttkx" class="hero-avatar hover-3d pinch-zoom-image" loading="lazy" @error="avatarFallback"
+              <img :src="avatar" alt="Profile avatar of zimingttkx" class="hero-avatar hover-3d pinch-zoom-image" @error="avatarFallback"
                 @touchstart="handleAvatarTouchStart"
                 @touchmove="handleAvatarTouchMove"
                 @touchend="handleAvatarTouchEnd" />
@@ -284,7 +284,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { CHAPTERS, BLOG_POSTS } from '../composables/data.js'
 import { getProgress } from '../composables/progress.js'
 import { useLang } from '../composables/i18n.js'
@@ -294,13 +294,15 @@ import { calcLevel, CONFIG as STATS_CONFIG } from '../composables/stats.js'
 
 const { isZh, t } = useLang()
 
-const avatar = ref('avatar.png')
+const avatar = ref(import.meta.env.BASE_URL + 'avatar.png')
 const stats = ref({ repos: '—', stars: 606, followers: '—' })
 const chapters = CHAPTERS
 const latestPosts = BLOG_POSTS.slice(0, 3)
 const modalProject = ref(null)
 const ghStats = ref({ totalCommits: 0, calendar: {} })
 const particleCanvasEl = ref(null)
+let stopHeroParticles = null
+let revealObs = null
 const heroLevel = computed(() => {
   const xp = (ghStats.value.totalCommits || 0) * STATS_CONFIG.xpPerCommit
   return calcLevel(xp)
@@ -480,10 +482,10 @@ const featuredProjects = [
   },
 ]
 
-// Initialize hero particle animation
+// Initialize hero particle animation — returns cleanup function
 function initHeroParticles() {
   const canvas = particleCanvasEl.value
-  if (!canvas) return
+  if (!canvas) return () => {}
   const ctx = canvas.getContext('2d')
   let animationId
   let particles = []
@@ -575,7 +577,11 @@ function initHeroParticles() {
   init()
   animate()
 
-  // Cleanup on component unmount would go here if needed
+  // Return cleanup function — called on component unmount
+  return () => {
+    cancelAnimationFrame(animationId)
+    window.removeEventListener('resize', resize)
+  }
 }
 
 async function loadGitHub() {
@@ -601,13 +607,18 @@ async function loadStats() {
 onMounted(() => {
   loadGitHub()
   loadStats()
-  const obs = new IntersectionObserver((entries) => {
+  revealObs = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') })
   }, { threshold: 0.1 })
-  document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el))
 
-  // Initialize hero particle animation
-  initHeroParticles()
+  // Initialize hero particle animation and store its cleanup function
+  stopHeroParticles = initHeroParticles()
+})
+
+onUnmounted(() => {
+  stopHeroParticles?.()
+  revealObs?.disconnect()
 })
 </script>
 

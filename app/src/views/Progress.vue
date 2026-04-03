@@ -20,25 +20,15 @@
       </header>
 
       <!-- Main visualizations grid -->
-      <div class="viz-grid">
-        <!-- Left column: Globe + Radar -->
-        <div class="viz-column viz-column-left">
-          <div class="viz-card viz-card-globe">
-            <ProgressGlobe />
-          </div>
-          <div class="viz-card viz-card-radar">
-            <AbilityRadar />
-          </div>
+      <div class="viz-grid viz-grid-3col">
+        <div class="viz-card viz-card-globe">
+          <ProgressGlobe />
         </div>
-
-        <!-- Right column: Roadmap + Duration -->
-        <div class="viz-column viz-column-right">
-          <div class="viz-card viz-card-roadmap">
-            <PracticeRoadmap />
-          </div>
-          <div class="viz-card viz-card-duration">
-            <DurationStats />
-          </div>
+        <div class="viz-card viz-card-radar">
+          <AbilityRadar />
+        </div>
+        <div class="viz-card viz-card-chart">
+          <ProgressChart />
         </div>
       </div>
 
@@ -97,31 +87,81 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { CHAPTERS } from '../composables/data.js'
 import { getProgress } from '../composables/progress.js'
+import { useAuth } from '../composables/auth.js'
+import { useProgressSync } from '../composables/progressSync.js'
 import ProgressGlobe from '../components/ProgressGlobe.vue'
 import AbilityRadar from '../components/AbilityRadar.vue'
-import PracticeRoadmap from '../components/PracticeRoadmap.vue'
-import DurationStats from '../components/DurationStats.vue'
+import ProgressChart from '../components/ProgressChart.vue'
 
 const { isZh } = useLang()
-const { doneTotal, totalProblems, donePct } = getProgress()
+const { isLoggedIn } = useAuth()
+const { loadFromServer, getLocalProgress } = useProgressSync()
+
+// 本地进度
+const localProgress = computed(() => getLocalProgress())
+
+// 服务器进度（用于显示）
+const serverProgress = ref(null)
+const loading = ref(false)
+
+// 决定使用哪个数据源
+const progress = computed(() => {
+  if (isLoggedIn() && serverProgress.value) {
+    return serverProgress.value
+  }
+  return localProgress.value
+})
+
+// 计算刷题统计
+const { doneTotal, totalProblems } = getProgress()
+
+// 实际显示的总数（基于progress计算）
+const displayDoneTotal = computed(() => {
+  let done = 0
+  for (const ch of CHAPTERS) {
+    const chapter = progress.value[ch.id] || {}
+    for (const prob in chapter) {
+      const item = chapter[prob]
+      if (item && (item.checked || item)) {
+        done++
+      }
+    }
+  }
+  return done
+})
+
+// 监听登录状态，加载服务器数据
+async function loadServerData() {
+  if (isLoggedIn()) {
+    loading.value = true
+    const data = await loadFromServer()
+    if (data) {
+      serverProgress.value = data
+    }
+    loading.value = false
+  } else {
+    serverProgress.value = null
+  }
+}
+
+// 页面加载时检查登录状态
+onMounted(() => {
+  loadServerData()
+})
+
+// 监听登录状态变化
+watch(() => isLoggedIn(), () => {
+  loadServerData()
+}, { immediate: true })
 
 // Load totals
 const totals = computed(() => {
   try {
     return JSON.parse(localStorage.getItem('_chapterTotals') || '{}')
-  } catch {
-    return {}
-  }
-})
-
-// Load progress
-const progress = computed(() => {
-  try {
-    return JSON.parse(localStorage.getItem('mc-algo-progress') || '{}')
   } catch {
     return {}
   }
@@ -139,7 +179,7 @@ const targetProblems = computed(() => {
 // Efficiency rate
 const efficiencyRate = computed(() => {
   if (targetProblems.value === 0) return 0
-  return Math.round((doneTotal.value / targetProblems.value) * 100)
+  return Math.round((displayDoneTotal.value / targetProblems.value) * 100)
 })
 
 // Chapters cleared
@@ -147,7 +187,7 @@ const chaptersCleared = computed(() => {
   let cleared = 0
   for (const ch of CHAPTERS) {
     const chapterProgress = progress.value[ch.id] || {}
-    const total = totals.value[ch.id] || Object.keys(chapterProgress).length || 1
+    const total = totals.value[ch.id] || ch.count || Object.keys(chapterProgress).length || 1
     const done = Object.values(chapterProgress).filter(v => {
       if (typeof v === 'object' && v !== null) return !!v.checked
       return !!v
@@ -164,7 +204,7 @@ const improvementTips = computed(() => {
   // Analyze weak chapters
   const chapterStats = CHAPTERS.map(ch => {
     const chapterProgress = progress.value[ch.id] || {}
-    const total = totals.value[ch.id] || Object.keys(chapterProgress).length || 1
+    const total = totals.value[ch.id] || ch.count || Object.keys(chapterProgress).length || 1
     const done = Object.values(chapterProgress).filter(v => {
       if (typeof v === 'object' && v !== null) return !!v.checked
       return !!v
@@ -316,6 +356,10 @@ const improvementTips = computed(() => {
   margin-bottom: 32px;
 }
 
+.viz-grid-3col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
 .viz-column {
   display: flex;
   flex-direction: column;
@@ -447,9 +491,16 @@ const improvementTips = computed(() => {
   .viz-grid {
     grid-template-columns: 1fr;
   }
+  .viz-grid-3col {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 768px) {
+  .viz-grid-3col {
+    grid-template-columns: 1fr;
+  }
+
   .quick-stats {
     flex-wrap: wrap;
     gap: 16px;

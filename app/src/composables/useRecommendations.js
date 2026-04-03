@@ -12,7 +12,7 @@
 import { ref, computed } from 'vue'
 import { CHAPTERS } from './data.js'
 
-const REVIEW_KEY = 'mc-algo-review'
+const REVIEW_KEY = 'mc-algo-reviews'
 const SETTINGS_KEY = 'mc-algo-recommend-settings'
 
 // Default interval multipliers for SM-2 (in days)
@@ -147,6 +147,8 @@ export function useRecommendations() {
   function getChapterRecommendations(progress, mdCache, limit = 10) {
     const recommendations = []
     const proficiency = getChapterProficiency(progress, mdCache)
+    const solved = getSolvedProblemsWithRating(progress, mdCache)
+    const skillLevel = calculateSkillLevel(solved)
 
     // Score chapters: prefer partially completed (more than 20% but less than 100%)
     for (const ch of CHAPTERS) {
@@ -167,8 +169,9 @@ export function useRecommendations() {
 
           // Calculate priority score
           const baseScore = 50 + completionRate * 50 // 50-100 based on chapter progress
+          // Difficulty bonus: reward problems that are slightly above user's skill level
           const difficultyBonus = row.rating && row.rating !== '—'
-            ? Math.max(0, 30 - Math.abs(parseInt(row.rating) - 1500) / 20)
+            ? Math.max(0, 30 - Math.abs(parseInt(row.rating) - (skillLevel + 200)) / 20)
             : 15
 
           recommendations.push({

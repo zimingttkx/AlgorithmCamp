@@ -2,7 +2,7 @@
  * useDebounce - Debounce and throttle utilities for performance optimization
  * Helps reduce the frequency of function calls during rapid events like scrolling, resizing, and typing
  */
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, watch, onUnmounted, getCurrentInstance } from 'vue'
 
 /**
  * Creates a debounced version of a function
@@ -41,7 +41,10 @@ export function useDebounce(fn, delay = 300) {
     fn.apply(this, args)
   }
 
-  onUnmounted(cancel)
+  // Only register cleanup if in component context
+  if (getCurrentInstance()) {
+    onUnmounted(cancel)
+  }
 
   return {
     debouncedFn,
@@ -102,7 +105,10 @@ export function useThrottle(fn, limit = 300, options = { leading: true, trailing
     }
   }
 
-  onUnmounted(cancel)
+  // Only register cleanup if in component context
+  if (getCurrentInstance()) {
+    onUnmounted(cancel)
+  }
 
   return {
     throttledFn,
@@ -135,11 +141,14 @@ export function useDebouncedRef(source, delay = 300) {
     }, delay)
   })
 
-  onUnmounted(() => {
-    if (timer) {
-      clearTimeout(timer)
-    }
-  })
+  // Only register cleanup if in component context
+  if (getCurrentInstance()) {
+    onUnmounted(() => {
+      if (timer) {
+        clearTimeout(timer)
+      }
+    })
+  }
 
   return {
     debouncedValue,
@@ -192,11 +201,14 @@ export function useThrottledRef(source, limit = 100) {
     }
   })
 
-  onUnmounted(() => {
-    if (timer) {
-      clearTimeout(timer)
-    }
-  })
+  // Only register cleanup if in component context
+  if (getCurrentInstance()) {
+    onUnmounted(() => {
+      if (timer) {
+        clearTimeout(timer)
+      }
+    })
+  }
 
   return {
     throttledValue,
