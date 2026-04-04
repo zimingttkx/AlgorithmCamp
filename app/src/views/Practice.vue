@@ -417,7 +417,7 @@ const { isZh } = useLang()
 const { recordPractice } = usePracticeGoal()
 
 const { isLoggedIn, login, logout } = useAuth()
-const { syncStatus, syncError, loadFromServer, saveProgress: serverSaveProgress } = useProgressSync()
+const { syncStatus, syncError, loadFromServer, saveProgress: serverSaveProgress, mergeProgress } = useProgressSync()
 
 const PROGRESS_KEY = 'mc-algo-progress'
 const TOTALS_KEY  = '_chapterTotals'
@@ -729,11 +729,14 @@ function updateTotals(ch) {
 }
 
 async function syncOnLoad() {
-  loadStorage()
+  loadStorage()  // 先用本地缓存快速渲染
   if (!isLoggedIn()) return
   const serverProgress = await loadFromServer()
-  if (serverProgress) {
-    loadStorage()
+  // 只有服务器有实际数据时才合并
+  if (serverProgress && Object.keys(serverProgress).length > 0) {
+    const merged = mergeProgress(progress.value, serverProgress)
+    progress.value = merged
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(merged))
   }
 }
 

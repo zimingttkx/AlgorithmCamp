@@ -109,35 +109,27 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useLang } from '../composables/i18n.js'
+import { useProgress } from '../composables/progress.js'
 import { useAuth } from '../composables/auth.js'
 import { useProgressSync } from '../composables/progressSync.js'
 
 const { isZh } = useLang()
 const { isLoggedIn } = useAuth()
-const { loadFromServer, getLocalProgress } = useProgressSync()
+const { loadFromServer } = useProgressSync()
+
+// 使用共享的 progress store
+const { progressData } = useProgress()
 
 const chartRef = ref(null)
 const width = ref(400)
 const height = 200
 const padding = { top: 20, right: 20, bottom: 40, left: 40 }
 
-const serverProgress = ref(null)
-
-// 优先使用服务器数据，未登录则使用本地数据
-const progress = computed(() => {
-  if (isLoggedIn() && serverProgress.value) {
-    return serverProgress.value
-  }
-  return getLocalProgress()
-})
-
 onMounted(async () => {
   // 加载服务器数据（如果已登录）
+  // loadFromServer 内部已经会调用 setProgress() 更新共享 store
   if (isLoggedIn()) {
-    const data = await loadFromServer()
-    if (data) {
-      serverProgress.value = data
-    }
+    loadFromServer()
   }
 
   // Update width based on container
@@ -147,14 +139,9 @@ onMounted(async () => {
 })
 
 // 监听登录状态变化
-watch(() => isLoggedIn(), async (loggedIn) => {
+watch(() => isLoggedIn(), (loggedIn) => {
   if (loggedIn) {
-    const data = await loadFromServer()
-    if (data) {
-      serverProgress.value = data
-    }
-  } else {
-    serverProgress.value = null
+    loadFromServer()
   }
 })
 
@@ -162,8 +149,8 @@ watch(() => isLoggedIn(), async (loggedIn) => {
 const chartData = computed(() => {
   const data = []
 
-  for (const chapterId in progress.value) {
-    const chapter = progress.value[chapterId]
+  for (const chapterId in progressData.value) {
+    const chapter = progressData.value[chapterId]
     for (const probId in chapter) {
       const item = chapter[probId]
       if (item && item.timestamp) {

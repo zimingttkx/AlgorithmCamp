@@ -1,0 +1,51 @@
+# AlgorithmCamp
+
+A Vue 3 algorithm practice platform with dark neon theme.
+
+## Tech Stack
+
+- **Frontend**: Vue 3, Vite, Vue Router
+- **Backend**: Express.js, MongoDB
+- **Build**: GitHub Actions, GitHub Pages
+- **Testing**: Vitest (unit), Playwright (E2E)
+
+## Project Structure
+
+```
+app/
+├── src/
+│   ├── components/    # Vue components
+│   ├── views/         # Page views
+│   ├── composables/   # Vue composables
+│   └── public/       # Static assets
+├── tests/            # Unit tests
+├── e2e/              # Playwright E2E tests
+└── public/docs/      # Algorithm chapter docs
+server/
+├── routes/          # Express API routes
+├── db/              # Database (MongoDB)
+└── middleware/      # Express middleware
+```
+
+## Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run tests
+npm test
+
+# Run E2E tests
+npx playwright test
+```
+
+## Environment Variables
+
+See `.env.example` files for required environment variables.

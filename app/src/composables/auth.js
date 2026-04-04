@@ -93,9 +93,16 @@ export function useAuth() {
         user.value = data.user
         return true
       }
-    } catch {}
-    user.value = null
-    return false
+      // 401/403 = 真正的认证失败
+      if (res.status === 401 || res.status === 403) {
+        user.value = null
+      }
+      return false
+    } catch (e) {
+      // 网络错误不应登出用户
+      console.warn('[Auth] Refresh network error:', e.message)
+      return false
+    }
   }
 
   // 启动时检查登录状态

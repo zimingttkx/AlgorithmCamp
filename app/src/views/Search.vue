@@ -239,9 +239,9 @@ const { throttledFn: onVirtualScroll } = useThrottle((event) => {
   // Virtual scroll handled internally, but we track for analytics
 }, 16)
 
-// Cleanup throttle on unmount
+// Cleanup - throttle doesn't have cancel, just let it expire
 onUnmounted(() => {
-  onVirtualScroll.cancel()
+  // Throttled functions auto-expire, no cleanup needed
 })
 
 function resetAll() {

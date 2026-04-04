@@ -36,30 +36,26 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useLang } from '../composables/i18n.js'
 import { CHAPTERS } from '../composables/data.js'
+import { useProgress } from '../composables/progress.js'
 import { useAuth } from '../composables/auth.js'
 import { useProgressSync } from '../composables/progressSync.js'
 
 const { isZh } = useLang()
 const { isLoggedIn } = useAuth()
-const { loadFromServer, getLocalProgress } = useProgressSync()
+const { loadFromServer } = useProgressSync()
+
+// 使用共享的 progress store
+const { progressData } = useProgress()
 
 const canvas = ref(null)
 const canvasSize = 280
-const serverProgress = ref(null)
 
 // Animation visibility control
 const isVisible = ref(true)
 let visibilityObserver = null
 let animFrame = null
 
-// 优先使用服务器数据，未登录则使用本地数据
-const progress = computed(() => {
-  if (isLoggedIn() && serverProgress.value) {
-    return serverProgress.value
-  }
-  return getLocalProgress()
-})
-
+// 直接使用共享的 progressData
 const totals = computed(() => {
   try {
     return JSON.parse(localStorage.getItem('_chapterTotals') || '{}')
@@ -71,7 +67,7 @@ const totals = computed(() => {
 // Calculate ability data for each chapter category
 const abilityData = computed(() => {
   return CHAPTERS.map(ch => {
-    const chapterProgress = progress.value[ch.id] || {}
+    const chapterProgress = progressData.value[ch.id] || {}
     const total = totals.value[ch.id] || ch.count || Object.keys(chapterProgress).length || 1
     const done = Object.values(chapterProgress).filter(v => {
       if (typeof v === 'object' && v !== null) return !!v.checked
@@ -264,13 +260,11 @@ function initVisibilityObserver() {
 
 onMounted(async () => {
   // 加载服务器数据（如果已登录）
+  // loadFromServer 内部已经会调用 setProgress() 更新共享 store
   if (isLoggedIn()) {
-    const data = await loadFromServer()
-    if (data) {
-      serverProgress.value = data
-    }
+    loadFromServer()
   }
-  
+
   initVisibilityObserver()
   startAnimation()
 })
@@ -283,18 +277,13 @@ onUnmounted(() => {
 })
 
 // 监听登录状态变化
-watch(() => isLoggedIn(), async (loggedIn) => {
+watch(() => isLoggedIn(), (loggedIn) => {
   if (loggedIn) {
-    const data = await loadFromServer()
-    if (data) {
-      serverProgress.value = data
-    }
-  } else {
-    serverProgress.value = null
+    loadFromServer()
   }
 })
 
-watch(progress, () => {
+watch(progressData, () => {
   drawRadar()
 }, { deep: true })
 </script>

@@ -35,7 +35,7 @@ export const CONFIG = {
 
   // 贡献日历颜色（从浅到深）
   calendarColors: [
-    'var(--bg-panel)',   // 0 commits
+    'rgba(255,255,255,0.08)',  // 0 commits - subtle visible gray
     '#0c4a6e',           // 1-2 commits
     '#0369a1',           // 3-5 commits
     '#0284c7',           // 6-9 commits

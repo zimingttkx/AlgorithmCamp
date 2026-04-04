@@ -69,15 +69,15 @@ import { initA11y, useA11y } from './composables/useA11y.js'
 import { initKeyboardShortcuts, useKeyboardShortcuts, getAllShortcuts } from './composables/useKeyboardShortcuts.js'
 import { useAnimationPerformance } from './composables/useAnimationPerformance.js'
 import { useCoreWebVitals } from './composables/useCoreWebVitals.js'
-import { useSync } from './composables/sync.js'
+import { useProgressSync } from './composables/progressSync.js'
 
 const router = useRouter()
 const { isDark, toggle: toggleTheme, init: initTheme } = useTheme()
 const { toggle: toggleLang } = useLang()
 const { isMobile, isTablet, isSplitScreen, splitScreenType, viewportWidth } = useResponsive()
 
-// 初始化同步系统
-const { syncing, lastSync } = useSync()
+// 初始化同步系统（useProgressSync 内部会自动启动定时同步）
+useProgressSync()
 
 // Core Web Vitals monitoring
 const { getMetrics, getScore, THRESHOLDS } = useCoreWebVitals({ debug: true })

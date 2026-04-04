@@ -1,6 +1,6 @@
 /**
  * Progress Sync - 清晰的数据流
- * 
+ *
  * 数据流规则：
  * 1. 未登录 → 使用本地缓存
  * 2. 已登录 → 使用数据库数据
@@ -10,6 +10,7 @@
 
 import { ref, watch } from 'vue'
 import { useAuth } from './auth.js'
+import { useProgress } from './progress.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 const PROGRESS_KEY = 'mc-algo-progress'
@@ -18,6 +19,26 @@ const SYNC_INTERVAL = 60000 // 60秒同步一次
 const syncStatus = ref('idle') // idle | syncing | success | error
 const syncError = ref('')
 let syncTimer = null
+
+// 合并进度数据 (取最新值)
+function mergeProgress(local, server) {
+  const merged = { ...server }
+  for (const chapterId in local) {
+    if (!merged[chapterId]) {
+      merged[chapterId] = local[chapterId]
+      continue
+    }
+    for (const problemId in local[chapterId]) {
+      // local 更新则覆盖 server
+      const serverTime = merged[chapterId][problemId]?.timestamp || 0
+      const localTime = local[chapterId][problemId]?.timestamp || 0
+      if (localTime >= serverTime) {
+        merged[chapterId][problemId] = local[chapterId][problemId]
+      }
+    }
+  }
+  return merged
+}
 
 export function useProgressSync() {
   const { user } = useAuth()
@@ -66,6 +87,13 @@ export function useProgressSync() {
       const data = await res.json()
       const serverProgress = data.progress || {}
       console.log('[Sync] 从服务器加载:', Object.keys(serverProgress).length, '个章节')
+
+      // Update the shared reactive store
+      if (serverProgress && Object.keys(serverProgress).length > 0) {
+        const { setProgress } = useProgress()
+        setProgress(serverProgress)
+      }
+
       syncStatus.value = 'success'
       return serverProgress
     } catch (e) {
@@ -132,10 +160,22 @@ export function useProgressSync() {
     await saveToServer(local)
   }
 
-  // 监听登录状态
-  watch(user, (newUser, oldUser) => {
+  // 监听登录状态 - 先下载再合并
+  watch(user, async (newUser, oldUser) => {
     if (newUser) {
       console.log('[Sync] 用户登录:', newUser.username)
+
+      // 下载服务器数据并与本地合并
+      const serverData = await loadFromServer()
+      const localData = getLocalProgress()
+
+      if (serverData && Object.keys(serverData).length > 0) {
+        const merged = mergeProgress(localData, serverData)
+        setLocalProgress(merged)
+        const { setProgress } = useProgress()
+        setProgress(merged)
+      }
+
       startAutoSync()
     } else if (oldUser) {
       console.log('[Sync] 用户登出')
@@ -150,9 +190,11 @@ export function useProgressSync() {
     setLocalProgress,
     loadFromServer,
     saveToServer,
+    saveProgress: saveToServer, // 别名，兼容 Practice.vue
     syncNow,
     startAutoSync,
     stopAutoSync,
-    isLoggedIn
+    isLoggedIn,
+    mergeProgress // 导出合并函数供外部使用
   }
 }
